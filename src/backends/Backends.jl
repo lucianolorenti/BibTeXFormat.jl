@@ -6,7 +6,7 @@ export BaseBackend,
        LaTeX,
        render_as
 
-using ..RichTextUtils
+using ..RichTextElements
 """This is the base class for the backends. We encourage
 you to implement as many of the symbols and tags as
 possible when you create a new plugin.

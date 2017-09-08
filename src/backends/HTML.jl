@@ -21,7 +21,7 @@ export Backend
 using Base.Test
 import ..Backends.BaseBackend
 import ..Backends.format
-using ..RichTextUtils
+using ..RichTextElements
 import Formatting.sprintf1
 using HttpCommon
 const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">

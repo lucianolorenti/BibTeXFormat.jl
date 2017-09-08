@@ -1,50 +1,26 @@
-# Copyright (c) 2006-2017  Andrey Golovigin
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 """
 (simple but) rich text formatting tools
-Usage:
-```
->> using BibTeX.RichTextUtils
->> using BibTeX.Backends
->> t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"))
->> render_as(t,"LaTex")
+
+```jldoctest
+julia> import BibTeXStyle.RichTextElements: Tag, RichText, render_as
+
+julia> t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"));
+
+julia> render_as(t,"LaTex")
 this is a \emph{very} rich text
 
->> convert(String,t)
+julia> convert(String,t)
 this is a very rich text
 
->> t = add_period(capitalize(t))
->> render_as(t,"latex")
+julia> t = add_period(capitalize(t));
+
+julia> render_as(t,"latex")
 This is a \emph{very} rich text.
-```
-```jldoctest
-convert(String,t)
 
-# output
-
-This is a very rich text.
 ```
 """
-module RichTextUtils
+
+module RichTextElements
 export RichText,
        Tag,
        TextSymbol,
@@ -502,7 +478,7 @@ end
 [Tag("em", "Breaking news!")]
 """
 function merge_similar(param_parts)
-    local groups = groupby(value-> RichTextUtils.typeinfo(value), param_parts)
+    local groups = groupby(value-> RichTextElements.typeinfo(value), param_parts)
     local output=[]
     for  group in groups
         cls, cls_type, info = typeinfo(group[1])
@@ -783,5 +759,4 @@ function lowercase(self::TextSymbol)
 	return self
 end
 const nbsp = TextSymbol("nbsp")
-
 end

@@ -19,7 +19,7 @@ module LaTeX
 using Base.Test
 import ..Backends.BaseBackend
 import ..Backends.format
-using ..RichTextUtils
+using ..RichTextElements
 import Formatting.sprintf1
 
 const default_suffix = ".bbl"

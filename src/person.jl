@@ -87,7 +87,7 @@ Extract various parts of the name from a string.
 ```jldoctest
 julia> import BibTeXStyle: Person
 
-julia> p = Person("Avinash K. Dixit")
+julia> p = Person("Avinash K. Dixit");
 
 julia> p.first_names
 1-element Array{String,1}:
