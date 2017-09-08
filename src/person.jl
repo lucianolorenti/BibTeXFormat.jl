@@ -113,7 +113,7 @@ julia> convert(String,p)
 julia> p == Person(convert(String,p))
 true
 
-julia> p = Person('Dixit, Jr, Avinash K. ');
+julia> p = Person("Dixit, Jr, Avinash K. ");
 
 julia> p.first_names
 1-element Array{String,1}:
@@ -277,10 +277,6 @@ function ==(self::Person, other::Person)
         && self.lineage_names == other.lineage_names
     )
 end
-#=
-def __repr__(self):
-    return 'Person({0})'.format(repr(six.text_type(self)))
-=#
 function get_part_as_text(self, ttype)
     names = getattr(self, ttype + "_names")
     return join(names, " ")

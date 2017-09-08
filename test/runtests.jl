@@ -4,7 +4,8 @@ using Base.Test
 base_file = dirname(dirname(@__FILE__))
 import Documenter
 Documenter.makedocs(
-    modules = [BibTeXStyle],
+    modules = [BibTeXStyle, BibTeXStyle.Backends, BibTeXStyle.Backends.HTML,
+               BibTeXStyle.RichTextElements],
     format = :html,
     sitename = "BibTeXStyle.jl",
     root = joinpath(base_file, "docs"),

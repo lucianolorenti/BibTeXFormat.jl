@@ -1,5 +1,3 @@
-
-const nbsp ="nbsp"
 """
 A template engine for bibliography entries and more.
 
@@ -20,6 +18,9 @@ The Book, 2000.
 >>> print(six.text_type(words ['one', 'two', words ['three', 'four']].format_data(e)))
 one two three four
 """
+
+module TemplateEngine
+const nbsp ="nbsp"
 struct Node
 	name::String
 	f::Function
@@ -356,4 +357,5 @@ end
 		end
 	end
     return ""
+end
 end

@@ -4,7 +4,6 @@
 ```
 
 ```@autodocs
-Modules = [BibTeXStyle]
+Modules = [BibTeXStyle, BibTeXStyle.RichTextElements, BibTeXStyle.Backends,
+           BibTeXStyle.Backends.HTML, BibTeXStyle.Backends.LaTeX]
 ```
-
-

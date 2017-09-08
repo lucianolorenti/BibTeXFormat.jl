@@ -4,6 +4,8 @@
 ```jldoctest
 julia> import BibTeXStyle.RichTextElements: Tag, RichText, render_as
 
+julia> import BibTeXStyle.Backends: render_as
+
 julia> t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"));
 
 julia> render_as(t,"LaTex")
@@ -42,6 +44,7 @@ import Base.endof
 import Base.lowercase
 import Base.endswith
 import Base.+
+import Base.isalpha
 abstract type BaseText end
 
 using Iterators
@@ -56,9 +59,19 @@ function ensure_text(value::BaseText)
 end
 """
 Concatenate this Text with another Text or string.
+```jldoctest
 
->>> Text("Longcat is ") + Tag("em", "long")
-Text("Longcat is ", Tag("em", "long"))
+julia> import BibTeXStyle.RichTextElements: RichText, Tag
+
+julia> a = RichText("Longcat is ") + Tag("em", "long")
+
+julia> a.parts
+2-element Array{Any,1}:
+ BibTeXStyle.RichTextElements.RichString("Longcat is ")
+
+ BibTeXStyle.RichTextElements.Tag(Any[BibTeXStyle.RichTextElements.RichString("long")], 4, "em", "em")
+
+```
 """
 function +(b::BaseText, other)
 	return RichText(b, other)
@@ -69,24 +82,32 @@ Append text to the end of this text.
 
 Normally, this is the same as concatenating texts with +,
 but for tags and similar objects the appended text is placed _inside_ the tag.
+```jldoctest
+julia> import BibTeXStyle.RichTextElements: Tag, append
 
->>> text = Tag("em", "Look here")
->>> print((text +  "!").render_as("html"))
+julia> import BibTexStyle.Backends.render_as
+
+julia> text = Tag("em", "Look here");
+julia> print(render_as(text + "!","html"))
 <em>Look here</em>!
->>> print(text.append("!").render_as("html"))
+julia> print(render_as(append(text,"!"),"html"))
 <em>Look here!</em>
+
+```
 """
 function append(self::BaseText, text)
 	return self+text
 end
 
-"""Join a list using this text (like string.join)
+"""
+Join a list using this text (like join)
 
->>> letters = ["a", "b", "c"]
->>> print(six.text_type(String("-").join(letters)))
+```jldoctest
+julia> import BibTeXStyle.RichTextElements: join, RichString
+julia> letters = ["a", "b", "c"]
+julia> print(convert(String,join(RichString("-"),letters))
 a-b-c
->>> print(six.text_type(String("-").join(iter(letters))))
-a-b-c
+```
 """
 function join(self::BaseText, parts)
     if length(parts) == 0
@@ -549,7 +570,9 @@ end
 function getindex(self::RichString, index)
     return RichString(string(self.value[index]))
 end
-
+"""
+Split
+"""
 function split(self::RichString, sep=nothing; keep_empty_parts=nothing)
     if keep_empty_parts == nothing None
         keep_empty_parts = sep != nothing
@@ -583,6 +606,11 @@ return self.value.endswith(text)
 function endswith(self::RichString, suffix)
     return endswith(self.value,suffix)
 end
+
+"""
+Return True if all characters in the string are alphabetic and there is
+at least one character, False otherwise.
+"""
 function isalpha(self::RichString)
     return isalpha(self.value)
 end
@@ -707,7 +735,9 @@ end
 function uppercase(self::Protected)
 	return self
 end
-
+"""
+Split
+"""
 function split(self::Protected, sep=nothing, keep_empty_parts=nothing)
 	return [self]
 end
@@ -738,7 +768,9 @@ function getindex(self::TextSymbol, a::Integer)
 		return ""
 	end
 end
-
+"""
+Split
+"""
 function split(self::TextSymbol, sep=nothing, keep_empty_parts=nothing)
 	return [self]
 end
@@ -749,6 +781,10 @@ end
 function endswith(self::TextSymbol, text)
 	return false
 end
+
+"""
+A TextSymbol is not alfanumeric. Returns false
+"""
 function isalpha(self::TextSymbol)
 	return false
 end

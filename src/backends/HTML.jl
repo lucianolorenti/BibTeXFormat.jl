@@ -1,5 +1,3 @@
-
-
 """
 HTML output backend.
 ```

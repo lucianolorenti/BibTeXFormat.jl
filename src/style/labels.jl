@@ -1,3 +1,4 @@
+import BibTeXStyle: citation_type, abbreviate
 function  get_longest_label(formatted_entries)
     labels = [length(entry.label) for entry in formatted_entries]
     return maximum(labels)
@@ -15,8 +16,11 @@ const _nonalnum_pattern = r"[^A-Za-z0-9]+"
 """
 Strip all non-alphanumerical characters from a list of strings.
 ```jldoctest
-    >>> _strip_nonalnum([u"ÅA. B. Testing 12+}[.@~_", u" 3%"])
-    AABTesting123
+julia> import BibTeXStyle: _strip_nonalnum
+
+julia> print(_strip_nonalnum(["ÅA. B. Testing 12+}[.@~_", " 3%"]))
+AABTesting123
+
 ```
 
 """
@@ -59,12 +63,11 @@ end
 
 function format_label(self::AlphaLabelStyle, entry)
 	# see alpha.bst calc.label
-    println(gettype(entry))
-	if (gettype(entry)== "book") || gettype(entry) == "inbook"
+	if (citation_type(entry)== :book) || citation_type(entry) == :inbook
 		label = author_editor_key_label(self,entry)
-	elseif gettype(entry) == "proceedings"
+	elseif citation_type(entry) == :proceedings
 		label = editor_key_organization_label(self,entry)
-	elseif gettype(entry) == "manual"
+	elseif citation_type(entry) == :manual
 		label = author_key_organization_label(self,entry)
 	else
 		label = author_key_label(self,entry)
@@ -164,25 +167,23 @@ function format_lab_names(self::AlphaLabelStyle, persons)
 		while namesleft > 0
 			person = persons[nameptr - 1]
 			if nameptr == numnames
-				if six.text_type(person) == "others"
+                if convert(String,person) == "others"
 					result = string(result, "+")
 				else
 					result = string(result, _strip_nonalnum(_abbr(string(person.prelast_names, person.last_names))))
 				end
 			else
-                println(person)
-                println(_abbr(string(person.prelast_names, person.last_names)))
-				result += string(result,_strip_nonalnum(_abbr(string(person.prelast_names , person.last_names))))
+				result = string(result,_strip_nonalnum(_abbr(vcat(person.prelast_names , person.last_names))))
 			end
 			nameptr =  nameptr+ 1
 			namesleft = namesleft -1
 		end
 		if numnames > 4
-			result = string("+")
+			result = String("+")
 		end
 	else
 		person = persons[1]
-		result = _strip_nonalnum(_abbr(string(person.prelast_names, person.last_names)))
+		result = _strip_nonalnum(_abbr(vcat(person.prelast_names, person.last_names)))
 		if length(result) < 2
 			result = _strip_nonalnum(person.last_names)[1:3]
 		end
