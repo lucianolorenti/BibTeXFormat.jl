@@ -1,72 +1,134 @@
 
 """
-Split a list of names, separated by ' and '.
 
->>> split_name_list('Johnson and Peterson')
-[u'Johnson', u'Peterson']
->>> split_name_list('Johnson AND Peterson')
-[u'Johnson', u'Peterson']
->>> split_name_list('Johnson AnD Peterson')
-[u'Johnson', u'Peterson']
->>> split_name_list('Armand and Peterson')
-[u'Armand', u'Peterson']
->>> split_name_list('Armand and anderssen')
-[u'Armand', u'anderssen']
->>> split_name_list('{Armand and Anderssen}')
-[u'{Armand and Anderssen}']
->>> split_name_list('What a Strange{ }and Bizzare Name! and Peterson')
-[u'What a Strange{ }and Bizzare Name!', u'Peterson']
->>> split_name_list('What a Strange and{ }Bizzare Name! and Peterson')
-[u'What a Strange and{ }Bizzare Name!', u'Peterson']
+Split a list of names, separated by ' and '.
+```jldoctest
+julia> import BibTeXStyle.split_name_list
+
+julia> split_name_list("Johnson and Peterson")
+2-element Array{String,1}:
+ "Johnson"
+ "Peterson"
+
+julia> split_name_list("Johnson AND Peterson")
+2-element Array{String,1}:
+ "Johnson"
+ "Peterson"
+
+julia> split_name_list("Johnson AnD Peterson")
+2-element Array{String,1}:
+ "Johnson"
+ "Peterson"
+
+julia> split_name_list("Armand and Peterson")
+2-element Array{String,1}:
+ "Armand"
+ "Peterson"
+
+julia> split_name_list("Armand and anderssen")
+2-element Array{String,1}:
+ "Armand"
+ "anderssen"
+
+julia> split_name_list("{Armand and Anderssen}")
+1-element Array{String,1}:
+ "{Armand and Anderssen}"
+
+julia> split_name_list("What a Strange{ }and Bizzare Name! and Peterson")
+2-element Array{String,1}:
+ "What a Strange{ }and Bizzare Name!"
+ "Peterson"
+
+julia> split_name_list("What a Strange and{ }Bizzare Name! and Peterson")
+2-element Array{String,1}:
+ "What a Strange and{ }Bizzare Name!"
+ "Peterson"
+```
 """
 function split_name_list(string)
     return split_tex_string(string, " [Aa][Nn][Dd] ")
 end
 
-"""Split a string using the given separator (regexp).
-
-    Everything at brace level > 0 is ignored.
-    Separators at the edges of the string are ignored.
-
-    >>> split_tex_string('')
-    []
-    >>> split_tex_string('     ')
-    []
-    >>> split_tex_string('   ', ' ', strip=False, filter_empty=False)
-    [u' ', u' ']
-    >>> split_tex_string('.a.b.c.', r'\.')
-    [u'.a', u'b', u'c.']
-    >>> split_tex_string('.a.b.c.{d.}.', r'\.')
-    [u'.a', u'b', u'c', u'{d.}.']
-    >>> split_tex_string('Matsui      Fuuka')
-    [u'Matsui', u'Fuuka']
-    >>> split_tex_string('{Matsui      Fuuka}')
-    [u'{Matsui      Fuuka}']
-    >>> split_tex_string(r'Matsui\ Fuuka')
-    [u'Matsui', u'Fuuka']
-    >>> split_tex_string('{Matsui\ Fuuka}')
-    [u'{Matsui\\ Fuuka}']
-    >>> split_tex_string('a')
-    [u'a']
-    >>> split_tex_string('on a')
-    [u'on', u'a']
 """
-function split_tex_string(sstring, sep=nothing, strip=true, filter_empty=false)
+Split a string using the given separator (regexp).
+
+Everything at brace level > 0 is ignored.
+Separators at the edges of the string are ignored.
+
+```jldoctest
+julia> import BibTeXStyle.split_tex_string
+
+julia> split_tex_string("")
+0-element Array{Any,1}
+
+julia> split_tex_string("     ")
+0-element Array{String,1}
+
+julia> split_tex_string("   ", " ", strip=false, filter_empty=false)
+2-element Array{Any,1}:
+ " "
+ " "
+
+julia> split_tex_string(".a.b.c.", r"\\.")
+3-element Array{String,1}:
+ ".a"
+ "b"
+ "c."
+
+julia> split_tex_string(".a.b.c.{d.}.", r"\\.")
+4-element Array{String,1}:
+ ".a"
+ "b"
+ "c"
+ "{d.}."
+
+julia> split_tex_string("Matsui      Fuuka")
+2-element Array{String,1}:
+ "Matsui"
+ "Fuuka"
+
+julia> split_tex_string("{Matsui      Fuuka}")
+1-element Array{String,1}:
+ "{Matsui      Fuuka}"
+
+julia> split_tex_string(r"Matsui\ Fuuka")
+2-element Array{String,1}:
+ "Matsui"
+ "Fuuka"
+
+julia> split_tex_string("{Matsui\ Fuuka}")
+1-element Array{String,1}:
+ "{Matsui\ Fuuka}"
+
+julia> split_tex_string("a")
+1-element Array{String,1}:
+ "a"
+
+julia> split_tex_string("on a")
+2-element Array{String,1}:
+ "on"
+ "a"
+
+```
+"""
+function split_tex_string(sstring, sep=nothing; strip=true, filter_empty=false)
 
     if sep  == nothing
         # "\ " is a "control space" in TeX,
         # i. e. "a space that is not to be ignored"
         # The TeXbook, Chapter 3: Controlling TeX, p 8
-        sep = "(\\ |[\s~])+"
+        sep = r"(\\ |[\s~])+"
         filter_empty = true
     end
-
-    sep_re = Regex(string("^", sep))
-    brace_level = 0
-    name_start = 1
-    result = []
-    string_len = length(sstring)
-    pos = 1
+	if isa(sep, Regex)
+		sep = sep.pattern
+	end
+	local sep_re      = Regex(string("^", sep))
+    local brace_level = 0
+    local name_start  = 1
+    local result      = []
+    local string_len  = length(sstring)
+    local pos         = 1
     for (pos, char) in enumerate(sstring)
         if char == '{'
             brace_level += 1
@@ -76,14 +138,14 @@ function split_tex_string(sstring, sep=nothing, strip=true, filter_empty=false)
             m = match(sep_re,sstring[pos:end])
             if m != nothing
                 sep_len = length(m.match)
-                if pos + sep_len  < string_len
+                if pos + sep_len  <= string_len
                     push!(result,sstring[name_start:pos-1])
                     name_start = pos + sep_len
                 end
             end
         end
     end
-    if name_start < string_len
+    if name_start <= string_len
         push!(result,sstring[name_start:end])
     end
     if strip
@@ -94,7 +156,9 @@ function split_tex_string(sstring, sep=nothing, strip=true, filter_empty=false)
     end
     return result
 end
-
+function split_tex_string(sstring::Regex, sep=nothing; strip=true, filter_empty=false)
+	return split_tex_string(sstring.pattern,sep,strip=strip,filter_empty=filter_empty)
+end
 struct BibTeXString
 	level::Integer
 	is_closed::Bool

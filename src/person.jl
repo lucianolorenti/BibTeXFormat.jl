@@ -1,42 +1,49 @@
-"""A person or some other person-like entity.
+"""
+A person or some other person-like entity.
 
->>> knuth = Person('Donald E. Knuth')
->>> knuth.first_names
-[u'Donald']
->>> knuth.middle_names
-[u'E.']
->>> knuth.last_names
-[u'Knuth']
+```jldoctest
+julia> import BibTeXStyle.Person;
 
+julia> knuth = Person("Donald E. Knuth");
+
+julia> knuth.first_names
+1-element Array{String,1}:
+ "Donald"
+
+julia> knuth.middle_names
+1-element Array{String,1}:
+ "E."
+
+julia> knuth.last_names
+1-element Array{String,1}:
+ "Knuth"
+```
 """
 struct Person
-
-    first_names::Vector{String}
-    middle_names::Vector{String}
-    prelast_names::Vector{String}
-    last_names::Vector{String}
-    lineage_names::Vector{String}
-
+    first_names   :: Vector{String}
+    middle_names  :: Vector{String}
+    prelast_names :: Vector{String}
+    last_names    :: Vector{String}
+    lineage_names :: Vector{String}
 end
 
 import Base.==
+import Base.convert
 valid_roles = Set(["author", "editor"])
 
 const  style1_re = r"^(.+),\s*(.+)$"
 const  style2_re = r"^(.+),\s*(.+),\s*(.+)$"
 
 """
-:param string: The full name string.
-    It will be parsed and split into separate first, last, middle,
-    pre-last and lineage name parst.
+Construct a Person from a full name string . It will be parsed and split into separate first, last, middle, pre-last and lineage name parst.
 
-    Supported name formats are:
+Supported name formats are:
 
-    - von Last, First
-    - von Last, Jr, First
-    - First von Last
+- von Last, First
+- von Last, Jr, First
+- First von Last
 
-    (see BibTeX manual for explanation)
+(see BibTeX manual for explanation)
 
 """
 function Person(s::String="", first::String="", middle::String="", prelast::String="", last::String="", lineage::String="")
@@ -55,56 +62,87 @@ function Person(s::String="", first::String="", middle::String="", prelast::Stri
     return person
 end
 
-"""A list of first and middle names together.
+"""
+A list of first and middle names together.
 (BibTeX treats all middle names as first.)
 
->>> knuth = Person('Donald E. Knuth')
->>> knuth.bibtex_first_names
-[u'Donald', u'E.']
+```jldoctest
+julia> import BibTeXStyle: Person, bibtex_first_names
+
+julia> knuth = Person("Donald E. Knuth");
+
+julia> bibtex_first_names(knuth)
+2-element Array{String,1}:
+ "Donald"
+ "E."
+
+```
 """
 function bibtex_first_names(self::Person)
     return vcat(self.first_names, self.middle_names)
 end
 
-"""Extract various parts of the name from a string.
+"""
+Extract various parts of the name from a string.
+```jldoctest
+julia> import BibTeXStyle: Person
 
->>> p = Person('Avinash K. Dixit')
->>> print(p.first_names)
-[u'Avinash']
->>> print(p.middle_names)
-[u'K.']
->>> print(p.prelast_names)
-[]
->>> print(p.last_names)
-[u'Dixit']
->>> print(p.lineage_names)
-[]
->>> print(six.text_type(p))
-Dixit, Avinash K.
->>> p == Person(six.text_type(p))
-True
->>> p = Person('Dixit, Jr, Avinash K. ')
->>> print(p.first_names)
-[u'Avinash']
->>> print(p.middle_names)
-[u'K.']
->>> print(p.prelast_names)
-[]
->>> print(p.last_names)
-[u'Dixit']
->>> print(p.lineage_names)
-[u'Jr']
->>> print(six.text_type(p))
+julia> p = Person("Avinash K. Dixit")
+
+julia> p.first_names
+1-element Array{String,1}:
+ "Avinash"
+
+julia> p.middle_names
+1-element Array{String,1}:
+ "K."
+
+julia> p.prelast_names
+0-element Array{String,1}
+
+julia> p.last_names
+1-element Array{String,1}:
+ "Dixit"
+
+julia> p.lineage_names
+0-element Array{String,1}
+
+julia> convert(String,p)
+"Dixit, Avinash K."
+
+julia> p == Person(convert(String,p))
+true
+
+julia> p = Person('Dixit, Jr, Avinash K. ');
+
+julia> p.first_names
+1-element Array{String,1}:
+ "Avinash"
+
+julia> p.middle_names
+1-element Array{String,1}:
+ "K."
+
+julia> print(p.prelast_names)
+String[]
+julia> print(p.last_names)
+String["Dixit"]
+julia> print(p.lineage_names)
+String["Jr"]
+julia> print(convert(String,p))
 Dixit, Jr, Avinash K.
->>> p == Person(six.text_type(p))
-True
+julia> p == Person(convert(String,p))
+true
 
->>> p = Person('abc')
->>> print(p.first_names, p.middle_names, p.prelast_names, p.last_names, p.lineage_names)
-[] [] [] [u'abc'] []
->>> p = Person('Viktorov, Michail~Markovitch')
->>> print(p.first_names, p.middle_names, p.prelast_names, p.last_names, p.lineage_names)
-[u'Michail'] [u'Markovitch'] [] [u'Viktorov'] []
+julia> p = Person("abc");
+
+julia> print(p.first_names, p.middle_names, p.prelast_names, p.last_names, p.lineage_names)
+String[]String[]String[]String["abc"]String[]
+julia> p = Person("Viktorov, Michail~Markovitch");
+
+julia> print(p.first_names, p.middle_names, p.prelast_names, p.last_names, p.lineage_names)
+String["Michail"]String["Markovitch"]String[]String["Viktorov"]String[]
+```
 """
 function _parse_string(self::Person, name::String)
     function  process_first_middle(parts)
@@ -219,6 +257,17 @@ function _parse_string(self::Person, name::String)
         throw(name)
     end
 end
+
+import Base.convert
+"""
+von Last, Jr, First
+"""
+function Base.convert(::Type{String}, self::Person)
+    local von_last = Base.join(vcat(self.prelast_names, self.last_names), " ")
+    local jr = Base.join(self.lineage_names, " ")
+    local first = Base.join(vcat(self.first_names,self.middle_names), " ")
+    return Base.join([part for part in [von_last, jr, first] if Base.length(part)>0], ", ")
+end
 function ==(self::Person, other::Person)
     return (
         self.first_names == other.first_names
@@ -228,13 +277,7 @@ function ==(self::Person, other::Person)
         && self.lineage_names == other.lineage_names
     )
 end
-#=def __str__(self):
-    # von Last, Jr, First
-    von_last = ' '.join(self.prelast_names + self.last_names)
-    jr = ' '.join(self.lineage_names)
-    first = ' '.join(self.first_names + self.middle_names)
-    return ', '.join(part for part in (von_last, jr, first) if part)
-
+#=
 def __repr__(self):
     return 'Person({0})'.format(repr(six.text_type(self)))
 =#
@@ -243,17 +286,25 @@ function get_part_as_text(self, ttype)
     return join(names, " ")
 end
 
-"""Get a list of name parts by `type`.
+"""
+Get a list of name parts by `type`.
+```jldoctest
+julia> import BibTeXStyle: Person, get_part;
 
->>> knuth = Person('Donald E. Knuth')
->>> knuth.get_part('first')
-[u'Donald']
->>> knuth.get_part('last')
-[u'Knuth']
+julia> knuth = Person("Donald E. Knuth");
+
+julia> get_part(knuth,"first")
+1-element Array{String,1}:
+ "Donald"
+
+julia> get_part(knuth,"last")
+1-element Array{String,1}:
+ "Knuth"
+
+```
 """
 function get_part(self::Person, ttype, abbr=false)
-
-    names = getattr(self,ttype + "_names")
+    names = getfield(self,Symbol(ttype, "_names"))
     if abbr
         names = [abbreviate(name) for name in names]
     end
