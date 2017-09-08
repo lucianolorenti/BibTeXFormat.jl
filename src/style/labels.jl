@@ -1,4 +1,5 @@
 import BibTeXStyle: citation_type, abbreviate
+import Base.convert
 function  get_longest_label(formatted_entries)
     labels = [length(entry.label) for entry in formatted_entries]
     return maximum(labels)
@@ -37,7 +38,7 @@ end
 struct AlphaLabelStyle <: BaseLabelStyle end
 
 function  format_labels(self::AlphaLabelStyle, sorted_entries)
-	labels = [format_label(self,entry) for entry in sorted_entries]
+	local labels = [format_label(self,entry) for entry in sorted_entries]
     count = Dict{String,Integer}()
     counted = Dict{String,Integer}()
     for l in labels
@@ -47,15 +48,16 @@ function  format_labels(self::AlphaLabelStyle, sorted_entries)
         end
         count[l]= count[l] +1
     end
-    local labels = []
+   olabels = []
 	for label in labels
 		if count[label] == 1
-            push!(labels,label)
+            push!(olabels,label)
         else
-            push!(string(label,string('a' + counted[label])))
+            push!(olabel,string(label,string('a' + counted[label])))
             counted[label]=counted[label]+1
 		end
 	end
+    return olabels
 end
 
 # note: this currently closely follows the alpha.bst code
@@ -72,8 +74,8 @@ function format_label(self::AlphaLabelStyle, entry)
 	else
 		label = author_key_label(self,entry)
 	end
-	if haskey(entry.fields,"year")
-		return string(label,entry.fields["year"][end-2:end])
+	if haskey(entry,"year")
+		return string(label,entry["year"][end-2:end])
 	else
 		return label
 	end
@@ -82,7 +84,7 @@ end
 
 function author_key_label(self::AlphaLabelStyle, entry)
 	# see alpha.bst author.key.label
-	if !(haskey(entry.persons,"author"))
+    if !(haskey(entry["persons"],"author"))
 		if !haskey(entry.fields,"key")
 			return entry.key[1:3] # entry.key is bst cite$
 		else
@@ -90,14 +92,14 @@ function author_key_label(self::AlphaLabelStyle, entry)
 			return entry.fields["key"][1:3]
 		end
 	else
-		return format_lab_names(self,entry.persons["author"])
+        return format_lab_names(self,entry["persons"]["author"])
 	end
 end
 
 function author_editor_key_label(self::AlphaLabelStyle, entry)
 	# see alpha.bst author.editor.key.label
-	if !haskey(entry.persons,"author")
-		if !haskey(entry.persons,"editor")
+    if !haskey(entry["persons"],"author")
+        if !haskey(entry["persons"],"editor")
 			if !haskey(entry.fields,"key")
 				return entry.key[1:3] # entry.key is bst cite$
 			else
@@ -105,10 +107,10 @@ function author_editor_key_label(self::AlphaLabelStyle, entry)
 				return entry.fields["key"][1:3]
 			end
 		else
-			return format_lab_names(self,entry.persons["editor"])
+            return format_lab_names(self,entry["persons"]["editor"])
 		end
 	else
-		return format_lab_names(self,entry.persons["author"])
+        return format_lab_names(self,entry["persons"]["author"])
 	end
 end
 
@@ -167,10 +169,11 @@ function format_lab_names(self::AlphaLabelStyle, persons)
 		while namesleft > 0
 			person = persons[nameptr - 1]
 			if nameptr == numnames
+                println(Base.convert(String,person))
                 if convert(String,person) == "others"
 					result = string(result, "+")
 				else
-					result = string(result, _strip_nonalnum(_abbr(string(person.prelast_names, person.last_names))))
+					result = string(result, _strip_nonalnum(_abbr(vcat(person.prelast_names, person.last_names))))
 				end
 			else
 				result = string(result,_strip_nonalnum(_abbr(vcat(person.prelast_names , person.last_names))))
