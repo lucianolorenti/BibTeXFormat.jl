@@ -3,7 +3,7 @@ module BibTeXStyle
 export BaseStyle,
        format_entries
 using BibTeX
-
+using Reexport
 push!(LOAD_PATH, joinpath(dirname(@__FILE__),"style"))
 push!(LOAD_PATH, joinpath(dirname(@__FILE__),"backends"))
 
@@ -19,7 +19,7 @@ include("person.jl")
 include("RichTextElements.jl")
 include("backends/Backends.jl")
 
-using Style
+@reexport using Style
 
 function transform(e::Citation)
     local e_n = Dict{String,Any}()
@@ -35,35 +35,35 @@ function transform(e::Citation)
     return e_n
 end
 
-function format_entries(b::BaseStyle, entries)
+function format_entries(b::T, entries) where T <: BaseStyle
     local transformed_entries = Dict()
     for k in keys(entries)
         transformed_entries[k] = transform(entries[k])
     end
     entries = transformed_entries
-	local sorted_entries = sort(b.sorting_style, entries)
-	local labels  = format_labels(b.label_style, sorted_entries)
+	local sorted_entries = sort(b.config.sorting_style, entries)
+	local labels  = format_labels(b.config.label_style, sorted_entries)
     local formatted_entries = []
-    println(labels)
 	for (label,entry) in zip(labels, sorted_entries)
-        println("a)")
+        entry["key"] = label
 		push!(formatted_entries,format_entry(b,label, entry))
 	end
     return formatted_entries
 end
 
-function format_entry(b::BaseStyle, label, entry)
-		local context = Dict{String,Any}("entry" => entry, "style"=>b)
-		try
-            get_template =  getfield(BibTeXStyle.Style, Symbol("get_$(entry["type"])_template"))
-			text = format_data(get_template(b,entry),context)
-		catch e
-            println(e)
-
-            format_method =  getfield(BibTeXStyle.Style, Symbol("format_$(entry["type"])"))
-			text = format_method(b,context)
-		end
-		return (entry.key, text, label)
+function format_entry(b::T, label, entry) where T<:BaseStyle
+	local context = Dict{String,Any}("entry" => entry, "style"=>b)
+    local text    = ""
+#	try
+        get_template =  getfield(typeof(b).name.module, Symbol("get_$(entry["type"])_template"))
+        text = format_data(get_template(b,entry),context)
+#	catch e
+#        println( catch_stacktrace())
+#        println(e)
+#        format_method =  getfield(BibTeXStyle.Style, Symbol("format_$(entry["type"])"))
+#    	text = format_method(b,context)
+#	end
+    return (entry["key"], text, label)
 end
 
 """
@@ -73,7 +73,7 @@ Format bibliography entries with the given keys and return a
 :param bib_data: A :py:class:`pybtex.database.BibliographyData` object.
 :param citations: A list of citation keys.
 """
-function format_bibliography(self::BaseStyle, bib_data, citations=nothing)
+function format_bibliography(self::T, bib_data, citations=nothing) where T<:BaseStyle
 
 	if citations == nothing
 		citations = keys(bib_data)

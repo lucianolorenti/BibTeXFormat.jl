@@ -1,7 +1,8 @@
 module UNSRT
-import BibTeXStyle.RichTextElements: Symbol, RichText
-import BibTeXStyle.Style.TemplateEngine: field, first_of, href, join, names, optional, optional_field, sentence, tag, together, words
 
+import BibTeXStyle.RichTextElements: Symbol, RichText
+import ..TemplateEngine: field, first_of, href, join, names, optional, optional_field, sentence, tag, together, words
+import ..Style: Config, BaseStyle, toplevel
 function dashify(text)
     dash_re = re.compile(r"-+")
     return join(Text(Symbol("ndash")),split(text,dash_re))
@@ -9,9 +10,10 @@ end
 
 pages = field("pages", apply_func=dashify)
 
-date = words[optional_field("month"), field("year")]
+const date = words[optional_field("month"), field("year")]
 
-struct Style
+struct Style <: BaseStyle
+    config::Config
 end
 
 function format_names(self::Style, role, as_sentence=true)
@@ -37,25 +39,25 @@ function get_article_template(self::Style, e)
 		words["pages", pages],
 	]
 	template = toplevel[
-		self.format_names("author"),
-		self.format_title(e, "title"),
+		format_names(self,"author"),
+		format_title(self,e, "title"),
 		sentence[
 			tag("em")[field("journal")],
 			optional[ volume_and_pages ],
 			date],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self,e),
 	]
 	return template
 end
 function format_author_or_editor(self::Style, e)
 	return first_of[
-		optional[self.format_names("author") ],
-		self.format_editor(e),
+		optional[format_names(self,"author") ],
+		format_editor(self, e),
 	]
 end
 function format_editor(self::Style, e, as_sentence=true)
-	editors = self.format_names("editor", as_sentence=false)
+	editors = format_names(self, "editor", false)
 	if !haskey(e["persons"],"editor")
 		# when parsing the template, a FieldIsMissing exception
 		# will be thrown anyway; no need to do anything now,
@@ -112,7 +114,7 @@ end
 
 function format_edition(self::Style, e)
 	return optional[
-		words [
+		words[
 			field("edition", apply_func=lowercase),
 			"edition",
 		]
@@ -177,15 +179,14 @@ function get_book_template(self::Style, e)
 		format_author_or_editor(self,e),
 		format_btitle(self,e, "title"),
 		format_volume_and_series(self,e),
-		sentence[
-			field("publisher"),
+		sentence[ field("publisher"),
 			optional_field("address"),
 			format_edition(self,e),
 			date
 		],
-		optional[ sentence[ self.format_isbn(e) ] ],
+		optional[ sentence[ format_isbn(self,e) ] ],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
@@ -207,7 +208,7 @@ function get_inbook_template(self::Style, e)
 	template = toplevel[
 		format_author_or_editor(self,e),
 		sentence[
-			format_btitle(self,"title", as_sentence=False),
+			format_btitle(self,"title", false),
 			format_chapter_and_pages(self,e),
 		],
 		format_volume_and_series(self,e),
@@ -220,7 +221,7 @@ function get_inbook_template(self::Style, e)
 			date,
 			optional_field("note"),
 		],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
@@ -231,9 +232,9 @@ function get_incollection_template(self::Style, e)
 		words[
 			"In",
 			sentence[
-				optional[ self.format_editor(e, as_sentence=false) ],
-				format_btitle(self,e, "booktitle", as_sentence=false),
-				format_volume_and_series(self,e, as_sentence=false),
+				optional[ format_editor(self, e, false) ],
+				format_btitle(self,e, "booktitle",false),
+				format_volume_and_series(self,e, false),
 				format_chapter_and_pages(self,e),
 			],
 		],
@@ -249,20 +250,20 @@ function get_incollection_template(self::Style, e)
 end
 function get_inproceedings_template(self::Style, e)
 	template = toplevel[
-		sentence[self.format_names("author")],
-		self.format_title(e, "title"),
+		sentence[format_names(self, "author")],
+		format_title(self, e, "title"),
 		words[
 			"In",
 			sentence[
-				optional[ format_editor(self,e, as_sentence=false) ],
-				format_btitle(self,e, "booktitle", as_sentence=false),
-				format_volume_and_series(self,e, as_sentence=false),
+				optional[ format_editor(self,e, false) ],
+				format_btitle(self,e, "booktitle", false),
+				format_volume_and_series(self,e, false),
 				optional[ pages ],
 			],
-			self.format_address_organization_publisher_date(e),
+			format_address_organization_publisher_date(self, e),
 		],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
@@ -279,7 +280,7 @@ function get_manual_template(self::Style, e)
 			optional[ date ],
 		],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
@@ -294,27 +295,27 @@ function get_mastersthesis_template(self::Style, e)
 			date,
 		],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
 function get_misc_template(self::Style, e)
 	template = toplevel[
-		optional[ sentence[self.format_names("author")] ],
-		optional[ self.format_title(e, "title") ],
+		optional[ sentence[format_names(self, "author")] ],
+		optional[ format_title(self, e, "title") ],
 		sentence[
 			optional[ field("howpublished") ],
 			optional[ date ],
 		],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
 function get_phdthesis_template(self::Style, e)
 	template = toplevel[
-		sentence[self.format_names("author")],
-		self.format_btitle(e, "title"),
+		sentence[format_names(self, "author")],
+		format_btitle(self, e, "title"),
 		sentence[
 			"PhD thesis",
 			field("school"),
@@ -322,7 +323,7 @@ function get_phdthesis_template(self::Style, e)
 			date,
 		],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
@@ -332,32 +333,32 @@ function get_proceedings_template(self::Style, e)
 			# there are editors
 			optional[
 				join(" ")[
-					self.format_editor(e),
+					format_editor(self, e),
 					sentence[
-						self.format_btitle(e, "title", as_sentence=False),
-						self.format_volume_and_series(e, as_sentence=False),
-						self.format_address_organization_publisher_date(e),
+						format_btitle(self, e, "title", false),
+						format_volume_and_series(self, e, false),
+						format_address_organization_publisher_date(self, e),
 					],
 				],
 			],
 			# there is no editor
 			optional_field("organization"),
 			sentence[
-				self.format_btitle(e, "title", as_sentence=False),
-				self.format_volume_and_series(e, as_sentence=False),
-				self.format_address_organization_publisher_date(
+				format_btitle(self, e, "title", false),
+				format_volume_and_series(self, e,false),
+				format_address_organization_publisher_date(self,
 					e, include_organization=false),
 			],
 		],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
 function get_techreport_template(self::Style, e)
 	template = toplevel[
-		sentence[self.format_names("author")],
-		self.format_title(e, "title"),
+		sentence[format_names(self, "author")],
+		format_title(self, e, "title"),
 		sentence[
 			words[
 				first_of[
@@ -371,29 +372,29 @@ function get_techreport_template(self::Style, e)
 			date,
 		],
 		sentence[ optional_field("note") ],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
 function get_unpublished_template(self::Style, e)
 	template = toplevel[
-		sentence[self.format_names("author")],
-		self.format_title(e, "title"),
+        sentence[format_names(self, "author")],
+		format_title(self, e, "title"),
 		sentence[
 			field("note"),
 			optional[ date ]
 		],
-		self.format_web_refs(e),
+		format_web_refs(self, e),
 	]
 	return template
 end
 function format_web_refs(self::Style, e)
 	# based on urlbst output.web.refs
 	return sentence[
-		optional[ self.format_url(e) ],
-		optional[ self.format_eprint(e) ],
-		optional[ self.format_pubmed(e) ],
-		optional[ self.format_doi(e) ],
+		optional[ format_url(self, e) ],
+		optional[ format_eprint(self, e) ],
+		optional[ format_pubmed(self, e) ],
+		optional[ format_doi(self, e) ],
 		]
 end
 function format_url(self::Style, e)
@@ -401,8 +402,8 @@ function format_url(self::Style, e)
 	return words[
 		"URL:",
 		href[
-			field("url", raw=True),
-			field("url", raw=True)
+			field("url", raw=true),
+			field("url", raw=true)
 			]
 	]
 end
@@ -412,11 +413,11 @@ function format_pubmed(self::Style, e)
 	return href[
 		join[
 			"https://www.ncbi.nlm.nih.gov/pubmed/",
-			field("pubmed", raw=True)
+			field("pubmed", raw=true)
 			],
 		join[
 			"PMID:",
-			field("pubmed", raw=True)
+			field("pubmed", raw=true)
 			]
 		]
 end
@@ -425,11 +426,11 @@ function format_doi(self::Style, e)
 	return href[
 		join[
 			"https://doi.org/",
-			field("doi", raw=True)
+			field("doi", raw=true)
 			],
 		join[
 			"doi:",
-			field("doi", raw=True)
+			field("doi", raw=true)
 			]
 		]
 end
@@ -438,11 +439,11 @@ function format_eprint(self::Style, e)
 	return href[
 		join[
 			"https://arxiv.org/abs/",
-			field("eprint", raw=True)
+			field("eprint", raw=true)
 			],
 		join[
 			"arXiv:",
-			field("eprint", raw=True)
+			field("eprint", raw=true)
 			]
 		]
 end

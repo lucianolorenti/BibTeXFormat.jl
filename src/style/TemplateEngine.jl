@@ -20,6 +20,7 @@ one two three four
 """
 
 module TemplateEngine
+export format_data
 const nbsp ="nbsp"
 struct Node
 	name::String
