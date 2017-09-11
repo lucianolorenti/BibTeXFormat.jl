@@ -169,7 +169,6 @@ function format_lab_names(self::AlphaLabelStyle, persons)
 		while namesleft > 0
 			person = persons[nameptr - 1]
 			if nameptr == numnames
-                println(Base.convert(String,person))
                 if convert(String,person) == "others"
 					result = string(result, "+")
 				else

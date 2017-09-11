@@ -112,7 +112,6 @@ end=#
 Format the given data into a piece of richtext.Text
 """
 function format_data(n::Node, data)
-    println(n.name)
 	return n.f(n.children, data, n.args...;n.kwargs...)
 end
 
@@ -169,14 +168,6 @@ Billy, Willy, and Dilly
 	if last_sep == nothing
 		llast_sep = sep
 	end
-    println("a")
-    for p in _format_list(children,data)
-
-        println(p)
-
-        println(typeof(p))
-        println(length(p))
-    end
     parts = [part for part in _format_list(children, data) if length(part)>0]
     if length(parts) == 0
         return RichText("")
@@ -191,7 +182,7 @@ end
 
 #"""Join text fragments with spaces or something else."""
 @node function words(children, data; sep= ' ')
-    return format_data(join(sep)[children],data)
+    return format_data(join(;sep=sep)[children],data)
 end
 
 #="""
@@ -280,23 +271,20 @@ Return the contents of the bibliography entry field.
 
     assert(length(children)==0)
     entry = context["entry"]
-    println("a444")
-    #try
+    try
         local field = nothing
         if raw
             field = entry.fields[name]
         else
             field = latex_parse(entry[name])
         end
-        println(field)
         if apply_func != nothing
             field = apply_func(field)
         end
         return field
-    #catch e
-    #    println(e, " ",name)
-    #    throw((name, entry))
-    #end
+    catch e
+        throw((name, entry))
+    end
 end
 
 #="""

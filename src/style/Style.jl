@@ -60,15 +60,16 @@ end
 function format_entry(b::T, label, entry) where T<:BaseStyle
 	local context = Dict{String,Any}("entry" => entry, "style"=>b)
     local text    = ""
-#	try
+	try
         get_template =  getfield(typeof(b).name.module, Symbol("get_$(entry["type"])_template"))
+            println(entry)
         text = format_data(get_template(b,entry),context)
-#	catch e
-#       println( catch_stacktrace())
-#        println(e)
-#        format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
-#    	text = format_method(b,context)
-#	end
+	catch e
+      # println( catch_stacktrace())
+       # println(e)
+        format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
+    	text = format_method(b,context)
+	end
     return (entry["key"], text, label)
 end
 
