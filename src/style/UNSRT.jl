@@ -1,8 +1,8 @@
 module UNSRT
 
 import BibTeXStyle.RichTextElements: Symbol, RichText
-import ..TemplateEngine: field, first_of, href, join, names, optional, optional_field, sentence, tag, together, words
-import ..Style: Config, BaseStyle, toplevel
+import ..TemplateEngine: field, first_of, href, join, names, optional, optional_field, sentence, tag, together, words, toplevel, format_data
+import ..Style: Config, BaseStyle
 function dashify(text)
     dash_re = re.compile(r"-+")
     return join(Text(Symbol("ndash")),split(text,dash_re))
@@ -41,8 +41,7 @@ function get_article_template(self::Style, e)
 	template = toplevel[
 		format_names(self,"author"),
 		format_title(self,e, "title"),
-		sentence[
-			tag("em")[field("journal")],
+		sentence[tag("em")[field("journal")],
 			optional[ volume_and_pages ],
 			date],
 		sentence[ optional_field("note") ],

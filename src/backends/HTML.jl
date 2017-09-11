@@ -17,9 +17,11 @@ module HTML
 
 export Backend
 using Base.Test
-import ..Backends.BaseBackend
+
+import ..Backends: BaseBackend, write_entry
 import ..Backends.format
-using ..RichTextElements
+
+import BibTeXStyle.RichTextElements: RichText, Tag, Protected, HRef
 import Formatting.sprintf1
 using HttpCommon
 const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">

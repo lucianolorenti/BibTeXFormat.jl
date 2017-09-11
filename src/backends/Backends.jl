@@ -2,11 +2,8 @@ module Backends
 export BaseBackend,
        render_sequence,
        format,
-       HTML,
-       LaTeX,
        render_as
-
-using ..RichTextElements
+import BibTeXStyle.RichTextElements: RichText, Tag, Protected, BaseText, MultiPartText, RichString, TextSymbol
 """This is the base class for the backends. We encourage
 you to implement as many of the symbols and tags as
 possible when you create a new plugin.
@@ -22,9 +19,10 @@ tags[u'b']           : embolden text, not semantic
 tags[u'tt']          : typewrite text, not semantic
 """
 abstract type BaseBackend end
-function write_prologue(self::BaseBackend)
+
+function write_prologue(self::BaseBackend, s)
 end
-function write_epilogue(self::BaseBackend)
+function write_epilogue(self::BaseBackend,s )
 end
 :"""Format the given string *str_*.
 The default implementation simply returns the string ad verbatim.
@@ -56,6 +54,9 @@ function render_sequence(self::T, rendered_list) where T <:BaseBackend
 	return join(rendered_list, "")
 end
 
+function write_entry()
+end
+
 #=
 def write_to_file(self, formatted_entries, filename):
 	with pybtex.io.open_unicode(filename, "w", self.encoding) as stream:
@@ -66,13 +67,12 @@ def write_to_file(self, formatted_entries, filename):
 function write_to_stream(self::BaseBackend, formatted_bibliography, stream)
 
 	write_prologue(self, stream)
-	for entry in formatted_bibliography
-		write_entry(self,stream, entry.key, entry.label, render(entry.text,self))
+    for (key, text, label ) in formatted_bibliography
+
+        write_entry(self,stream, key, label,  render(text[1][1],self))
 	end
 	write_epilogue(self,stream)
 end
-include("HTML.jl")
-include("LaTeX.jl")
     #include("Markdown.jl")
 
 function find_backend(t::String)
@@ -126,4 +126,6 @@ end
 function render(self::TextSymbol, backend)
     return typeof(backend).name.module.symbols[self.name]
 end
+include("HTML.jl")
+include("LaTeX.jl")
 end

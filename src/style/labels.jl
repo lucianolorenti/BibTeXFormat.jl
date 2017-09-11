@@ -10,7 +10,7 @@ abstract type BaseLabelStyle end
 const _nonalnum_pattern = r"[^A-Za-z0-9]+"
 
 function _strip_accents(s)
-	return join([c for c in Base.UTF8proc.normalize_string(s, :NFD) ])
+	return Base.join([c for c in Base.UTF8proc.normalize_string(s, :NFD) ])
 end
 
 const _nonalnum_pattern = r"[^A-Za-z0-9]+"
@@ -27,7 +27,7 @@ AABTesting123
 """
 
 function _strip_nonalnum(parts)
-	local s = join(parts, "")
+	local s = Base.join(parts, "")
     return replace(_strip_accents(s),_nonalnum_pattern,"")
 end
 

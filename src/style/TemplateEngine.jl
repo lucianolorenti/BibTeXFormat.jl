@@ -20,6 +20,7 @@ one two three four
 """
 
 module TemplateEngine
+import ..RichTextElements: TextSymbol, RichText
 export format_data
 const nbsp ="nbsp"
 struct Node
@@ -125,16 +126,15 @@ function format(n::Node)
 end
 
 function  _format_list(list_, data)
-    return [_format_data(part, data) for part in list_]
+    return vcat([_format_data(part, data) for part in list_])
 end
 
 function _format_data(node::Node, data)
     return format_data(node,data)
 end
-function _format_data(n, data)
-	return n
+function _format_data(n::Array,data)
+    return _format_list(n,data)
 end
-
 function tie_or_space(word, tie="~", space=" ", enough_chars=3, other_word=nothing)
     local n_chars = length(word)
     if other_word != nothing
@@ -167,20 +167,19 @@ Billy, Willy, and Dilly
 	if last_sep == nothing
 		llast_sep = sep
 	end
-
     parts = [part for part in _format_list(children, data) if !isempty(part)]
     if length(parts) <= 1
-        return parts
+        return RichText(parts...)
     elseif length(parts) == 2
-        return join(MultiPartText(sep2),parts)
+        return join(RichText(sep2),parts)
     else
-        return Base.join([Base.join(parts[1:end-1],sep), parts[end]], llast_sep)
+        return join(RichText(last_sep),[join(RichText(sep),parts[1:end-1]), parts[end]])
 	end
 end
 
 #"""Join text fragments with spaces or something else."""
 @node function words(children, data; sep= ' ')
-	return join(sep)[children].format_data(data)
+	return TemplateEngine.join(sep)[children].format_data(data)
 end
 
 #="""
@@ -241,7 +240,7 @@ Join text fragments, capitalyze the first letter, add a period to the end.
 """=#
 @node function sentence(children, data; capfirst=false, capitalize=false, add_period=true, sep=", ")
 
-    local text = format_data(join(sep)[children],data)
+    local text = format_data(join(;sep=sep)[children],data)
     if capfirst
         text = capfirst(text)
     end
@@ -249,7 +248,7 @@ Join text fragments, capitalyze the first letter, add a period to the end.
         text = capitalize(text)
     end
     if add_period
-        text = text.add_period(text)
+        text = add_period(text, text)
     end
     return text
 end
@@ -358,5 +357,9 @@ end
 		end
 	end
     return ""
+end
+
+@node function toplevel(children, data)
+    return format_data(TemplateEngine.join(sep=TextSymbol("newblock"))[children],data)
 end
 end

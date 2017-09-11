@@ -17,9 +17,9 @@ render(HRef("http://example.org/", "http://example.org/"),latex)
 """
 module LaTeX
 using Base.Test
-import ..Backends.BaseBackend
 import ..Backends.format
-using ..RichTextElements
+import ..Backends: BaseBackend, write_entry
+import BibTeXStyle.RichTextElements: RichText, Tag, Protected, HRef
 import Formatting.sprintf1
 
 const default_suffix = ".bbl"
