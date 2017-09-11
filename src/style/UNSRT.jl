@@ -1,7 +1,7 @@
 
 function dashify(text)
     dash_re = re.compile(r"-+")
-    return join(Text(Symbol("ndash")),split(text,dash_re))
+    return join(Text(TextSymbol("ndash")),split(text,dash_re))
 end
 
 pages = field("pages", apply_func=dashify)
@@ -34,14 +34,14 @@ function get_article_template(self::UNSRTStyle, e)
 		# pages only
 		words["pages", pages],
 	]
-	template = toplevel[
-		format_names(self,"author"),
+    template = toplevel[       format_names(self,"author"),
 		format_title(self,e, "title"),
 		sentence[tag("em")[field("journal")],
 			optional[ volume_and_pages ],
 			date],
-		sentence[ optional_field("note") ],
-		format_web_refs(self,e),
+sentence[ optional_field("note") ],
+		format_web_refs(self,e), 
+
 	]
 	return template
 end
@@ -81,7 +81,7 @@ function format_volume_and_series(self::UNSRTStyle, e, as_sentence=true)
 	]
 	number_and_series = optional[
 		words[
-			join(sep=Symbol("nbsp"))[(if as_sentence "Number" else "number" end), field("number")],
+			join(sep=TextSymbol("nbsp"))[(if as_sentence "Number" else "number" end), field("number")],
 			optional[
 				words["in", field("series")]
 			]
@@ -221,20 +221,16 @@ function get_inbook_template(self::UNSRTStyle, e)
 	return template
 end
 function get_incollection_template(self::UNSRTStyle, e)
-	template = toplevel[
-		sentence[format_names(self,"author")],
+	template = toplevel[	sentence[ format_names(self,"author") ],
 		format_title(self,e, "title"),
-		words[
-			"In",
-			sentence[
-				optional[ format_editor(self, e, false) ],
+		words[			"In",
+			sentence[	optional[ format_editor(self, e, false) ],
 				format_btitle(self,e, "booktitle",false),
 				format_volume_and_series(self,e, false),
 				format_chapter_and_pages(self,e),
 			],
 		],
-		sentence[
-			optional_field("publisher"),
+		sentence[	optional_field("publisher"),
 			optional_field("address"),
 			format_edition(self,e),
 			date,
@@ -245,7 +241,7 @@ function get_incollection_template(self::UNSRTStyle, e)
 end
 function get_inproceedings_template(self::UNSRTStyle, e)
 	template = toplevel[
-		sentence[format_names(self, "author")],
+		sentence[ format_names(self, "author") ],
 		format_title(self, e, "title"),
 		words[
 			"In",
@@ -266,7 +262,7 @@ function get_manual_template(self::UNSRTStyle, e)
 	# TODO this only corresponds to the bst style if author is non-empty
 	# for empty author we should put the organization first
 	template = toplevel[
-		optional[ sentence [ format_names(self,"author") ] ],
+		optional[ sentence[ format_names(self,"author") ] ],
 		format_btitle(self,e, "title"),
 		sentence[
 			optional_field("organization"),

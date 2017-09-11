@@ -527,7 +527,7 @@ Arguments are concatenated together.
 November, December.
 """
 function RichString(parts...)
-    return RichString(join(parts, ""))
+    return RichString(Base.join(parts, ""))
 end
 function parts(d::RichString)
     return d.value

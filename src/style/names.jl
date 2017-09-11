@@ -1,13 +1,13 @@
 
 abstract type BaseNameStyle end
 
-@node function  name_part(children, data, before="", tie=false, abbr=false)
+@node function  name_part(children, data; before="", tie=false, abbr=false)
     if abbr
         children = [abbreviate(child) for child in children]
 	end
     parts = format_data(together(last_tie=true)[children],data)
-    if not parts
-        return RichText()
+    if length(parts) == 0
+        return RichText("")
 	end
     if tie
         return RichText(before, parts, tie_or_space(parts, nbsp, " "))
@@ -47,7 +47,7 @@ function format(self::LastFirstNameStyle, person, abbr=false)
 		name_part(tie=true)[person.rich_prelast_names],
 		name_part[person.rich_last_names],
 		name_part(before=", ")[person.rich_lineage_names],
-        name_part(before=", ",abbr=abbr)[string(rich_first_names(person),rich_middle_names(person))],
+        name_part(before=", ",abbr=abbr)[rich_first_names(person),rich_middle_names(person)],
 	]
 end
 
@@ -83,7 +83,7 @@ First~Middle de~Last, Jr.
 """
 function format(self::PlainNameStyle, person, abbr=false)
 	return join[
-             name_part(tie=true, abbr=abbr)[string(rich_first_names(person),rich_middle_names(person))],
+             name_part(tie=true, abbr=abbr)[rich_first_names(person),rich_middle_names(person)],
              name_part(tie=true)[rich_prelast_names(person)],
              name_part[rich_last_names(person)],
              name_part(before=", ")[rich_lineage_names(person)]

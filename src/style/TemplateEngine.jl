@@ -51,13 +51,15 @@ macro node(func)
 	end
 end
 
-function Base.getindex(n::Node, children...)
+function Base.getindex(n::Node, childrens...)
 	result = clone(n)
+    for children in childrens
     if isa(children, Array) || isa(children, Tuple)
         append!(result.children,children)
     else
         push!(result.children,children)
 	end
+end
     return result
 end
 #="""
@@ -110,6 +112,7 @@ end=#
 Format the given data into a piece of richtext.Text
 """
 function format_data(n::Node, data)
+    println(n.name)
 	return n.f(n.children, data, n.args...;n.kwargs...)
 end
 
@@ -122,14 +125,17 @@ function format(n::Node)
 end
 
 function  _format_list(list_, data)
-    return vcat([_format_data(part, data) for part in list_])
+    return [_format_data(part, data) for part in list_]
 end
 
 function _format_data(node::Node, data)
     return format_data(node,data)
 end
-function _format_data(n::Array,data)
-    return _format_list(n,data)
+#function _format_data(n::Array,data)
+#    return _format_list(n,data)
+#end
+function _format_data(n,data)
+    return n
 end
 function tie_or_space(word, tie="~", space=" ", enough_chars=3, other_word=nothing)
     local n_chars = length(word)
@@ -163,9 +169,19 @@ Billy, Willy, and Dilly
 	if last_sep == nothing
 		llast_sep = sep
 	end
-    parts = [part for part in _format_list(children, data) if !isempty(part)]
-    if length(parts) <= 1
-        return RichText(parts...)
+    println("a")
+    for p in _format_list(children,data)
+
+        println(p)
+
+        println(typeof(p))
+        println(length(p))
+    end
+    parts = [part for part in _format_list(children, data) if length(part)>0]
+    if length(parts) == 0
+        return RichText("")
+    elseif length(parts) == 1
+        return RichText(parts[1])
     elseif length(parts) == 2
         return join(RichText(sep2),parts)
     else
@@ -175,7 +191,7 @@ end
 
 #"""Join text fragments with spaces or something else."""
 @node function words(children, data; sep= ' ')
-	return join(sep)[children].format_data(data)
+    return format_data(join(sep)[children],data)
 end
 
 #="""
@@ -186,7 +202,7 @@ Try to keep words together, like BibTeX does.
     local tie   = nbsp
     local space = " "
 	local tie2  = nothing
-    local parts = [part for part in _format_list(children, data) if !isempty(part)]
+    local parts = [part for part in _format_list(children, data) if length(part)>0]
     if length(parts)==0
         return ""
 	end
@@ -234,7 +250,7 @@ Join text fragments, capitalyze the first letter, add a period to the end.
     uno, dos, tres
 
 """=#
-@node function sentence(children, data; capfirst=false, capitalize=false, add_period=true, sep=", ")
+@node function sentence(children, data; capfirst=false, capitalize=false, badd_period=true, sep=", ")
 
     local text = format_data(join(;sep=sep)[children],data)
     if capfirst
@@ -243,7 +259,7 @@ Join text fragments, capitalyze the first letter, add a period to the end.
     if capitalize
         text = capitalize(text)
     end
-    if add_period
+    if badd_period
         text = add_period(text, text)
     end
     return text
@@ -264,27 +280,29 @@ Return the contents of the bibliography entry field.
 
     assert(length(children)==0)
     entry = context["entry"]
-    try
+    println("a444")
+    #try
         local field = nothing
         if raw
             field = entry.fields[name]
         else
-            field = entry.rich_fields[name]
+            field = latex_parse(entry[name])
         end
-        if apply_func
+        println(field)
+        if apply_func != nothing
             field = apply_func(field)
         end
         return field
-    catch e
-        throw((name, entry))
-    end
+    #catch e
+    #    println(e, " ",name)
+    #    throw((name, entry))
+    #end
 end
 
 #="""
 Return formatted names.
 """=#
 @node function  names(children, context, role;kwargs...)
-
     assert(length(children)==0)
     local persons = nothing
     try
@@ -295,8 +313,7 @@ Return formatted names.
 
     local style = context["style"]
     formatted_names = [format(style.config.name_style,person, style.config.abbreviate_names) for person in persons]
-    println(formatted_names)
-    return format_data(join(kwargs...)[formatted_names],context)
+    return format_data(join(;kwargs...)[formatted_names],context)
 end
 
 #="""If children contain a missing bibliography field, return None.
@@ -310,9 +327,9 @@ Text()
 """=#
 @node function optional(children, data)
     try
-        return MultiPartText(_format_list(children, data)...)
+        return RichText(_format_list(children, data)...)
     catch e
-        return MultiPartText()
+        return RichText("")
     end
 end
 @node function optional_field(children, data, args...;kwargs...)
@@ -357,5 +374,5 @@ end
 end
 
 @node function toplevel(children, data)
-    return format_data(join(sep=TextSymbol("newblock"))[children],data)
+    return format_data(join(;sep=TextSymbol("newblock"))[children],data)
 end
