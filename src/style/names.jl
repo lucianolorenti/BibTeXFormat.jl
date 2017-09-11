@@ -47,7 +47,7 @@ function format(self::LastFirstNameStyle, person, abbr=false)
 		name_part(tie=true)[person.rich_prelast_names],
 		name_part[person.rich_last_names],
 		name_part(before=", ")[person.rich_lineage_names],
-		name_part(before=", ",abbr=abbr)[string(person.rich_first_names,person.rich_middle_names)],
+        name_part(before=", ",abbr=abbr)[string(rich_first_names(person),rich_middle_names(person))],
 	]
 end
 
@@ -83,9 +83,9 @@ First~Middle de~Last, Jr.
 """
 function format(self::PlainNameStyle, person, abbr=false)
 	return join[
-		name_part(tie=true, abbr=abbr)[string(person.rich_first_names, person.rich_middle_names)],
-		name_part(tie=true)[person.rich_prelast_names],
-		name_part[person.rich_last_names],
-		name_part(before=", ")[person.rich_lineage_names]
+             name_part(tie=true, abbr=abbr)[string(rich_first_names(person),rich_middle_names(person))],
+             name_part(tie=true)[rich_prelast_names(person)],
+             name_part[rich_last_names(person)],
+             name_part(before=", ")[rich_lineage_names(person)]
 	]
 end

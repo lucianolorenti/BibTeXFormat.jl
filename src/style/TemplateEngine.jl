@@ -295,6 +295,7 @@ Return formatted names.
 
     local style = context["style"]
     formatted_names = [format(style.config.name_style,person, style.config.abbreviate_names) for person in persons]
+    println(formatted_names)
     return format_data(join(kwargs...)[formatted_names],context)
 end
 

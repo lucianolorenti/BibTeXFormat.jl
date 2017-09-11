@@ -1,3 +1,4 @@
+include("latexparser.jl")
 """
 A person or some other person-like entity.
 
@@ -336,7 +337,7 @@ A list of last names converted to :ref:`rich text <rich-text>`.
 
 """
 function rich_last_names(self::Person)
-    return [latx_parse(name) for name in self.last_names]
+    return [latex_parse(name) for name in self.last_names]
 end
 
 """
