@@ -12,7 +12,7 @@ include(joinpath(dirname(@__FILE__),"./sorting.jl"))
 end
 
 struct BaseStyle
-	name_style
+ 	name_style
 	label_style
 	sorting_style
 	abbreviate_names::Bool
@@ -28,4 +28,6 @@ struct BaseStyle
 end
 
 const AlphaStyle = BaseStyle(label_style = AlphaLabelStyle(),sorting_style = AuthorYearTitleSortingStyle())
+
+@reexport using UNSRT
 end
