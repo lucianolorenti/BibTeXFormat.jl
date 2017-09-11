@@ -1,7 +1,7 @@
 
 """
 >>> from nose.tools import assert_raises
-i
+
 >>> LaTeXParser('abc').parse()
 Text('abc')
 
@@ -14,11 +14,11 @@ Text('abc', Protected('def ', Protected('xyz')), ' !')
 >>> assert_raises(PybtexSyntaxError, LaTeXParser('abc{def}}').parse)
 >>> assert_raises(PybtexSyntaxError, LaTeXParser('abc{def}{').parse)
 """
-function latex_parse(str, level=0)
-	return RichText(iter_string_parts(level)...)
+function latex_parse(str)
+	return iter_string_parts(str)
 end
 
-function iter_string_parts(str, level=0)
+function iter_string_parts(str)
 	parts = Any[RichText("")]
 	tokens  = matchall(r"[^\s\"#{}@,=\\]+|\s+|\"|#|{|}|@|,|=|\\", str)
 	i = 1
@@ -29,8 +29,6 @@ function iter_string_parts(str, level=0)
 		offset = tokens[i].offset+1
 		endof  = tokens[i].offset+ tokens[i].endof
 		strtoken = str[offset:endof]
-		println(strtoken)
-		println(e, " ", i)
 		if (String(strtoken)=="{")
 			level = level +1
 			if e<i
@@ -45,7 +43,6 @@ function iter_string_parts(str, level=0)
 			if e<i
 				 push!(parts[end].parts, RichText(join(tokens[e:i-1],"")))
 			end
-			println(length(parts))
 			pop!(parts)
 			e=i+1
 		end

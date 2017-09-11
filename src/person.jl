@@ -306,42 +306,42 @@ function get_part(self::Person, ttype, abbr=false)
     end
     return names
 end
-#=
+
 """
 A list of first names converted to :ref:`rich text <rich-text>`.
 
 """
-function rich_first_names(self):
-
-    return [Text.from_latex(name) for name in self.first_names]
+function rich_first_names(self::Person)
+    return [latex_parse(name) for name in self.first_names]
 end
-function rich_middle_names(self)
-    """
-    A list of middle names converted to :ref:`rich text <rich-text>`.
 
-    .. versionadded:: 0.20
-    """
-    return [Text.from_latex(name) for name in self.middle_names]
-end
-function rich_prelast_names(self):
-    """
-    A list of pre-last (aka von) name parts converted to :ref:`rich text <rich-text>`.
+"""
+A list of middle names converted to :ref:`rich text <rich-text>`.
 
-    .. versionadded:: 0.20
-    """
-    return [Text.from_latex(name) for name in self.prelast_names]
+"""
+function rich_middle_names(self::Person)
+    return [latex_parse(name) for name in self.middle_names]
 end
-function rich_last_names(self):
-    """
-    A list of last names converted to :ref:`rich text <rich-text>`.
 
-    .. versionadded:: 0.20
-    """
-    return [Text.from_latex(name) for name in self.last_names]
+"""
+A list of pre-last (aka von) name parts converted to :ref:`rich text <rich-text>`.
+
+"""
+function rich_prelast_names(self::Person)
+    return [latex_parse(name) for name in self.prelast_names]
 end
+
+"""
+A list of last names converted to :ref:`rich text <rich-text>`.
+
+"""
+function rich_last_names(self::Person)
+    return [latx_parse(name) for name in self.last_names]
+end
+
+"""
+A list of lineage (aka Jr) name parts converted to :ref:`rich text <rich-text>`.
+"""
 function rich_lineage_names(self::Person)
-    """
-    A list of lineage (aka Jr) name parts converted to :ref:`rich text <rich-text>`.
-    """
-    return [Text.from_latex(name) for name in self.lineage_names]
-end=#
+    return [latex_parse(name) for name in self.lineage_names]
+end
