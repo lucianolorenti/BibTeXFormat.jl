@@ -1,4 +1,3 @@
-
 abstract type BaseSortingStyle end
 import Base.sort
 function Base.sort(self::T, entries) where T <: BaseSortingStyle

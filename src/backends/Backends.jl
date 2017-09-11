@@ -1,9 +1,3 @@
-module Backends
-export BaseBackend,
-       render_sequence,
-       format,
-       render_as
-import BibTeXStyle.RichTextElements: RichText, Tag, Protected, BaseText, MultiPartText, RichString, TextSymbol
 """This is the base class for the backends. We encourage
 you to implement as many of the symbols and tags as
 possible when you create a new plugin.
@@ -128,4 +122,3 @@ function render(self::TextSymbol, backend)
 end
 include("HTML.jl")
 include("LaTeX.jl")
-end

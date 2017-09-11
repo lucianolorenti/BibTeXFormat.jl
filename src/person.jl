@@ -306,16 +306,16 @@ function get_part(self::Person, ttype, abbr=false)
     end
     return names
 end
+#=
+"""
+A list of first names converted to :ref:`rich text <rich-text>`.
 
+"""
 function rich_first_names(self):
-    """
-    A list of first names converted to :ref:`rich text <rich-text>`.
-
-    """
 
     return [Text.from_latex(name) for name in self.first_names]
 end
-function rich_middle_names(self):
+function rich_middle_names(self)
     """
     A list of middle names converted to :ref:`rich text <rich-text>`.
 
@@ -344,4 +344,4 @@ function rich_lineage_names(self::Person)
     A list of lineage (aka Jr) name parts converted to :ref:`rich text <rich-text>`.
     """
     return [Text.from_latex(name) for name in self.lineage_names]
-end
+end=#

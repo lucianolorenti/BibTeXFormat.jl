@@ -1,4 +1,4 @@
-import  .TemplateEngine: @node
+
 abstract type BaseNameStyle end
 
 @node function  name_part(children, data, before="", tie=false, abbr=false)

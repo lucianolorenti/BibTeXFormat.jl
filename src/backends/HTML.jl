@@ -1,8 +1,8 @@
-"""
+#="""
 HTML output backend.
 ```
-using Backends.HTML
-html = Backend()
+using HTMLBackends.HTML
+html = HTMLBackend()
 render(Tag("em", ""),html)
 ```
 <BLANKLINE>
@@ -12,17 +12,7 @@ render(HRef("/", ""),html)
 <BLANKLINE>
 render(HRef("/", "Hard & heavy"),html)
 <a href="/">Hard &amp; heavy</a>
-"""
-module HTML
-
-export Backend
-using Base.Test
-
-import ..Backends: BaseBackend, write_entry
-import ..Backends.format
-
-import BibTeXStyle.RichTextElements: RichText, Tag, Protected, HRef
-import Formatting.sprintf1
+"""=#
 using HttpCommon
 const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
@@ -36,25 +26,25 @@ const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 
 """
 >>> from pybtex.richtext import Text, Tag, Symbol
->>> print(Tag('em', Text(u'Ð›.:', Symbol('nbsp'), u'<<Ð¥Ð¸Ð¼Ð¸Ñ>>')).render(Backend()))
+>>> print(Tag('em', Text(u'Ð›.:', Symbol('nbsp'), u'<<Ð¥Ð¸Ð¼Ð¸Ñ>>')).render(HTMLBackend()))
 <em>Ð›.:&nbsp;&lt;&lt;Ð¥Ð¸Ð¼Ð¸Ñ&gt;&gt;</em>
 
 """
-struct Backend <: BaseBackend
+struct HTMLBackend <: BaseBackend
 end
 
 const default_suffix = ".html"
 const symbols = Dict{String,String}("ndash"=>"&ndash;",
 									"newblock"=>"\n")
 
-function  format(self::Backend, text::String)
+function  format(self::HTMLBackend, text::String)
     return escapeHTML(text)
 end
 
-function format(self::Backend, t::Protected,text)
+function format(self::HTMLBackend, t::Protected,text)
 	return "<span class=\"bibtex-protected\">$text</span>"
 end
-function format(self::Backend, t::Tag, text)
+function format(self::HTMLBackend, t::Tag, text)
 	if length(text)>0
 		return "<$(t.name)>$text</$(t.name)>"
 	else
@@ -62,7 +52,7 @@ function format(self::Backend, t::Tag, text)
 	end
 end
 
-function format(self::Backend, url::HRef, text)
+function format(self::HTMLBackend, url::HRef, text)
     local uurl = url.url
     if length(text)>0
         return "<a href=\"$(uurl)\">$(text)</a>"
@@ -70,7 +60,7 @@ function format(self::Backend, url::HRef, text)
         return ""
     end
 end
-function write_prologue(self::Backend, output)
+function write_prologue(self::HTMLBackend, output)
     local encoding = nothing
     if (self.encoding == "")
         encoding = "UTF-8"
@@ -79,12 +69,10 @@ function write_prologue(self::Backend, output)
     end
 	write(output,sprintf1(PROLOGUE, encoding))
 end
-function write_epilogue(self::Backend, output)
+function write_epilogue(self::HTMLBackend, output)
     write(output,"</dl></body></html>\n")
 end
-function write_entry(self::Backend, output, key, label, text)
+function write_entry(self::HTMLBackend, output, key, label, text)
     write(output,"<dt>$label</dt>\n")
 	write(output,"<dd>$text</dd>\n")
-end
-
 end

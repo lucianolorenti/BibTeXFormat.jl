@@ -1,18 +1,9 @@
-module Style
-export Config,
-       format_labels,
-       BaseStyle,
-       AlphaStyle,
-       toplevel,
-       format_data
-using BibTeX
-import ..RichTextElements
-include(joinpath(dirname(@__FILE__),"./TemplateEngine.jl"))
-include(joinpath(dirname(@__FILE__),"./labels.jl"))
-include(joinpath(dirname(@__FILE__),"./names.jl"))
-include(joinpath(dirname(@__FILE__),"./sorting.jl"))
-import ..BibTeXStyle: Person, split_name_list
-import .TemplateEngine: format_data
+export AlphaStyle,
+       format_entries
+include("TemplateEngine.jl")
+include("names.jl")
+include("labels.jl")
+include("sorting.jl")
 abstract type BaseStyle end
 struct Config
  	name_style
@@ -100,6 +91,4 @@ function format_bibliography(self::T, bib_data, citations=nothing) where T<:Base
 	return formatted_bibliography
 end
 include("UNSRT.jl")
-using .UNSRT
-const AlphaStyle = UNSRT.Style(Config(label_style = AlphaLabelStyle(),sorting_style = AuthorYearTitleSortingStyle()))
-end
+const AlphaStyle = UNSRTStyle(Config(label_style = AlphaLabelStyle(),sorting_style = AuthorYearTitleSortingStyle()))

@@ -1,4 +1,4 @@
-"""
+#="""
 (simple but) rich text formatting tools
 
 ```jldoctest
@@ -20,20 +20,8 @@ julia> render_as(t,"latex")
 This is a \emph{very} rich text.
 
 ```
-"""
+"""=#
 
-module RichTextElements
-export RichText,
-       Tag,
-       TextSymbol,
-       typeinfo,
-       BaseText,
-       Protected,
-       HRef,
-       MultiPartText,
-       RichString,
-       add_period,
-       capitalize
 import Base.==
 import Base.getindex
 import Base.split
@@ -499,7 +487,7 @@ end
 [Tag("em", "Breaking news!")]
 """
 function merge_similar(param_parts)
-    local groups = groupby(value-> RichTextElements.typeinfo(value), param_parts)
+    local groups = groupby(value-> typeinfo(value), param_parts)
     local output=[]
     for  group in groups
         cls, cls_type, info = typeinfo(group[1])
@@ -717,7 +705,7 @@ struct Protected <: MultiPartText
 	length::Integer
 	info::String
 	Protected(parts...) = begin
-        parts, length = initialize_parts(args...)
+        parts, length = initialize_parts(parts...)
         new(parts,length,"")
     end
 end
@@ -795,4 +783,3 @@ function lowercase(self::TextSymbol)
 	return self
 end
 const nbsp = TextSymbol("nbsp")
-end

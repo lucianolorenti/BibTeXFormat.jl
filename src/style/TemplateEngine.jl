@@ -19,10 +19,6 @@ The Book, 2000.
 one two three four
 """
 
-module TemplateEngine
-import ..RichTextElements: TextSymbol, RichText
-export format_data
-const nbsp ="nbsp"
 struct Node
 	name::String
 	f::Function
@@ -179,7 +175,7 @@ end
 
 #"""Join text fragments with spaces or something else."""
 @node function words(children, data; sep= ' ')
-	return TemplateEngine.join(sep)[children].format_data(data)
+	return join(sep)[children].format_data(data)
 end
 
 #="""
@@ -290,15 +286,15 @@ Return formatted names.
 @node function  names(children, context, role;kwargs...)
 
     assert(length(children)==0)
-
+    local persons = nothing
     try
-        persons = context["entry"].persons[role]
+        persons = context["entry"]["persons"][role]
     catch e
         throw((role, context["entry"]))
     end
 
     local style = context["style"]
-    formatted_names = [format_name(style,person, style.abbreviate_names) for person in persons]
+    formatted_names = [format(style.config.name_style,person, style.config.abbreviate_names) for person in persons]
     return format_data(join(kwargs...)[formatted_names],context)
 end
 
@@ -360,6 +356,5 @@ end
 end
 
 @node function toplevel(children, data)
-    return format_data(TemplateEngine.join(sep=TextSymbol("newblock"))[children],data)
-end
+    return format_data(join(sep=TextSymbol("newblock"))[children],data)
 end

@@ -2,13 +2,13 @@ using BibTeX
 using BibTeXStyle
 import BibTeXStyle: Style, Backends
 bib = Bibliography(readstring("/home/luciano/fuentes/Documentos/Bibliografia/Clustering.bib"))
-a =Style.format_entries(Style.AlphaStyle,bib)
+a =format_entries(AlphaStyle,bib)
 b = ""
 Backends.write_to_stream( Backends.HTML.Backend(),a, b)
 println(b)
 
 using BibTeXStyle.Style
-a = BibTeXStyle.Style.UNSRT.get_article_template(AlphaStyle,nothing)
+a = get_article_template(AlphaStyle,nothing)
  for n in a.children
            println(n)
            format_data(n,nothing)

@@ -1,8 +1,8 @@
-"""
+#="""
 LaTeX output backend.
 ```
-using Backends.LaTeX
-latex = LaTeX.Backend()
+using LaTeXBackends.LaTeX
+latex = LaTeX.LaTeXBackend()
 render(Tag("em", ""),latex)
 <BLANKLINE>
 render(Tag("em", "Non-", "empty"),latex)
@@ -14,13 +14,8 @@ render(HRef("/", "Non-", "empty"),latex)
 render(HRef("http://example.org/", "http://example.org/"),latex)
 \\url{http://example.org/}
 ```
-"""
-module LaTeX
+"""=#
 using Base.Test
-import ..Backends.format
-import ..Backends: BaseBackend, write_entry
-import BibTeXStyle.RichTextElements: RichText, Tag, Protected, HRef
-import Formatting.sprintf1
 
 const default_suffix = ".bbl"
 const symbols = Dict{String,String}(
@@ -36,20 +31,20 @@ const tags = Dict{String,Any}(
         "tt"=> "texttt"
     )
 
-struct Backend <: BaseBackend
+struct LaTeXBackend <: BaseBackend
 	enconding::String
 	latex_enconding::String
 end
-function Backend(enconding=nothing)
+function LaTeXBackend(enconding=nothing)
 	local eenconding = "UTF-8"
-	return Backend(eenconding, string("ulatex+",eenconding))
+	return LaTeXBackend(eenconding, string("ulatex+",eenconding))
 end
-function format(self::Backend, str::String)
+function format(self::LaTeXBackend, str::String)
 
     #return codecs.encode(str_, self.latex_encoding)
 	return str
 end
-function format(self::Backend, t::Tag, text)
+function format(self::LaTeXBackend, t::Tag, text)
     local tag = tags[t.name]
     if tag ==nothing
 		if length(text)>0
@@ -65,7 +60,7 @@ function format(self::Backend, t::Tag, text)
 		end
 	end
 end
-function format(self::Backend, href::HRef, text)
+function format(self::LaTeXBackend, href::HRef, text)
 	if length(text)==0
 		return ""
 	elseif text == format(self,href.url)
@@ -80,11 +75,11 @@ end
 >>> print(Protected("CTAN").render_as("latex"))
 {CTAN}
 """
-function format(self::Backend, p::Protected, text)
+function format(self::LaTeXBackend, p::Protected, text)
 	return "{$text}"
 end
 
-function write_prologue(self::Backend, formatted_bibliography)
+function write_prologue(self::LaTeXBackend, formatted_bibliography)
 	if length(formatted_bibliography.preamble)>0
 		write(output,string(formatted_bibliography.preamble,"\n"))
 	end
@@ -92,12 +87,11 @@ function write_prologue(self::Backend, formatted_bibliography)
 	write(output,"\\begin{thebibliography}{$longest_label}")
 end
 
-function write_epilogue(self::Backend, output)
+function write_epilogue(self::LaTeXBackend, output)
 	write(output,"\n\n\\end{thebibliography}\n")
 end
 
-function write_entry(self::Backend, output, key, label, text)
+function write_entry(self::LaTeXBackend, output, key, label, text)
 	write(output,"\n\n\\bibitem[$label]{$key}\n")
 	write(output,text)
-end
 end

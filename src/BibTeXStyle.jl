@@ -11,6 +11,4 @@ include("person.jl")
 include("RichTextElements.jl")
 include("style/Style.jl")
 include("backends/Backends.jl")
-using .Style
-using .Backends
 end # module
