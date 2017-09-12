@@ -27,7 +27,7 @@ function format(self::T, str::String) where T<:BaseBackend
 end
 
 function format(self::T, r::RichText, t) where T<:BaseBackend
-    return t
+    return convert(String,t)
 end
 
 """Format a "protected" piece of text.
@@ -45,7 +45,7 @@ the strings in rendered_list.
 Override this method for non-string backends.
 """
 function render_sequence(self::T, rendered_list) where T <:BaseBackend
-	return join(rendered_list, "")
+	return Base.join(rendered_list, "")
 end
 
 function write_entry()
@@ -58,14 +58,15 @@ def write_to_file(self, formatted_entries, filename):
 		if hasattr(stream, 'getvalue'):
 			return stream.getvalue()
 =#
-function write_to_stream(self::BaseBackend, formatted_bibliography, stream)
+function write_to_stream(self::BaseBackend, formatted_bibliography, stream=IOBuffer())
 
 	write_prologue(self, stream)
     for (key, text, label ) in formatted_bibliography
-
-        write_entry(self,stream, key, label,  render(text[1][1],self))
+        println(text)
+        write_entry(self,stream, key, label,  render(text,self))
 	end
 	write_epilogue(self,stream)
+    return stream
 end
     #include("Markdown.jl")
 
@@ -104,7 +105,7 @@ end
 function render(self::T, backend) where T<:MultiPartText
 
     local rendered_list = [render(part,backend) for part in self.parts]
-    local text =  Backends.render_sequence(backend,rendered_list)
+    local text =  render_sequence(backend,rendered_list)
 	return format(backend,self, text)
 end
 

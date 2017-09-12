@@ -34,13 +34,14 @@ function get_article_template(self::UNSRTStyle, e)
 		# pages only
 		words["pages", pages],
 	]
-    template = toplevel[       format_names(self,"author"),
-		format_title(self,e, "title"),
+    template = toplevel[
+        format_names(self,"author"),
+	#=	format_title(self,e, "title"),
 		sentence[tag("em")[ field("journal") ],
 			optional[ volume_and_pages ],
 			date],
             sentence[ optional_field("note") ],
-		format_web_refs(self,e),
+		format_web_refs(self,e),=#
 
 	]
 	return template

@@ -6,6 +6,7 @@ abstract type BaseNameStyle end
         children = [abbreviate(child) for child in children]
 	end
     parts = format_data(together(last_tie=true)[children],data)
+
     if length(parts) == 0
         return RichText("")
 	end
@@ -26,7 +27,7 @@ Format names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.
 >>> lastfirst = NameStyle().format
 
 >>> print(lastfirst(name).format().render_as('latex'))
-de~la Vall{é}e~Poussin, Charles Louis Xavier~Joseph
+de~la Vall{é}e~Poussin, Charles Louis Xavier~Josteph
 >>> print(lastfirst(name).format().render_as('html'))
 de&nbsp;la Vall<span class="bibtex-protected">é</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph
 

@@ -199,19 +199,19 @@ Try to keep words together, like BibTeX does.
 """=#
 @node function together(children, data; last_tie=false)
     local tie   = nbsp
-    local space = " "
+    local space = RichText(" ")
 	local tie2  = nothing
     local parts = [part for part in _format_list(children, data) if length(part)>0]
+    j=_format_list(children,data)
     if length(parts)==0
-        return ""
-	end
-    if length(parts) <= 2
+        return RichText("")
+    elseif length(parts) <= 2
 		if last_tie
 			tie2 = tie
 		else
 			tie2 = tie_or_space(parts[1], tie, space, other_word=parts[end])
 		end
-		return Base.join(parts, tie2)
+		return Base.join(tie2,parts)
     else
         local llast_tie = nothing
 		if last_tie
@@ -219,8 +219,8 @@ Try to keep words together, like BibTeX does.
 		else
 			llast_tie = tie_or_space(parts[end], tie, space)
 		end
-        return Base.join([ parts[1], tie_or_space(parts[1], tie, space),
-			Base.join(parts[2:end-1], space), llast_tie, parts[end] ],"")
+        return RichText( parts[1], tie_or_space(parts[1], tie, space),
+			Base.join(space, parts[2:end-1]), llast_tie, parts[end])
 
 	end
 end
@@ -286,24 +286,25 @@ Return the contents of the bibliography entry field.
         end
         return ff
     catch e
-       throw(FieldIsMissing(name))
+        throw(FieldIsMissing(string("field: ",name)))
     end
 end
 
 #="""
 Return formatted names.
 """=#
-@node function  names(children, context, role;kwargs...)
+@node function names(children, context, role;kwargs...)
     assert(length(children)==0)
     local persons = nothing
     try
         persons = context["entry"]["persons"][role]
     catch e
-        throw(FieldIsMissing(role))
+        throw(FieldIsMissing(string("names:",role)))
     end
 
     local style = context["style"]
     formatted_names = [format(style.config.name_style,person, style.config.abbreviate_names) for person in persons]
+    println(convert(String,format_data(join(;kwargs...)[formatted_names],context)))
     return format_data(join(;kwargs...)[formatted_names],context)
 end
 
@@ -321,8 +322,6 @@ Text()
         return RichText(_format_list(children, data)...)
     catch e
         if !isa(e,FieldIsMissing)
-            println(catch_stacktrace())
-          println(e)
         end
         return RichText("")
     end

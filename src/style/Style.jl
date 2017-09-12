@@ -52,22 +52,27 @@ function format_entries(b::T, entries) where T <: BaseStyle
     local formatted_entries = []
 	for (label,entry) in zip(labels, sorted_entries)
         try
-            entry["key"] = label
 	    	push!(formatted_entries,format_entry(b,label, entry))
         catch  e
-
+            println(e)
         end
 	end
     return formatted_entries
 end
 
 function format_entry(b::T, label, entry) where T<:BaseStyle
+
+    entry["key"] = label
 	local context = Dict{String,Any}("entry" => entry, "style"=>b)
     local text    = ""
 	try
         get_template =  getfield(typeof(b).name.module, Symbol("get_$(entry["type"])_template"))
         text = format_data(get_template(b,entry),context)
+        println("EXITO")
 	catch e
+#        println("________")
+ #       println(e)
+  #      println(catch_stacktrace())
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
     	text = format_method(b,context)
 	end

@@ -14,10 +14,11 @@ render(HRef("/", "Hard & heavy"),html)
 <a href="/">Hard &amp; heavy</a>
 """=#
 using HttpCommon
+using Formatting
 const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
 <head><meta name="generator" content="Pybtex">
-<meta http-equiv="Content-Type" content="text/html; charset=%s">
+<meta http-equiv="Content-Type" content="text/html; charset={1}">
 <title>Bibliography</title>
 </head>
 <body>
@@ -31,6 +32,10 @@ const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 
 """
 struct HTMLBackend <: BaseBackend
+    encoding::String
+end
+function HTMLBackend()
+    return HTMLBackend("utf-8")
 end
 
 const default_suffix = ".html"
@@ -65,9 +70,10 @@ function write_prologue(self::HTMLBackend, output)
     if (self.encoding == "")
         encoding = "UTF-8"
     else
-        enconding  =self.encoding
+        encoding  =self.encoding
     end
-	write(output,sprintf1(PROLOGUE, encoding))
+    println(PROLOGUE)
+    write(output,Formatting.format(PROLOGUE, encoding))
 end
 function write_epilogue(self::HTMLBackend, output)
     write(output,"</dl></body></html>\n")

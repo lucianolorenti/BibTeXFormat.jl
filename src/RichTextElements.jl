@@ -38,9 +38,9 @@ function typeinfo(v::T) where T<:BaseText
     return (string(T),T,())
 end
 using Iterators
-#function ensure_text(c::Char)
-#    return RichString(c)
-#end
+function ensure_text(c::Char)
+    return RichString(string(c))
+end
 function ensure_text(value::String)
     return RichString(value)
 end
@@ -184,6 +184,9 @@ function  typeinfo(self::T) where T<:MultiPartText
     return (string(typeof(self)), typeof(self),self.info)
 end
 
+function parts(d::T) where T<:MultiPartText
+    return d.parts
+end
 """
 Create a new text object of the same type with the same parameters,
 with different text content.
@@ -212,7 +215,8 @@ the markup:
 
 """
 function Base.length(a::T) where T<:MultiPartText
-	return a.length
+
+    return a.length
 end
 function ==(a::T, b::T) where T<:MultiPartText
 	return a.parts == b.parts
@@ -533,7 +537,7 @@ function RichString(parts...)
     return RichString(Base.join(parts, ""))
 end
 function parts(d::RichString)
-    return d.value
+    return [convert(String,d)]
 end
 function convert(t::Type{String}, v::RichString)
     return v.value
@@ -620,6 +624,8 @@ struct RichText <: MultiPartText
 	info::String
     RichText(args...) = begin
         parts, length = initialize_parts(args...)
+        println(parts)
+        println(length)
     	return  new(parts,length,"")
     end
 end
@@ -672,7 +678,7 @@ struct  HRef <: MultiPartText
 	length::Integer
 	info::String
 	url
-    HRef(url::Union{String,Text},args...) = begin
+    HRef(url,args...) = begin
         parts, length = initialize_parts(args...)
     	return  new(parts,length,url,url)
     end
