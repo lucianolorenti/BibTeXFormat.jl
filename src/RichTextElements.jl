@@ -34,7 +34,9 @@ import Base.endswith
 import Base.+
 import Base.isalpha
 abstract type BaseText end
-
+function typeinfo(v::T) where T<:BaseText
+    return (string(T),T,())
+end
 using Iterators
 function ensure_text(c::Char)
     return RichString(c)
@@ -254,7 +256,7 @@ function initialize_parts(parts...)
 	return (merged_parts, sum( [length(part) for part in parts]))
 end
 function Base.convert(t::Type{String}, a::T) where T<:MultiPartText
-    return join([convert(t,part) for part in a.parts],"")
+    return Base.join([convert(t,part) for part in a.parts],"")
 end
 
 """
@@ -487,7 +489,8 @@ end
 [Tag("em", "Breaking news!")]
 """
 function merge_similar(param_parts)
-    local groups = groupby(value-> typeinfo(value), param_parts)
+    local groups = nothing
+        groups = groupby(value-> BibTeXStyle.typeinfo(value)[1], param_parts)
     local output=[]
     for  group in groups
         cls, cls_type, info = typeinfo(group[1])

@@ -112,7 +112,16 @@ end=#
 Format the given data into a piece of richtext.Text
 """
 function format_data(n::Node, data)
-	return n.f(n.children, data, n.args...;n.kwargs...)
+    local args = []
+    if (data != nothing)
+        push!(args, data)
+    end
+    append!(args, n.args)
+    if (length(args)>0)
+    	return n.f(n.children, args...;n.kwargs...)
+    else
+    	return n.f(n.children, nothing;n.kwargs...)
+    end
 end
 
 """
@@ -124,15 +133,13 @@ function format(n::Node)
 end
 
 function  _format_list(list_, data)
-    return [_format_data(part, data) for part in list_]
+    local formatted_list  =  [_format_data(part, data) for part in list_]
+    return formatted_list
 end
 
 function _format_data(node::Node, data)
     return format_data(node,data)
 end
-#function _format_data(n::Array,data)
-#    return _format_list(n,data)
-#end
 function _format_data(n,data)
     return n
 end
@@ -149,6 +156,7 @@ function tie_or_space(word, tie="~", space=" ", enough_chars=3, other_word=nothi
 end
 #="""Join text fragments together.
 >>> print(six.text_type(join.format()))
+        println(parts)
 <BLANKLINE>
 >>> print(six.text_type(join ['a', 'b', 'c', 'd', 'e'].format()))
 abcde
@@ -174,9 +182,9 @@ Billy, Willy, and Dilly
     elseif length(parts) == 1
         return RichText(parts[1])
     elseif length(parts) == 2
-        return join(RichText(sep2),parts)
+        return Base.join(RichText(lsep2),parts)
     else
-        return join(RichText(last_sep),[join(RichText(sep),parts[1:end-1]), parts[end]])
+        return Base.join(RichText(llast_sep),[Base.join(RichText(lsep),parts[1:end-1]), parts[end]])
 	end
 end
 
@@ -255,35 +263,30 @@ Join text fragments, capitalyze the first letter, add a period to the end.
     end
     return text
 end
-#=
-class FieldIsMissing(PybtexError):
-    def __init__(self, field_name, entry):
-        self.field_name = field_name
-        super(FieldIsMissing, self).__init__(
-            u'missing {0} in {1}'.format(field_name, getattr(entry, 'key', '<unnamed>'))
-        )
+
+struct FieldIsMissing
+    field_name::String
 end
-=#
+
 #="""
 Return the contents of the bibliography entry field.
 """=#
-@node function field(children, context, name; apply_func=nothing, raw=false)
-
+@node function field(children, ocontext, name; apply_func=nothing, raw=false)
     assert(length(children)==0)
-    entry = context["entry"]
+    entry = ocontext["entry"]
     try
-        local field = nothing
+        local ff = nothing
         if raw
-            field = entry.fields[name]
+            ff = entry[name]
         else
-            field = latex_parse(entry[name])
+            ff = latex_parse(entry[name])
         end
         if apply_func != nothing
-            field = apply_func(field)
+            ff = apply_func(ff)
         end
-        return field
+        return ff
     catch e
-        throw((name, entry))
+       throw(FieldIsMissing(name))
     end
 end
 
@@ -296,7 +299,7 @@ Return formatted names.
     try
         persons = context["entry"]["persons"][role]
     catch e
-        throw((role, context["entry"]))
+        throw(FieldIsMissing(role))
     end
 
     local style = context["style"]
@@ -322,7 +325,7 @@ Text()
 end
 @node function optional_field(children, data, args...;kwargs...)
     assert(length(children)==0)
-    return format_data(optional[field(args, kwargs)],data)
+    return format_data(optional[field(args..., kwargs...)],data)
 end
 
 #="""Wrap text into a tag.

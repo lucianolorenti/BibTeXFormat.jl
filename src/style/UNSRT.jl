@@ -117,8 +117,7 @@ function format_edition(self::UNSRTStyle, e)
 end
 
 function format_title(self::UNSRTStyle, e, which_field, as_sentence=true)
-	formatted_title = field(
-		which_field, apply_func=x->capitalize(x)
+	formatted_title = field(which_field; apply_func=x->capitalize(x)
 	)
 	if as_sentence
 		return sentence[ formatted_title ]

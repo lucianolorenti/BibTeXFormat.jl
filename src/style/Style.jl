@@ -51,8 +51,12 @@ function format_entries(b::T, entries) where T <: BaseStyle
 	local labels  = format_labels(b.config.label_style, sorted_entries)
     local formatted_entries = []
 	for (label,entry) in zip(labels, sorted_entries)
-        entry["key"] = label
-		push!(formatted_entries,format_entry(b,label, entry))
+        try
+            entry["key"] = label
+	    	push!(formatted_entries,format_entry(b,label, entry))
+        catch  e
+
+        end
 	end
     return formatted_entries
 end
@@ -62,11 +66,8 @@ function format_entry(b::T, label, entry) where T<:BaseStyle
     local text    = ""
 	try
         get_template =  getfield(typeof(b).name.module, Symbol("get_$(entry["type"])_template"))
-            println(entry)
         text = format_data(get_template(b,entry),context)
 	catch e
-      # println( catch_stacktrace())
-       # println(e)
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
     	text = format_method(b,context)
 	end
