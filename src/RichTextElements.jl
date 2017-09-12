@@ -38,13 +38,13 @@ function typeinfo(v::T) where T<:BaseText
     return (string(T),T,())
 end
 using Iterators
-function ensure_text(c::Char)
-    return RichString(c)
-end
+#function ensure_text(c::Char)
+#    return RichString(c)
+#end
 function ensure_text(value::String)
     return RichString(value)
 end
-function ensure_text(value::BaseText)
+function ensure_text(value::T) where T<:BaseText
     return value
 end
 """
@@ -256,7 +256,7 @@ function initialize_parts(parts...)
 	return (merged_parts, sum( [length(part) for part in parts]))
 end
 function Base.convert(t::Type{String}, a::T) where T<:MultiPartText
-    return Base.join([convert(t,part) for part in a.parts],"")
+    return Base.join([convert(String,part) for part in a.parts],"")
 end
 
 """

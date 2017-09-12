@@ -320,6 +320,10 @@ Text()
     try
         return RichText(_format_list(children, data)...)
     catch e
+        if !isa(e,FieldIsMissing)
+            println(catch_stacktrace())
+          println(e)
+        end
         return RichText("")
     end
 end
