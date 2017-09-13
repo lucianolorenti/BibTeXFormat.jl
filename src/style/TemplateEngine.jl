@@ -62,51 +62,6 @@ function Base.getindex(n::Node, childrens...)
 end
     return result
 end
-#="""
->>> join(', ')
-join(u', ')
->>> join
-join
->>> join ['a']
-join [u'a']
->>> join ['a', 'b', 'c']
-join [u'a', u'b', u'c']
->>> join(' ') [u'a', u'b', u'c']
-join(u' ') [u'a', u'b', u'c']
->>> join(sep=' ') [u'a', u'b', u'c']
-join(sep=u' ') [u'a', u'b', u'c']
-join(sep=u' ') [tag(u'em') [u'a', u'b', u'c']]
-
-"""
-function Base.show(io, n::Node)
-	local params = []
-	local args_repr = join([show(io,arg) for arg in n.args],", ")
-	if length(args_repr)>0
-		append!(params,args_repr)
-	end
-	local kwargs_repr = join(
-		["$key=$(repr(value))" for (key, value) in n.kwargs], ", ")
-	if length(kwargs_repr)> 0
-		append!(params,kwargs_repr)
-	end
-	if length(params)>0
-		params_repr = string("(", Base.join(params, ", "), ")")
-	else
-		params_repr = ""
-	end
-
-	if length(n.children)>0
-		children_repr = string("[", Base.join([show(io,child) for child in n.children] ,"]"))
-	else
-		children_repr = ""
-	end
-	show(io,join([self.name,params_repr, children_repr],""))
-end
-function Base.Multimedia.display(n::Node)
-	local s =""
-	show(s,n)
-	return s
-end=#
 
 """
 Format the given data into a piece of richtext.Text
@@ -154,7 +109,11 @@ function tie_or_space(word, tie="~", space=" ", enough_chars=3, other_word=nothi
         return space
 	end
 end
-#="""Join text fragments together.
+#=
+
+convert(String,BibTeXStyle.format(BibTeXStyle.join())) == ""
+convert(String,BibTeXStyle.format(BibTeXStyle.join["a","b","c","d","e"])) == "abcde"
+"""Join text fragments together.
 >>> print(six.text_type(join.format()))
         println(parts)
 <BLANKLINE>
@@ -176,7 +135,9 @@ Billy, Willy, and Dilly
 	if last_sep == nothing
 		llast_sep = sep
 	end
+    println(children)
     parts = [part for part in _format_list(children, data) if length(part)>0]
+    println(parts)
     if length(parts) == 0
         return RichText("")
     elseif length(parts) == 1
@@ -203,6 +164,10 @@ Try to keep words together, like BibTeX does.
 	local tie2  = nothing
     local parts = [part for part in _format_list(children, data) if length(part)>0]
     j=_format_list(children,data)
+    println("___")
+    if (length(j)>0)
+    println(length(j[1]))
+end
     if length(parts)==0
         return RichText("")
     elseif length(parts) <= 2
@@ -304,7 +269,6 @@ Return formatted names.
 
     local style = context["style"]
     formatted_names = [format(style.config.name_style,person, style.config.abbreviate_names) for person in persons]
-    println(convert(String,format_data(join(;kwargs...)[formatted_names],context)))
     return format_data(join(;kwargs...)[formatted_names],context)
 end
 

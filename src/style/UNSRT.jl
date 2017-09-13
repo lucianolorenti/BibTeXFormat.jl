@@ -44,7 +44,7 @@ function get_article_template(self::UNSRTStyle, e)
 		format_web_refs(self,e),=#
 
 	]
-	return template
+    return format_names(self,"author")
 end
 function format_author_or_editor(self::UNSRTStyle, e)
 	return first_of[

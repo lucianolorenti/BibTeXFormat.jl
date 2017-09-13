@@ -61,7 +61,6 @@ function format_entries(b::T, entries) where T <: BaseStyle
 end
 
 function format_entry(b::T, label, entry) where T<:BaseStyle
-
     entry["key"] = label
 	local context = Dict{String,Any}("entry" => entry, "style"=>b)
     local text    = ""
@@ -70,9 +69,7 @@ function format_entry(b::T, label, entry) where T<:BaseStyle
         text = format_data(get_template(b,entry),context)
         println("EXITO")
 	catch e
-#        println("________")
- #       println(e)
-  #      println(catch_stacktrace())
+        println(e)
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
     	text = format_method(b,context)
 	end
@@ -87,7 +84,6 @@ Format bibliography entries with the given keys and return a
 :param citations: A list of citation keys.
 """
 function format_bibliography(self::T, bib_data, citations=nothing) where T<:BaseStyle
-
 	if citations == nothing
 		citations = keys(bib_data)
 	end

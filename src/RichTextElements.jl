@@ -626,7 +626,7 @@ struct RichText <: MultiPartText
         parts, length = initialize_parts(args...)
         println(parts)
         println(length)
-    	return  new(parts,length,"")
+        return  new(parts,length,"")
     end
 end
 function unpack(r::RichText)
