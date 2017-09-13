@@ -70,6 +70,7 @@ function format_entry(b::T, label, entry) where T<:BaseStyle
         println("EXITO")
 	catch e
         println(e)
+        println(catch_stacktrace())
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
     	text = format_method(b,context)
 	end

@@ -2,7 +2,8 @@ using BibTeX
 using BibTeXStyle
 import BibTeXStyle: Style, Backends
 bib = Bibliography(readstring("/home/luciano/fuentes/Documentos/Bibliografia/Clustering.bib"))
-c= format_entry(AlphaStyle, "bennett69",BibTeXStyle.transform(bib["bennett69"]))
+
+c= BibTeXStyle.format_entry(AlphaStyle, "bennett69",BibTeXStyle.transform(bib["bennett69"]))
 
 a =format_entries(AlphaStyle,bib)
 f = open("/home/luciano/aa.html","w")

@@ -93,13 +93,13 @@ end
 Join a list using this text (like join)
 
 ```jldoctest
-julia> import BibTeXStyle.RichTextElements: join, RichString
+julia> import BibTeXStyle: RichString
 julia> letters = ["a", "b", "c"]
-julia> print(convert(String,join(RichString("-"),letters))
+julia> print(convert(String,join(RichString("-"),letters)))
 a-b-c
 ```
 """
-function join(self::BaseText, parts)
+function join(self::T, parts) where T<:BaseText
     if length(parts) == 0
 	    return Text()
     end
@@ -167,8 +167,8 @@ function capitalize(self::BaseText)
     return uppercase(self[1])+ lowercase(self[2:end])
 end
 
-function unpack(self::BaseText)
-    return self
+function unpack(self::T) where T <:BaseText
+    return [self]
 end
 abstract type MultiPartText <: BaseText end
 
@@ -252,12 +252,13 @@ Text("Multi", Tag("em", "part text!"))
 >>> Text("Please ", HRef("/", "click"), HRef("/", " here"), ".")
 Text("Please ", HRef("/", "click here"), ".")
 """
-function initialize_parts(parts...)
-	parts = [ensure_text(part) for part in parts]
+function initialize_parts(partso...)
+	parts = [ensure_text(part) for part in partso]
 	nonempty_parts = [part for part in parts if length(part)>0]
     unpacked_parts =vcat([unpack(part) for part in nonempty_parts]...)
 	merged_parts = merge_similar(unpacked_parts)
-	return (merged_parts, sum( [length(part) for part in parts]))
+
+	return (merged_parts, Base.sum(vcat(0,[length(part) for part in merged_parts])))
 end
 function Base.convert(t::Type{String}, a::T) where T<:MultiPartText
     return Base.join([convert(String,part) for part in a.parts],"")
@@ -499,7 +500,7 @@ function merge_similar(param_parts)
     for  group in groups
         cls, cls_type, info = typeinfo(group[1])
         if length(cls)>0 && length(group) > 1
-            group_parts = [parts(text) for text in group]
+            group_parts = vcat([parts(text) for text in group]...)
             args = vcat(info, group_parts)
             push!(output, cls_type(args...))
 		else
@@ -623,14 +624,16 @@ struct RichText <: MultiPartText
 	length::Integer
 	info::String
     RichText(args...) = begin
-        parts, length = initialize_parts(args...)
-        println(parts)
-        println(length)
-        return  new(parts,length,"")
+        parts, l = initialize_parts(args...)
+        return  new(parts,l,"")
     end
 end
 function unpack(r::RichText)
-    return copy(r.parts)
+	local elems = []
+	for t in r.parts
+		elems = vcat(elems, unpack(t))
+	end
+	return elems
 end
 r"""
 A :py:class:`Tag` represents something like an HTML tag
@@ -778,7 +781,9 @@ end
 function endswith(self::TextSymbol, text)
 	return false
 end
-
+function convert(::Type{String}, v::TextSymbol)
+	return "<$(v.name)>"
+end
 """
 A TextSymbol is not alfanumeric. Returns false
 """

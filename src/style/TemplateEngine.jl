@@ -40,7 +40,6 @@ function (n::Node)(args...;kwargs...)
 	end
     return result
 end
-
 macro node(func)
 	name = func.args[1].args[1]
 	hiddenname = gensym()
@@ -72,6 +71,7 @@ function format_data(n::Node, data)
         push!(args, data)
     end
     append!(args, n.args)
+
     if (length(args)>0)
     	return n.f(n.children, args...;n.kwargs...)
     else
@@ -98,7 +98,7 @@ end
 function _format_data(n,data)
     return n
 end
-function tie_or_space(word, tie="~", space=" ", enough_chars=3, other_word=nothing)
+function tie_or_space(word, tie="~", space=" "; enough_chars=3, other_word=nothing)
     local n_chars = length(word)
     if other_word != nothing
         n_chars = min(n_chars, length(other_word))
@@ -109,24 +109,9 @@ function tie_or_space(word, tie="~", space=" ", enough_chars=3, other_word=nothi
         return space
 	end
 end
-#=
 
-convert(String,BibTeXStyle.format(BibTeXStyle.join())) == ""
-convert(String,BibTeXStyle.format(BibTeXStyle.join["a","b","c","d","e"])) == "abcde"
-"""Join text fragments together.
->>> print(six.text_type(join.format()))
-        println(parts)
-<BLANKLINE>
->>> print(six.text_type(join ['a', 'b', 'c', 'd', 'e'].format()))
-abcde
->>> format(join(sep=", ", sep2=" and ", last_sep=", and ")["Tom", "Jerry"])
-Tom and Jerry
->>> format(join(sep=", ", sep2=" and ", last_sep=", and ")["Billy", "Willy", "Dilly"])
-Billy, Willy, and Dilly
-"""
-=#
-@node  function join(children, data; sep=" ", sep2=nothing, last_sep=nothing)
-	local lsep = sep
+@node  function join(children, data; sep="", sep2=nothing, last_sep=nothing)
+	local lsep =  sep
 	local lsep2 = sep2
 	local llast_sep = last_sep
 	if sep2 == nothing
@@ -135,9 +120,7 @@ Billy, Willy, and Dilly
 	if last_sep == nothing
 		llast_sep = sep
 	end
-    println(children)
     parts = [part for part in _format_list(children, data) if length(part)>0]
-    println(parts)
     if length(parts) == 0
         return RichText("")
     elseif length(parts) == 1
@@ -162,12 +145,9 @@ Try to keep words together, like BibTeX does.
     local tie   = nbsp
     local space = RichText(" ")
 	local tie2  = nothing
-    local parts = [part for part in _format_list(children, data) if length(part)>0]
-    j=_format_list(children,data)
-    println("___")
-    if (length(j)>0)
-    println(length(j[1]))
+	if length(children)>0
 end
+    local parts = [part for part in _format_list(children, data) if length(part)>0]
     if length(parts)==0
         return RichText("")
     elseif length(parts) <= 2
@@ -189,42 +169,22 @@ end
 
 	end
 end
-#=
-using Base.Test
-@testset "TogetherNode" begin
-	@test format(together["very", "long", "road"]) == "very long road"
-	@test format(together(last_tie=true)["very", "long", "road"]) =="very long<nbsp>road"
-end=#
-#=
->>> print(six.text_type(together ['a', 'very', 'long', 'road'].format()))
-a<nbsp>very long road
->>> print(six.text_type(together ['chapter', '8'].format()))
-chapter<nbsp>8
->>> print(six.text_type(together ['chapter', '666'].format()))
-chapter 666=#
 
 #="""
 Join text fragments, capitalyze the first letter, add a period to the end.
 
-    >>> print(six.text_type(sentence.format()))
-    <BLANKLINE>
-    >>> print(six.text_type(sentence(capitalize=True, sep=' ') ['mary', 'had', 'a', 'little', 'lamb'].format()))
-    Mary had a little lamb.
-    >>> print(six.text_type(sentence(capitalize=False, add_period=False) ['uno', 'dos', 'tres'].format()))
-    uno, dos, tres
-
 """=#
-@node function sentence(children, data; capfirst=false, capitalize=false, badd_period=true, sep=", ")
-
+@node function sentence(children, data; capfirst=false, capitalize=false, add_period=true, sep=", ")
     local text = format_data(join(;sep=sep)[children],data)
     if capfirst
         text = capfirst(text)
     end
     if capitalize
-        text = capitalize(text)
+        text = BibTeXStyle.capitalize(text)
     end
-    if badd_period
-        text = add_period(text, text)
+
+    if add_period
+        text = BibTeXStyle.add_period(text)
     end
     return text
 end
@@ -245,12 +205,14 @@ Return the contents of the bibliography entry field.
             ff = entry[name]
         else
             ff = latex_parse(entry[name])
+			println(name, ": ",entry[name], " ",ff)
         end
         if apply_func != nothing
             ff = apply_func(ff)
         end
         return ff
     catch e
+	    println(e)
         throw(FieldIsMissing(string("field: ",name)))
     end
 end
@@ -264,9 +226,9 @@ Return formatted names.
     try
         persons = context["entry"]["persons"][role]
     catch e
+		println(e)
         throw(FieldIsMissing(string("names:",role)))
     end
-
     local style = context["style"]
     formatted_names = [format(style.config.name_style,person, style.config.abbreviate_names) for person in persons]
     return format_data(join(;kwargs...)[formatted_names],context)
@@ -285,8 +247,7 @@ Text()
     try
         return RichText(_format_list(children, data)...)
     catch e
-        if !isa(e,FieldIsMissing)
-        end
+		println(e)
         return RichText("")
     end
 end
@@ -333,4 +294,29 @@ end
 
 @node function toplevel(children, data)
     return format_data(join(;sep=TextSymbol("newblock"))[children],data)
+end
+using Base.Test
+@testset "RichTextElements" begin
+	import BibTeXStyle: format, words, sentence, together
+	@testset "join" begin
+		@test convert(String, format(BibTeXStyle.join())) == ""
+		@test convert(String, format(BibTeXStyle.join["a","b","c","d","e"])) == "abcde"
+		@test convert(String, format(BibTeXStyle.join(sep=", ", sep2=" and ", last_sep=", and ")["Tom", "Jerry"])) == "Tom and Jerry"
+		@test convert(String, format(BibTeXStyle.join(sep=", ", sep2=" and ", last_sep=", and ")["Billy", "Willy", "Dilly"])) == "Billy, Willy, and Dilly"
+	end
+	@testset "words" begin
+        @test convert(String,format(words["Tom", "Jerry"])) == "Tom Jerry"
+	end
+	@testset "together" begin
+		@test convert(String, format(together["very", "long", "road"])) == "very long road"
+		@test convert(String,format(together(last_tie=true)["very", "long", "road"])) =="very long<nbsp>road"
+		@test convert(String,format(together["a", "very", "long", "road"])) == "a<nbsp>very long road"
+		@test convert(String,format(together["chapter", "8"])) == "chapter<nbsp>8"
+		@test convert(String,format(together["chapter", "666"])) == "chapter 666"
+	end
+	@testset "sentence" begin
+    	@test convert(String, format(sentence)) == ""
+    	@test convert(String, format(sentence(capitalize=true, sep=" ")["mary", "had", "a", "little", "lamb"])) == "Mary had a little lamb."
+		@test convert(String , format(sentence(capitalize=false, add_period=false)["uno", "dos", "tres"])) == "uno, dos, tres"
+	end
 end

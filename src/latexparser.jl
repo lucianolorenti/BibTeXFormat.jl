@@ -51,7 +51,9 @@ function iter_string_parts(str)
 	if level != 0
 		throw("Unbalanced brackets")
 	end
-
-	push!(parts[end].parts, RichText(String(tokens[end])))
-	return parts[1]
-end
+	if tokens[end] != "}"
+        push!(parts[end].parts, RichText(String(tokens[e:end])))
+    end
+    println("A: ",unpack(parts[1]))
+	return RichText(unpack(parts[1])...)
+   end
