@@ -5,7 +5,7 @@ export BaseStyle,
 using BibTeX
 include("utils.jl")
 include("person.jl")
-include("RichTextElements.jl")
-include("style/Style.jl")
-include("backends/Backends.jl")
+include("richtextelements.jl")
+include("style/style.jl")
+include("backends/backends.jl")
 end # module

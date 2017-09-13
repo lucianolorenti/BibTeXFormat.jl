@@ -1,4 +1,4 @@
-#="""
+#=
 (simple but) rich text formatting tools
 
 ```jldoctest
@@ -20,7 +20,7 @@ julia> render_as(t,"latex")
 This is a \emph{very} rich text.
 
 ```
-"""=#
+=#
 
 import Base.==
 import Base.getindex
@@ -52,15 +52,14 @@ end
 Concatenate this Text with another Text or string.
 ```jldoctest
 
-julia> import BibTeXStyle.RichTextElements: RichText, Tag
+julia> import BibTeXStyle: RichText, Tag
 
-julia> a = RichText("Longcat is ") + Tag("em", "long")
+julia> a = RichText("Longcat is ") + Tag("em", "long");
 
 julia> a.parts
 2-element Array{Any,1}:
- BibTeXStyle.RichTextElements.RichString("Longcat is ")
-
- BibTeXStyle.RichTextElements.Tag(Any[BibTeXStyle.RichTextElements.RichString("long")], 4, "em", "em")
+ BibTeXStyle.RichString("Longcat is ")                              
+ BibTeXStyle.Tag(Any[BibTeXStyle.RichString("long")], 4, "em", "em")
 
 ```
 """
@@ -74,13 +73,13 @@ Append text to the end of this text.
 Normally, this is the same as concatenating texts with +,
 but for tags and similar objects the appended text is placed _inside_ the tag.
 ```jldoctest
-julia> import BibTeXStyle.RichTextElements: Tag, append
-
-julia> import BibTexStyle.Backends.render_as
+julia> import BibTeXStyle: Tag, append, render_as
 
 julia> text = Tag("em", "Look here");
+
 julia> print(render_as(text + "!","html"))
 <em>Look here</em>!
+
 julia> print(render_as(append(text,"!"),"html"))
 <em>Look here!</em>
 
@@ -94,10 +93,13 @@ end
 Join a list using this text (like join)
 
 ```jldoctest
-julia> import BibTeXStyle: RichString
-julia> letters = ["a", "b", "c"]
+julia> import BibTeXStyle: RichString;
+
+julia> letters = ["a", "b", "c"];
+
 julia> print(convert(String,join(RichString("-"),letters)))
 a-b-c
+
 ```
 """
 function join(self::T, parts) where T<:BaseText
@@ -117,14 +119,18 @@ end
 """
 Add a period to the end of text, if the last character is not ".", "!" or "?".
 
->>> text = Text("That"s all, folks")
->>> print(six.text_type(text.add_period()))
+```jldoctest
+julia> import BibTeXStyle: RichText, add_period
+
+julia> text = RichText("That's all, folks");
+
+julia> print(convert(String,add_period(text)))
 That"s all, folks.
+julia> text = RichText("That's all, folks!");
 
->>> text = Text("That"s all, folks!")
->>> print(six.text_type(text.add_period()))
+julia> print(convert(String,add_period(text)))
 That"s all, folks!
-
+```
 """
 function add_period(self::BaseText, period=".")
     if length(self)>0 &&   (!endswith(self,['.','?','!']))
@@ -148,9 +154,13 @@ end
 
 """
 Capitalize the first letter of the text.
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag, capfirst
 
->>> Text(Tag("em", "long Cat")).capfirst()
-Text(Tag("em", "Long Cat"))
+julia> capfirst(RichText(Tag("em", "long Cat")))
+BibTeXStyle.RichText(Any[BibTeXStyle.Tag(Any[BibTeXStyle.RichString("Long Cat")], 8, "em", "em")], 8, "")
+
+```
 
 """
 function capfirst(self::BaseText)
@@ -160,8 +170,13 @@ end
 """
 Capitalize the first letter of the text and lowercasecase the rest.
 
->>> Text(Tag("em", "LONG CAT")).capitalize()
-Text(Tag("em", "Long cat"))
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag, capitalize
+
+julia> capitalize(RichText(Tag("em", "LONG CAT")))
+BibTeXStyle.RichText(Any[BibTeXStyle.Tag(Any[BibTeXStyle.RichString("Long cat")], 8, "em", "em")], 8, "")
+
+```
 
 """
 function capitalize(self::BaseText)
@@ -176,9 +191,14 @@ abstract type MultiPartText <: BaseText end
 """
 Return the type and the parameters used to create this text object.
 
->>> text = Tag("strong", ""Heavy rain!")
->>> typeinfo(text) == (Tag, ("strong",))
-True
+```jldoctest
+julia> import BibTeXStyle: Tag, typeinfo
+
+julia> text = Tag("strong", "Heavy rain!")
+
+julia> typeinfo(text) == ("BibTeXStyle.Tag", BibTeXStyle.Tag, "strong")
+true
+```
 
 """
 function  typeinfo(self::T) where T<:MultiPartText
@@ -668,7 +688,7 @@ mutable struct Tag <:MultiPartText
 end
 
 """
-A :py:class:`HRef` represends a hyperlink:
+A `HRef` represends a hyperlink:
 
 >>> from pybtex.richtext import Tag
 >>> href = HRef("http://ctan.org/", "CTAN")
@@ -695,29 +715,29 @@ mutable struct HRef <: MultiPartText
     end
 end
 
-r"""
-A :py:class:`Protected` represents a "protected" piece of text.
+"""
+A `Protected` represents a "protected" piece of text.
 
-- :py:meth:`Protected.lowercase`, :py:meth:`Protected.uppercase`,
-  :py:meth:`Protected.capitalize`, and :py:meth:`Protected.capitalize()`
-  are no-ops and just return the :py:class:`Protected` object itself.
-- :py:meth:`Protected.split` never splits the text. It always returns a
-  one-element list containing the :py:class:`Protected` object itself.
-- In LaTeX output, :py:class:`Protected` is {surrounded by braces}.  HTML
-  and plain text backends just output the text as-is.
+- `Protected.lowercase`, `Protected.uppercase`, `Protected.capitalize`, and `Protected.capitalize()`   are no-ops and just return the `Protected` struct itself.
+- `split` never splits the text. It always returns a  one-element list containing the `Protected` struct itself.
+- In LaTeX output, `Protected` is {surrounded by braces}.  HTML  and plain text backends just output the text as-is.
 
->>> from pybtex.richtext import Protected
->>> text = Protected("The CTAN archive")
->>> text.lowercase()
-Protected("The CTAN archive")
->>> text.split()
-[Protected("The CTAN archive")]
->>> print(text.render_as("latex"))
+´´´jldoctest
+julia> import BibTeXStyle: Protected
+julia> text = Protected("The CTAN archive");
+julia> lowercase(text)
+BibTeXStyle.Protected(Any[BibTeXStyle.RichString("The CTAN archive")], 16, "")
+
+julia> print(split(text))
+BibTeXStyle.Protected[BibTeXStyle.Protected(Any[BibTeXStyle.RichString("The CTAN archive")], 16, "")]
+
+julia> print(render_as(text, "latex"))
 {The CTAN archive}
->>> print(text.render_as("html"))
+
+julia> print(render_as(text,"html"))
 <span class="bibtex-protected">The CTAN archive</span>
 
-.. versionadded:: 0.20
+´´´
 
 """
 mutable struct Protected <: MultiPartText
@@ -743,9 +763,6 @@ end
 function uppercase(self::Protected)
 	return self
 end
-"""
-Split
-"""
 function split(self::Protected, sep=nothing, keep_empty_parts=nothing)
 	return [self]
 end
@@ -776,9 +793,6 @@ function getindex(self::TextSymbol, a::Integer)
 		return ""
 	end
 end
-"""
-Split
-"""
 function split(self::TextSymbol, sep=nothing, keep_empty_parts=nothing)
 	return [self]
 end

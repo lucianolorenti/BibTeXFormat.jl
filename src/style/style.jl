@@ -1,6 +1,6 @@
 export AlphaStyle,
        format_entries
-include("TemplateEngine.jl")
+include("templateengine.jl")
 include("names.jl")
 include("labels.jl")
 include("sorting.jl")

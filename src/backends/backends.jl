@@ -1,6 +1,7 @@
 export write_to_stream,
        write_to_file,
-       write_to_string
+       write_to_string,
+       render_as
 """This is the base class for the backends. We encourage
 you to implement as many of the symbols and tags as
 possible when you create a new plugin.
@@ -79,9 +80,9 @@ end
 function find_backend(t::String)
     t  = lowercase(t)
     if t=="html"
-        return HTML.Backend
+        return HTMLBackend
     elseif t=="latex"
-        return LaTeX.Backend
+        return LaTeXBackend
     end
 end
 
@@ -128,5 +129,5 @@ end
 function render(self::TextSymbol, backend)
     return typeof(backend).name.module.symbols[self.name]
 end
-include("HTML.jl")
-include("LaTeX.jl")
+include("html.jl")
+include("latex.jl")

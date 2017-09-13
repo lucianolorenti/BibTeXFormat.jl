@@ -4,8 +4,7 @@ using Base.Test
 base_file = dirname(dirname(@__FILE__))
 import Documenter
 Documenter.makedocs(
-    modules = [BibTeXStyle, BibTeXStyle.Backends, BibTeXStyle.Backends.HTML,
-               BibTeXStyle.RichTextElements],
+    modules = [BibTeXStyle],
     format = :html,
     sitename = "BibTeXStyle.jl",
     root = joinpath(base_file, "docs"),
@@ -17,8 +16,7 @@ Documenter.makedocs(
     doctest=true
 )
 @testset "Rich Text Utils" begin
-    using BibTeX.RichTextUtils
-    using BibTeX.Backends
+    import BibTeXStyle: RichText, Tag
     local t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"))
     @test render_as(t,"LaTex") == "this is a \\emph{very} rich text"
     @test convert(String,t)    == "this is a very rich text"
