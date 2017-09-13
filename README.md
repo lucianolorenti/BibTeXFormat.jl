@@ -1,6 +1,6 @@
 # BibTeXStyle
 
-´´´
+```julia
 using BibTeX
 using BibTeXStyle
 import BibTeXStyle: Style, Backends
@@ -10,5 +10,5 @@ c= BibTeXStyle.format_entry(AlphaStyle, "bennett69",BibTeXStyle.transform(bib["b
 
 a =format_entries(AlphaStyle,bib)
 b = write_to_string( BibTeXStyle.HTMLBackend(),a)
-´´´
+```
 
