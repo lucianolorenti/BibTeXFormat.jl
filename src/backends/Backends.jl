@@ -1,3 +1,6 @@
+export write_to_stream,
+       write_to_file,
+       write_to_string
 """This is the base class for the backends. We encourage
 you to implement as many of the symbols and tags as
 possible when you create a new plugin.
@@ -51,13 +54,16 @@ end
 function write_entry()
 end
 
-#=
-def write_to_file(self, formatted_entries, filename):
-	with pybtex.io.open_unicode(filename, "w", self.encoding) as stream:
-		self.write_to_stream(formatted_entries, stream)
-		if hasattr(stream, 'getvalue'):
-			return stream.getvalue()
-=#
+function  write_to_file(self, formatted_entries, filename)
+    file = open(filename, "w")
+    write_to_stream(self, formatted_entries, file)
+    close(file)
+end
+function write_to_string(self, formatted_entries)
+    local buff = IOBuffer()
+    write_to_stream(self, formatted_entries, buff)
+    return String(buff)
+end
 function write_to_stream(self::BaseBackend, formatted_bibliography, stream=IOBuffer())
 
 	write_prologue(self, stream)
@@ -101,12 +107,13 @@ function render_as(self::T, backend_name) where T<:BaseText
 	backend_cls = find_backend(backend_name)
 	return render(self,backend_cls())
 end
-
-function render(self::T, backend) where T<:MultiPartText
-
+function render_multipart(self::T, backend) where T<:MultiPartText
     local rendered_list = [render(part,backend) for part in self.parts]
     local text =  render_sequence(backend,rendered_list)
 	return format(backend,self, text)
+end
+function render(self::T, backend) where T<:MultiPartText
+    return render_multipart(self,backend)
 end
 
 function render(self::RichString, backend)
@@ -114,8 +121,8 @@ function render(self::RichString, backend)
 end
 
 function  render(self::Protected, backend)
-    text = render(supertype(self),backend)
-    return format_protected(backend,text)
+    text = render_multipart(self,backend)
+    return format(backend,self, text)
 end
 
 function render(self::TextSymbol, backend)

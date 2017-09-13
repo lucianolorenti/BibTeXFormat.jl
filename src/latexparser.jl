@@ -32,7 +32,7 @@ function iter_string_parts(str)
 		if (String(strtoken)=="{")
 			level = level +1
 			if e<i
-				 push!(parts[end].parts, RichText(Base.join(tokens[e:i-1],"")))
+				append!(parts[end], RichString(Base.join(tokens[e:i-1],"")))
 			end
 			e=i+1
 			protected = Protected("")
@@ -41,7 +41,7 @@ function iter_string_parts(str)
 		elseif (String(strtoken)=="}")
 			level = level -1
 			if e<i
-				 push!(parts[end].parts, RichText(Base.join(tokens[e:i-1],"")))
+				append!(parts[end], RichString(Base.join(tokens[e:i-1],"")))
 			end
 			pop!(parts)
 			e=i+1
@@ -52,8 +52,7 @@ function iter_string_parts(str)
 		throw("Unbalanced brackets")
 	end
 	if tokens[end] != "}"
-        push!(parts[end].parts, RichText(String(tokens[e:end])))
+        append!(parts[end], RichText(String(tokens[end])))
     end
-    println("A: ",unpack(parts[1]))
 	return RichText(unpack(parts[1])...)
    end

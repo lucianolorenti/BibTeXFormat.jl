@@ -205,14 +205,12 @@ Return the contents of the bibliography entry field.
             ff = entry[name]
         else
             ff = latex_parse(entry[name])
-			println(name, ": ",entry[name], " ",ff)
         end
         if apply_func != nothing
             ff = apply_func(ff)
         end
         return ff
     catch e
-	    println(e)
         throw(FieldIsMissing(string("field: ",name)))
     end
 end
@@ -226,7 +224,6 @@ Return formatted names.
     try
         persons = context["entry"]["persons"][role]
     catch e
-		println(e)
         throw(FieldIsMissing(string("names:",role)))
     end
     local style = context["style"]
@@ -247,7 +244,6 @@ Text()
     try
         return RichText(_format_list(children, data)...)
     catch e
-		println(e)
         return RichText("")
     end
 end

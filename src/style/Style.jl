@@ -54,7 +54,6 @@ function format_entries(b::T, entries) where T <: BaseStyle
         try
 	    	push!(formatted_entries,format_entry(b,label, entry))
         catch  e
-            println(e)
         end
 	end
     return formatted_entries
@@ -67,10 +66,7 @@ function format_entry(b::T, label, entry) where T<:BaseStyle
 	try
         get_template =  getfield(typeof(b).name.module, Symbol("get_$(entry["type"])_template"))
         text = format_data(get_template(b,entry),context)
-        println("EXITO")
 	catch e
-        println(e)
-        println(catch_stacktrace())
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
     	text = format_method(b,context)
 	end

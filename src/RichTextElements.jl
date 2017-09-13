@@ -33,6 +33,7 @@ import Base.lowercase
 import Base.endswith
 import Base.+
 import Base.isalpha
+import Base.append!
 abstract type BaseText end
 function typeinfo(v::T) where T<:BaseText
     return (string(T),T,())
@@ -374,6 +375,13 @@ function  append(self::T, text) where T<:MultiPartText
     return create_similar(self, vcat(self.parts,[text]))
 end
 
+function append!(self::T, text) where T<:MultiPartText
+    local new_parts = vcat(self.parts, text)
+    parts, l = initialize_parts(new_parts...)
+    self.parts = parts
+    self.length =l
+end
+
 """
 >>> Text("a + b").split()
 [Text("a"), Text("+"), Text("b")]
@@ -619,7 +627,7 @@ end
 function typeinfo(self::RichString)
     return (string(RichString),RichString, [])
 end
-struct RichText <: MultiPartText
+mutable struct RichText <: MultiPartText
 	parts
 	length::Integer
 	info::String
@@ -648,7 +656,7 @@ or a LaTeX formatting command:
 
 :py:class:`Tag` supports the same methods as :py:class:`Text`.
 """
-struct Tag <:MultiPartText
+mutable struct Tag <:MultiPartText
 	parts
 	length::Integer
 	info::String
@@ -676,7 +684,7 @@ A :py:class:`HRef` represends a hyperlink:
 :py:class:`HRef` supports the same methods as :py:class:`Text`.
 
 """
-struct  HRef <: MultiPartText
+mutable struct HRef <: MultiPartText
 	parts
 	length::Integer
 	info::String
@@ -712,7 +720,7 @@ Protected("The CTAN archive")
 .. versionadded:: 0.20
 
 """
-struct Protected <: MultiPartText
+mutable struct Protected <: MultiPartText
 	parts
 	length::Integer
 	info::String
