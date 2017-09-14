@@ -8,7 +8,12 @@ Documenter.makedocs(
     format = :html,
     sitename = "BibTeXStyle.jl",
     root = joinpath(base_file, "docs"),
-    pages = Any["Home" => "index.md"],
+    pages = Any[
+                 "Home" => "index.md",
+                "Person" => "person.md",
+                "Rich Text Elements" => "richtextelements.md",
+                "Utilities"=>"utils.md"
+              ],
     #strict = true,
     linkcheck = true,
     #checkdocs = :exports,
