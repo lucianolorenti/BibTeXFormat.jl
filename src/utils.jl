@@ -164,7 +164,7 @@ struct BibTeXString
 	is_closed::Bool
 	contents::Vector
 end
-function BibTeXString(chars, level=0, max_level=100)
+function BibTeXString(chars, level::Integer=0, max_level::Integer=100)
 	if level > max_level
 		throw("too many nested braces")
 	end

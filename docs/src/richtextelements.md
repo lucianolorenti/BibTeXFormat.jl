@@ -1,5 +1,14 @@
 # RichTextElements
 
+```@meta
+DocTestSetup = quote
+using BibTeXStyle
+import BibTeXStyle: RichText, Tag, append, render_as, add_period, capfirst,
+                    capitalize, typeinfo, create_similar, HRef,
+                    merge_similar, render_as, Protected,
+                    RichString
+end
+```
 ## Description
 (simple but) rich text formatting tools
 
