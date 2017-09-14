@@ -72,7 +72,6 @@ function write_prologue(self::HTMLBackend, output)
     else
         encoding  =self.encoding
     end
-    println(PROLOGUE)
     write(output,Formatting.format(PROLOGUE, encoding))
 end
 function write_epilogue(self::HTMLBackend, output)
