@@ -1,4 +1,18 @@
-#=
+import Base.==
+import Base.getindex
+import Base.split
+import Base.join
+import Base.convert
+import Base.uppercase
+import Base.endof
+import Base.lowercase
+import Base.endswith
+import Base.+
+import Base.isalpha
+import Base.append!
+import Base.show
+import Base.startswith
+"""
 (simple but) rich text formatting tools
 
 ```jldoctest
@@ -20,20 +34,7 @@ julia> render_as(t,"latex")
 This is a \emph{very} rich text.
 
 ```
-=#
-
-import Base.==
-import Base.getindex
-import Base.split
-import Base.join
-import Base.convert
-import Base.uppercase
-import Base.endof
-import Base.lowercase
-import Base.endswith
-import Base.+
-import Base.isalpha
-import Base.append!
+"""
 abstract type BaseText end
 function typeinfo(v::T) where T<:BaseText
     return (string(T),T,())
@@ -54,12 +55,8 @@ Concatenate this Text with another Text or string.
 
 julia> import BibTeXStyle: RichText, Tag
 
-julia> a = RichText("Longcat is ") + Tag("em", "long");
-
-julia> a.parts
-2-element Array{Any,1}:
- BibTeXStyle.RichString("Longcat is ")                              
- BibTeXStyle.Tag(Any[BibTeXStyle.RichString("long")], 4, "em", "em")
+julia> a = RichText("Longcat is ") + Tag("em", "long")
+RichText("Longcat is ",Tag("em", "long"))
 
 ```
 """
@@ -125,11 +122,11 @@ julia> import BibTeXStyle: RichText, add_period
 julia> text = RichText("That's all, folks");
 
 julia> print(convert(String,add_period(text)))
-That"s all, folks.
+That's all, folks.
 julia> text = RichText("That's all, folks!");
 
 julia> print(convert(String,add_period(text)))
-That"s all, folks!
+That's all, folks!
 ```
 """
 function add_period(self::BaseText, period=".")
@@ -158,7 +155,7 @@ Capitalize the first letter of the text.
 julia> import BibTeXStyle: RichText, Tag, capfirst
 
 julia> capfirst(RichText(Tag("em", "long Cat")))
-BibTeXStyle.RichText(Any[BibTeXStyle.Tag(Any[BibTeXStyle.RichString("Long Cat")], 8, "em", "em")], 8, "")
+RichText(Tag("em", "Long Cat"))
 
 ```
 
@@ -174,7 +171,7 @@ Capitalize the first letter of the text and lowercasecase the rest.
 julia> import BibTeXStyle: RichText, Tag, capitalize
 
 julia> capitalize(RichText(Tag("em", "LONG CAT")))
-BibTeXStyle.RichText(Any[BibTeXStyle.Tag(Any[BibTeXStyle.RichString("Long cat")], 8, "em", "em")], 8, "")
+RichText(Tag("em", "Long cat"))
 
 ```
 
@@ -194,7 +191,7 @@ Return the type and the parameters used to create this text object.
 ```jldoctest
 julia> import BibTeXStyle: Tag, typeinfo
 
-julia> text = Tag("strong", "Heavy rain!")
+julia> text = Tag("strong", "Heavy rain!");
 
 julia> typeinfo(text) == ("BibTeXStyle.Tag", BibTeXStyle.Tag, "strong")
 true
@@ -208,13 +205,22 @@ end
 function parts(d::T) where T<:MultiPartText
     return d.parts
 end
+function show(io::IO, d::T) where T<:MultiPartText
+    write(io,string(T.name.name))
+    write(io,"(")
+    write(io,Base.join([string(part) for part in d.parts], ","))
+    write(io,")")
+end
 """
 Create a new text object of the same type with the same parameters,
 with different text content.
-
->>> text = Tag("strong", "Bananas!")
->>> create_similar(text,["Apples!"])
+```jldoctest
+julia> import BibTeXStyle: Tag, create_similar
+julia> text = Tag("strong", "Bananas!");
+julia> create_similar(text,["Apples!"])
 Tag("strong", "Apples!")
+
+```
 """
 function create_similar(self::T, parts) where T<:MultiPartText
 
@@ -224,19 +230,20 @@ function create_similar(self::T, parts) where T<:MultiPartText
 end
 
 """
-``len(text)`` returns the number of characters in the text, ignoring
+``lenght(text)`` returns the number of characters in the text, ignoring
 the markup:
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag, HRef
+julia> length(RichText("Long cat"))
+8
+julia> length(RichText(Tag("em", "Long"), " cat"))
+8
+julia> length(RichText(HRef("http://example.com/", "Long"), " cat"))
+8
 
->>> len(Text("Long cat"))
-8
->>> len(Text(Tag("em", "Long"), " cat"))
-8
->>> len(Text(HRef("http://example.com/", "Long"), " cat"))
-8
-
+```
 """
 function Base.length(a::T) where T<:MultiPartText
-
     return a.length
 end
 function ==(a::T, b::T) where T<:MultiPartText
@@ -244,34 +251,43 @@ function ==(a::T, b::T) where T<:MultiPartText
 end
 
 """
-Initialize the parts
-
+Initialize the parts.
+A MutliPartText elements must have the following members
+```julia
 type atype <: MultiPartText
 	parts
 	length
 	info
-
 end
+```
+
 Empty parts are ignored:
-
->>> Text() == Text("") == Text("", "", "")
-True
->>> Text("Word", "") == Text("Word")
-True
-
+```jldoctest
+julia> import BibTeXStyle: RichText
+julia> RichText() == RichText("") == RichText("", "", "")
+true
+julia> RichText("Word", "") == RichText("Word")
+true
+```
 Text() objects are unpacked and their children are included directly:
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag
+julia> RichText(RichText("Multi", " "), Tag("em", "part"), RichText(" ", RichText("text!")))
+RichText("Multi ", Tag("em", "part"), " text!")
 
->>> Text(Text("Multi", " "), Tag("em", "part"), Text(" ", Text("text!")))
-Text("Multi ", Tag("em", "part"), " text!")
->>> Tag("strong", Text("Multi", " "), Tag("em", "part"), Text(" ", "text!"))
+julia> Tag("strong", RichText("Multi", " "), Tag("em", "part"), RichText(" ", "text!"))
 Tag("strong", "Multi ", Tag("em", "part"), " text!")
 
+```
 Similar objects are merged together:
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag, HRef
+julia> RichText("Multi", Tag("em", "part"), RichText(Tag("em", " ", "text!")))
+RichText("Multi", Tag("em", "part text!"))
 
->>> Text("Multi", Tag("em", "part"), Text(Tag("em", " ", "text!")))
-Text("Multi", Tag("em", "part text!"))
->>> Text("Please ", HRef("/", "click"), HRef("/", " here"), ".")
-Text("Please ", HRef("/", "click here"), ".")
+julia> RichText("Please ", HRef("/", "click"), HRef("/", " here"), ".")
+RichText("Please ", HRef("/", "click here"), ".")
+```
 """
 function initialize_parts(partso...)
 	parts = [ensure_text(part) for part in partso]
@@ -288,14 +304,17 @@ end
 """
 ``value in text`` returns ``True`` if any part of the ``text``
 contains the substring ``value``:
-
->>> "Long cat" in Text("Long cat!")
-True
-
+```jldoctest
+julia> import BibTeXStyle: RichText
+julia> contains(RichText("Long cat!"),"Long cat")
+true
+```
 Substrings splitted across multiple text parts are not matched:
+```jldoctest
+julia> contains(RichText(Tag("em", "Long"), "cat!"),"Long cat")
+false
 
->>> "Long cat" in Text(Tag("em", "Long"), "cat!")
-False
+```
 
 """
 function Base.contains(a::T, item::String) where T<:MultiPartText
@@ -308,11 +327,14 @@ end
 """
 Slicing and extracting characters works like with regular strings,
 formatting is preserved.
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag
+julia> RichText("Longcat is ", Tag("em", "looooooong!"))[1:15]
+RichText("Longcat is ", Tag("em", "looo"))
 
->>> Text("Longcat is ", Tag("em", "looooooong!"))[:15]
-Text("Longcat is ", Tag("em", "looo"))
->>> Text("Longcat is ", Tag("em", "looooooong!"))[-1]
+julia> RichText("Longcat is ", Tag("em", "looooooong!"))[end]
 Text(Tag("em", "!"))
+```
 """
 function getindex(a::T, key::Integer) where T<:MultiPartText
 	local start=key
@@ -384,12 +406,14 @@ end
 Append text to the end of this text.
 
 For Tags, HRefs, etc. the appended text is placed *inside* the tag.
-
->>> text = Tag("strong", "Chuck Norris")
->>> print((text +  " wins!").render_as("html"))
+```julia
+julia> import BibTeXStyle: Tag
+julia> text = Tag("strong", "Chuck Norris");
+julia> print(render_as(text +  " wins!","html"))
 <strong>Chuck Norris</strong> wins!
->>> print(text.append(" wins!").render_as("html"))
+julia> print(render_as(append(text," wins!"),"html"))
 <strong>Chuck Norris wins!</strong>
+```
 """
 function  append(self::T, text) where T<:MultiPartText
     return create_similar(self, vcat(self.parts,[text]))
@@ -403,14 +427,15 @@ function append!(self::T, text) where T<:MultiPartText
 end
 
 """
->>> Text("a + b").split()
-[Text("a"), Text("+"), Text("b")]
-
->>> Text("a, b").split(", ")
-[Text("a"), Text("b")]
+```jldoctest
+julia> import BibTeXStyle: RichText
+julia> print(split(RichText("a + b")))
+Any[RichText("a"), RichText("+"), RichText("b")]
+julia> print(split(RichText("a, b"), ", "))
+Any[RichText("a"), RichText("b")]
+```
 """
 function split(self::T, sep=nothing; keep_empty_parts=nothing) where T <:MultiPartText
-
 	if keep_empty_parts == nothing
         keep_empty_parts = (sep != nothing)
     end
@@ -428,15 +453,15 @@ function split(self::T, sep=nothing; keep_empty_parts=nothing) where T <:MultiPa
         end
         for item in split_part[1:end-1]
             if length(tail)>0
-                push!(output,self._create_similar(tail + [item]))
+                push!(output,create_similar(self, vcat(tail,[item])))
 				tail = []
 			else
                 if length(item)>0 ||  keep_empty_parts
-                    push!(output,self._create_similar([item]))
+                    push!(output,create_similar(self,[item]))
                 end
             end
         end
-        tail.append(split_part[end])
+        push!(tail,split_part[end])
     end
     if length(tail)>0
 		tail_text = create_similar(self, tail)
@@ -448,15 +473,18 @@ end
 
 """
 Return True if the text starts with the given prefix.
-
->>> Text("Longcat!").startswith("Longcat")
-True
+```jldoctest
+julia> import BibTeXStyle: RichText
+julia> startswith(RichText("Longcat!"),"Longcat")
+true
+```
 
 Prefixes split across multiple parts are not matched:
-
->>> Text(Tag("em", "Long"), "cat!").startswith("Longcat")
-False
-
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag
+julia> startswith(RichText(Tag("em", "Long"), "cat!"),"Longcat")
+false
+```
 """
 function startswith(self::T, prefix) where T<:MultiPartText
     if length( self.parts) == 0
@@ -468,14 +496,19 @@ end
 
 """
 Return True if the text ends with the given suffix.
+```jldoctest
+julia> import BibTeXStyle: RichText
+julia> endswith(RichText("Longcat!"),"cat!")
+true
 
->>> endswith(Text("Longcat!"),"cat!")
-True
-
+```
 Suffixes split across multiple parts are not matched:
+```jldoctest
+julia> import BibTeXStyle: RichText
+julia> endswith(RichText("Long", Tag("em", "cat"), "!"),"cat!")
+false
 
->>> Text("Long", Tag("em", "cat"), "!").endswith("cat!")
-False
+```
 
 """
 function endswith(self::T, suffix) where T<:MultiPartText
@@ -496,9 +529,11 @@ end
 
 """
 Convert rich text to lowercasecase.
-
->>> Text(Tag("em", "Long cat")).lowercase()
-Text(Tag("em", "long cat"))
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag
+julia> lowercase(RichText(Tag("em", "Long cat")))
+RichText(Tag("em", "long cat"))
+```
 """
 function lowercase(self::T) where T <:MultiPartText
     return create_similar(self, [lowercase(part) for part in self.parts])
@@ -506,20 +541,25 @@ end
 
 """
 Convert rich text to uppsercase.
-
->>> Text(Tag("em", "Long cat")).uppercase()
-Text(Tag("em", "LONG CAT"))
+```jldoctest
+julia> import BibTeXStyle: RichText, Tag
+julia> uppercase(RichText(Tag("em", "Long cat")))
+RichText(Tag("em", "LONG CAT"))
+```
 """
 function uppercase(self::T) where T<:MultiPartText
     return create_similar(self, [uppercase(part) for part in self.parts])
 end
 
-"""Merge adjacent text objects with the same type and parameters together.
+"""
+Merge adjacent text objects with the same type and parameters together.
+```jldoctest
+julia> import BibTeXStyle: Tag, merge_similar
+julia> parts = [Tag("em", "Breaking"), Tag("em", " "), Tag("em", "news!")]
+julia> print(merge_similar(parts))
+Any[Tag("em", "Breaking news!")]
 
->>> text = Text()
->>> parts = [Tag("em", "Breaking"), Tag("em", " "), Tag("em", "news!")]
->>> list(text._merge_similar(parts))
-[Tag("em", "Breaking news!")]
+```
 """
 function merge_similar(param_parts)
     local groups = nothing
@@ -541,15 +581,16 @@ function merge_similar(param_parts)
 end
 
 """
-A :py:class:`String` is a wrapper for a plain Python string.
+A `RichString` is a wrapper for a plain Julia string.
 
->>> from pybtex.richtext import String
->>> print(String("Crime & Punishment").render_as("text"))
+```jldoctest
+julia> import BibTeXStyle: RichString, render_as
+julia> print(render_as(RichString("Crime & Punishment"),"text"))
 Crime & Punishment
->>> print(String("Crime & Punishment").render_as("html"))
+julia> print(render_as(RichString("Crime & Punishment"),"html"))
 Crime &amp; Punishment
 
-:py:class:`String` supports the same methods as :py:class:`Text`.
+```
 """
 struct RichString <: BaseText
 	value :: String
@@ -558,9 +599,11 @@ end
 """
 All arguments must be plain unicode strings.
 Arguments are concatenated together.
-
->>> print(six.text_type(String("November", ", ", "December", ".")))
+```jldoctest
+julia> import BibTeXStyle: RichString
+julia> print(convert(String,RichString("November", ", ", "December", ".")))
 November, December.
+```
 """
 function RichString(parts...)
     return RichString(Base.join(parts, ""))
@@ -574,12 +617,14 @@ end
 function Base.endof(v::RichString)
     return length(v.value)
 end
-#=function Base.show(io, self::RichString)
-    show(io,self.value)
-end=#
+function Base.show(io::IO, self::RichString)
+    write(io, "\"")
+    write(io, self.value)
+    write(io,"\"")
+end
 
 """
-Compare two :py:class:`.String` objects.
+Compare two `RichString` objects.
 
 """
 function ==(a::RichString, b::RichString)
@@ -602,8 +647,8 @@ function split(self::RichString, sep=nothing; keep_empty_parts=nothing)
         keep_empty_parts = sep != nothing
     end
 
-    if sep != nothing
-        parts = whitespace_re.split(self.value)
+    if sep == nothing
+        parts = split(self.value, whitespace_re)
     else
         parts = split(self.value, sep)
     end
@@ -687,21 +732,29 @@ mutable struct Tag <:MultiPartText
 	end
 end
 
+function Base.show(io::IO, self::Tag)
+    write(io,"Tag")
+    write(io,"(\"")
+    write(io, self.name)
+    write(io, "\", ")
+    write(io,Base.join([string(part) for part in self.parts], ","))
+    write(io,")")
+end
+
 """
 A `HRef` represends a hyperlink:
-
->>> from pybtex.richtext import Tag
->>> href = HRef("http://ctan.org/", "CTAN")
->>> print(href.render_as("html"))
+```jldoctest
+julia> import BibTeXStyle: Tag, HRef
+julia> href = HRef("http://ctan.org/", "CTAN");
+julia> print(render_as(href,"html"))
 <a href="http://ctan.org/">CTAN</a>
->>> print(href.render_as("latex"))
+julia> print(render_as(href, "latex"))
 \\href{http://ctan.org/}{CTAN}
-
->>> href = HRef(String("http://ctan.org/"), String("http://ctan.org/"))
->>> print(href.render_as("latex"))
+julia> href = HRef(String("http://ctan.org/"), String("http://ctan.org/"))
+julia> print(render_as(href,"latex"))
 \\url{http://ctan.org/}
 
-:py:class:`HRef` supports the same methods as :py:class:`Text`.
+```
 
 """
 mutable struct HRef <: MultiPartText
@@ -713,6 +766,15 @@ mutable struct HRef <: MultiPartText
         parts, length = initialize_parts(args...)
     	return  new(parts,length,url,url)
     end
+end
+
+function Base.show(io::IO, self::HRef)
+    write(io,"HRef")
+    write(io,"(\"")
+    write(io, self.url)
+    write(io, "\", ")
+    write(io,Base.join([string(part) for part in self.parts], ","))
+    write(io,")")
 end
 
 """

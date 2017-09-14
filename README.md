@@ -1,14 +1,11 @@
 # BibTeXStyle
+`BibTeXStyle.jl` is a port of the formatting submodule of the python library [Pybtex!](https://pybtex.org/). Allows to format a bibliography parsed with [BibTeX.jl](https://github.com/bramtayl/BibTeX.jl) and convert it to HTML, LaTeX, or plain text
 
+## Usage mode
 ```julia
 using BibTeX
 using BibTeXStyle
-import BibTeXStyle: Style, Backends
-bib = Bibliography(readstring("/home/luciano/fuentes/Documentos/Bibliografia/Clustering.bib"))
-
-c= BibTeXStyle.format_entry(AlphaStyle, "bennett69",BibTeXStyle.transform(bib["bennett69"]))
-
-a =format_entries(AlphaStyle,bib)
-b = write_to_string( BibTeXStyle.HTMLBackend(),a)
+bibliobraphy      = Bibliography(readstring("Clustering.bib"))
+formatted_entries = format_entries(AlphaStyle,bibliography)
+HTMLoutput        = write_to_string( BibTeXStyle.HTMLBackend(),formatted_entries)
 ```
-
