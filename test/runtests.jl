@@ -1,12 +1,12 @@
-using BibTeXStyle
+using BibTeXFormat
 using Base.Test
 
 base_file = dirname(dirname(@__FILE__))
 import Documenter
 Documenter.makedocs(
-    modules = [BibTeXStyle],
+    modules = [BibTeXFormat],
     format = :html,
-    sitename = "BibTeXStyle.jl",
+    sitename = "BibTeXFormat.jl",
     root = joinpath(base_file, "docs"),
     pages = Any[
                  "Home" => "index.md",
@@ -21,7 +21,7 @@ Documenter.makedocs(
     doctest=true
 )
 @testset "Rich Text Utils" begin
-    import BibTeXStyle: RichText, Tag
+    import BibTeXFormat: RichText, Tag
     local t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"))
     @test render_as(t,"LaTex") == "this is a \\emph{very} rich text"
     @test convert(String,t)    == "this is a very rich text"

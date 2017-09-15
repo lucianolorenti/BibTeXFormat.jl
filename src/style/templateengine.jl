@@ -180,11 +180,11 @@ Join text fragments, capitalyze the first letter, add a period to the end.
         text = capfirst(text)
     end
     if capitalize
-        text = BibTeXStyle.capitalize(text)
+        text = BibTeXFormat.capitalize(text)
     end
 
     if add_period
-        text = BibTeXStyle.add_period(text)
+        text = BibTeXFormat.add_period(text)
     end
     return text
 end
@@ -293,12 +293,12 @@ end
 end
 using Base.Test
 @testset "RichTextElements" begin
-	import BibTeXStyle: format, words, sentence, together
+	import BibTeXFormat: format, words, sentence, together
 	@testset "join" begin
-		@test convert(String, format(BibTeXStyle.join())) == ""
-		@test convert(String, format(BibTeXStyle.join["a","b","c","d","e"])) == "abcde"
-		@test convert(String, format(BibTeXStyle.join(sep=", ", sep2=" and ", last_sep=", and ")["Tom", "Jerry"])) == "Tom and Jerry"
-		@test convert(String, format(BibTeXStyle.join(sep=", ", sep2=" and ", last_sep=", and ")["Billy", "Willy", "Dilly"])) == "Billy, Willy, and Dilly"
+		@test convert(String, format(BibTeXFormat.join())) == ""
+		@test convert(String, format(BibTeXFormat.join["a","b","c","d","e"])) == "abcde"
+		@test convert(String, format(BibTeXFormat.join(sep=", ", sep2=" and ", last_sep=", and ")["Tom", "Jerry"])) == "Tom and Jerry"
+		@test convert(String, format(BibTeXFormat.join(sep=", ", sep2=" and ", last_sep=", and ")["Billy", "Willy", "Dilly"])) == "Billy, Willy, and Dilly"
 	end
 	@testset "words" begin
         @test convert(String,format(words["Tom", "Jerry"])) == "Tom Jerry"

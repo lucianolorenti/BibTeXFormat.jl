@@ -177,7 +177,7 @@ Return the type and the parameters used to create this text object.
 ```jldoctest
 julia> text = Tag("strong", "Heavy rain!");
 
-julia> typeinfo(text) == ("BibTeXStyle.Tag", BibTeXStyle.Tag, "strong")
+julia> typeinfo(text) == ("BibTeXFormat.Tag", BibTeXFormat.Tag, "strong")
 true
 ```
 
@@ -536,7 +536,7 @@ Any[Tag("em", "Breaking news!")]
 """
 function merge_similar(param_parts)
     local groups = nothing
-        groups = groupby(value-> BibTeXStyle.typeinfo(value)[1], param_parts)
+        groups = groupby(value-> BibTeXFormat.typeinfo(value)[1], param_parts)
     local output=[]
     for  group in groups
         cls, cls_type, info = typeinfo(group[1])
@@ -757,10 +757,10 @@ A `Protected` represents a "protected" piece of text.
 ´´´jldoctest
 julia> text = Protected("The CTAN archive");
 julia> lowercase(text)
-BibTeXStyle.Protected(Any[BibTeXStyle.RichString("The CTAN archive")], 16, "")
+BibTeXFormat.Protected(Any[BibTeXFormat.RichString("The CTAN archive")], 16, "")
 
 julia> print(split(text))
-BibTeXStyle.Protected[BibTeXStyle.Protected(Any[BibTeXStyle.RichString("The CTAN archive")], 16, "")]
+BibTeXFormat.Protected[BibTeXFormat.Protected(Any[BibTeXFormat.RichString("The CTAN archive")], 16, "")]
 
 julia> print(render_as(text, "latex"))
 {The CTAN archive}

@@ -2,8 +2,8 @@
 
 ```@meta
 DocTestSetup = quote
-using BibTeXStyle
-import BibTeXStyle: RichText, Tag, append, render_as, add_period, capfirst,
+using BibTeXFormat
+import BibTeXFormat: RichText, Tag, append, render_as, add_period, capfirst,
                     capitalize, typeinfo, create_similar, HRef,
                     merge_similar, render_as, Protected,
                     RichString
@@ -13,9 +13,9 @@ end
 (simple but) rich text formatting tools
 
 ```jldoctest
-julia> import BibTeXStyle.RichTextElements: Tag, RichText, render_as
+julia> import BibTeXFormat.RichTextElements: Tag, RichText, render_as
 
-julia> import BibTeXStyle.Backends: render_as
+julia> import BibTeXFormat.Backends: render_as
 
 julia> t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"));
 
@@ -48,6 +48,6 @@ Order   = [:function]
 ##  Reference
 
 ```@autodocs
-Modules = [BibTeXStyle]
+Modules = [BibTeXFormat]
 Pages   = ["richtextelements.jl"]
 ```

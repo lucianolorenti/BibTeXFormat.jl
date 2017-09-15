@@ -1,4 +1,4 @@
-import BibTeXStyle: citation_type, abbreviate
+import BibTeXFormat: citation_type, abbreviate
 import Base.convert
 function  get_longest_label(formatted_entries)
     labels = [length(entry.label) for entry in formatted_entries]
@@ -17,7 +17,7 @@ const _nonalnum_pattern = r"[^A-Za-z0-9]+"
 """
 Strip all non-alphanumerical characters from a list of strings.
 ```jldoctest
-julia> import BibTeXStyle: _strip_nonalnum
+julia> import BibTeXFormat: _strip_nonalnum
 
 julia> print(_strip_nonalnum(["ÅA. B. Testing 12+}[.@~_", " 3%"]))
 AABTesting123

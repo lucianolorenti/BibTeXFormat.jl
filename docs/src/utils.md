@@ -9,6 +9,6 @@ Pages   = ["utils.md"]
 ##  Reference
 
 ```@autodocs
-Modules = [BibTeXStyle]
+Modules = [BibTeXFormat]
 Pages   = ["utils.jl", "latexparser.jl"]
 ```

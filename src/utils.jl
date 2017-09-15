@@ -3,7 +3,7 @@
 
 Split a list of names, separated by ' and '.
 ```jldoctest
-julia> import BibTeXStyle.split_name_list
+julia> import BibTeXFormat.split_name_list
 
 julia> split_name_list("Johnson and Peterson")
 2-element Array{String,1}:
@@ -56,7 +56,7 @@ Everything at brace level > 0 is ignored.
 Separators at the edges of the string are ignored.
 
 ```jldoctest
-julia> import BibTeXStyle.split_tex_string
+julia> import BibTeXFormat.split_tex_string
 
 julia> split_tex_string("")
 0-element Array{Any,1}
@@ -250,7 +250,7 @@ const whitespace_re = r"\s+"
 """
 Split a text keep the separators
 ```jldoctest
-julia> import BibTeXStyle.split_keep_separator
+julia> import BibTeXFormat.split_keep_separator
 
 julia> split_keep_separator("Some words-words")
 5-element Array{Any,1}:
@@ -276,7 +276,7 @@ end
 """
 Abbreviate the given text.
 ```jldoctest
-julia> import BibTeXStyle.abbreviate
+julia> import BibTeXFormat.abbreviate
 
 julia> abbreviate("Name")
 "N."

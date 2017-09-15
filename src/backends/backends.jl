@@ -86,10 +86,14 @@ function find_backend(t::String)
         return HTMLBackend
     elseif t=="latex"
         return LaTeXBackend
+    elseif t=="text"
+        return TextBackend
+    elseif t=="markdown"
+        return MarkdownBackend
     end
 end
 
-r"""
+"""
 Render this :py:class:`Text` into markup.
 This is a wrapper method that loads a formatting backend plugin
 and calls :py:meth:`Text.render`.

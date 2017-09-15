@@ -13,7 +13,7 @@ struct UNSRTStyle <: BaseStyle
 end
 
 function format_names(self::UNSRTStyle, role, as_sentence=true)
-	formatted_names = BibTeXStyle.names(role, sep=", ", sep2 = " and ", last_sep=", and ")
+	formatted_names = BibTeXFormat.names(role, sep=", ", sep2 = " and ", last_sep=", and ")
 	if as_sentence
 		return sentence[formatted_names]
 	else

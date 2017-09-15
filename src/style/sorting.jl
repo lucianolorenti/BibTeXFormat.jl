@@ -5,7 +5,7 @@ function Base.sort(self::T, entries) where T <: BaseSortingStyle
 	sorted_keys = sort(collect(keys(entry_dict)))
 	return  [entry_dict[key] for key in sorted_keys]
 end
-import BibTeXStyle: citation_type
+import BibTeXFormat: citation_type
 type AuthorYearTitleSortingStyle <: BaseSortingStyle end
 
 function sorting_key(self::AuthorYearTitleSortingStyle, entry)

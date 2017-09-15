@@ -1,10 +1,10 @@
-# BibTeXStyle
+# BibTeXFormat
 
 ```@index
 Pages    = ["person.jl"]
 ```
 
 ```@autodocs
-Modules = [BibTeXStyle]
+Modules = [BibTeXFormat]
 Pages    = ["person.jl"]
 ```

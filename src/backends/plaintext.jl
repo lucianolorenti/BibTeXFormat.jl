@@ -3,15 +3,15 @@ struct TextBackend <: BaseBackend
 end
 
 default_suffix[TextBackend]=".txt"
-symbols[TextBackend] = Dict{String,String}([
+symbols[TextBackend] = Dict{String,String}(
                                          "ndash"=> "-",
 								         "newblock"=> " ",
 									     "nbsp" => " "
-										 ])
-function format(t::TextBackend, tag::Tag, text)
+										 )
+function format(self::TextBackend, tag::Tag, text)
 	return text
 end
-function format(t::TextBackend, t::HRef, text)
+function format(self::TextBackend, t::HRef, text)
 	return text
 end
 function write_entry(self::TextBackend, output, key, label, text)

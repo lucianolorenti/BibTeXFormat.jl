@@ -3,7 +3,7 @@ include("latexparser.jl")
 A person or some other person-like entity.
 
 ```jldoctest
-julia> import BibTeXStyle.Person;
+julia> import BibTeXFormat.Person;
 
 julia> knuth = Person("Donald E. Knuth");
 
@@ -68,7 +68,7 @@ A list of first and middle names together.
 (BibTeX treats all middle names as first.)
 
 ```jldoctest
-julia> import BibTeXStyle: Person, bibtex_first_names
+julia> import BibTeXFormat: Person, bibtex_first_names
 
 julia> knuth = Person("Donald E. Knuth");
 
@@ -86,7 +86,7 @@ end
 """
 Extract various parts of the name from a string.
 ```jldoctest
-julia> import BibTeXStyle: Person
+julia> import BibTeXFormat: Person
 
 julia> p = Person("Avinash K. Dixit");
 
@@ -286,7 +286,7 @@ end
 """
 Get a list of name parts by `type`.
 ```jldoctest
-julia> import BibTeXStyle: Person, get_part;
+julia> import BibTeXFormat: Person, get_part;
 
 julia> knuth = Person("Donald E. Knuth");
 

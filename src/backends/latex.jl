@@ -23,18 +23,18 @@ struct LaTeXBackend <: BaseBackend
 end
 
 default_suffix[LaTeXBackend] = ".bbl"
-symbols[LaTeXBackend]        = Dict{String,String}([
+symbols[LaTeXBackend]        = Dict{String,String}(
         "ndash"=> "--",
         "newblock"=> "\n\\newblock ",
         "nbsp"=> "~"
-  ])
-tags[LaTeXBackend] = Dict{String,Any}([
+  )
+tags[LaTeXBackend] = Dict{String,String}(
         "em"=> "emph",
-        "strong"=>nothing,
+        "strong"=>"",
         "i"=> "textit",
         "b"=> "textbf",
         "tt"=> "texttt"
-])
+)
 function LaTeXBackend(enconding=nothing)
 	local eenconding = "UTF-8"
 	return LaTeXBackend(eenconding, string("ulatex+",eenconding))
