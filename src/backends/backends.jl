@@ -1,7 +1,11 @@
 export write_to_stream,
        write_to_file,
        write_to_string,
-       render_as
+       render_as,
+       HTMLBackend,
+       LaTeXBackend,
+       MarkdownBackend,
+       TextBackend
 """This is the base class for the backends. We encourage
 you to implement as many of the symbols and tags as
 possible when you create a new plugin.
@@ -18,7 +22,11 @@ tags[u'tt']          : typewrite text, not semantic
 """
 abstract type BaseBackend end
 
-const symbols = Dict{Type,Dict{String,String}}()
+const symbols = Dict{Type,Dict{String,String}}(
+             BaseBackend=>Dict{String,String}(
+                "ndash"=> "'&ndash;",
+                "newblock"=> "\n",
+                "nbsp"=> "&nbsp;"))
 const tags    = Dict{Type,Dict{String,String}}()
 const default_suffix = Dict{Type,String}()
 
@@ -134,7 +142,12 @@ function  render(self::Protected, backend)
 end
 
 function render(self::TextSymbol, backend)
-    return typeof(backend).name.module.symbols[self.name]
+    local s = get(symbols[typeof(backend)],self.name,nothing)
+    if (s==nothing)
+        return get(symbols[BaseBackend],self.name, nothing)
+    else
+        return s
+    end
 end
 include("html.jl")
 include("latex.jl")

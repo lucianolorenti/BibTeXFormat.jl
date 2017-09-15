@@ -189,7 +189,7 @@ end
 function parts(d::T) where T<:MultiPartText
     return d.parts
 end
-function show(io::IO, d::T) where T<:MultiPartText
+function show(io::B, d::T) where {T<:MultiPartText, B<:Base.AbstractIOBuffer}
     write(io,string(T.name.name))
     write(io,"(")
     write(io,Base.join([string(part) for part in d.parts], ", "))
@@ -588,7 +588,7 @@ end
 function Base.endof(v::RichString)
     return length(v.value)
 end
-function Base.show(io::IO, self::RichString)
+function Base.show(io::T, self::RichString) where T<:Base.AbstractIOBuffer
     write(io, "\"")
     write(io, self.value)
     write(io,"\"")
@@ -738,7 +738,7 @@ mutable struct HRef <: MultiPartText
     end
 end
 
-function Base.show(io::IO, self::HRef)
+function Base.show(io::T, self::HRef) where T<:Base.AbstractIOBuffer
     write(io,"HRef")
     write(io,"(\"")
     write(io, self.url)
