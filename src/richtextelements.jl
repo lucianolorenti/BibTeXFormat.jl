@@ -32,10 +32,8 @@ function +(b::BaseText, other)
 ```
 Concatenate this Text with another Text or string.
 ```jldoctest
-julia> import BibTeXStyle: RichText, Tag
-
 julia> a = RichText("Longcat is ") + Tag("em", "long")
-RichText("Longcat is ",Tag("em", "long"))
+RichText("Longcat is ", Tag("em", "long"))
 
 ```
 """
@@ -315,7 +313,7 @@ julia> RichText("Longcat is ", Tag("em", "looooooong!"))[1:15]
 RichText("Longcat is ", Tag("em", "looo"))
 
 julia> RichText("Longcat is ", Tag("em", "looooooong!"))[end]
-Text(Tag("em", "!"))
+RichText(Tag("em", "!"))
 ```
 """
 function getindex(a::T, key::Integer) where T<:MultiPartText

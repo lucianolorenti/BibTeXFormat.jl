@@ -18,6 +18,10 @@ tags[u'tt']          : typewrite text, not semantic
 """
 abstract type BaseBackend end
 
+const symbols = Dict{Type,Dict{String,String}}()
+const tags    = Dict{Type,Dict{String,String}}()
+const default_suffix = Dict{Type,String}()
+
 function write_prologue(self::BaseBackend, s)
 end
 function write_epilogue(self::BaseBackend,s )
@@ -130,3 +134,5 @@ function render(self::TextSymbol, backend)
 end
 include("html.jl")
 include("latex.jl")
+include("markdown.jl")
+include("plaintext.jl")

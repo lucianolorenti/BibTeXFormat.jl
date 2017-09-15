@@ -38,10 +38,9 @@ function HTMLBackend()
     return HTMLBackend("utf-8")
 end
 
-const default_suffix = ".html"
-const symbols = Dict{String,String}("ndash"=>"&ndash;",
-									"newblock"=>"\n")
-
+default_suffix[HTMLBackend] = ".html"
+symbols[HTMLBackend]        =  Dict{String,String}("ndash"=>"&ndash;",
+							                       "newblock"=>"\n")
 function  format(self::HTMLBackend, text::String)
     return escapeHTML(text)
 end

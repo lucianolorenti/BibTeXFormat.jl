@@ -17,24 +17,24 @@ render(HRef("http://example.org/", "http://example.org/"),latex)
 """=#
 using Base.Test
 
-const default_suffix = ".bbl"
-const symbols = Dict{String,String}(
+struct LaTeXBackend <: BaseBackend
+	enconding::String
+	latex_enconding::String
+end
+
+default_suffix[LaTeXBackend] = ".bbl"
+symbols[LaTeXBackend]        = Dict{String,String}([
         "ndash"=> "--",
         "newblock"=> "\n\\newblock ",
         "nbsp"=> "~"
-    )
-const tags = Dict{String,Any}(
+  ])
+tags[LaTeXBackend] = Dict{String,Any}([
         "em"=> "emph",
         "strong"=>nothing,
         "i"=> "textit",
         "b"=> "textbf",
         "tt"=> "texttt"
-    )
-
-struct LaTeXBackend <: BaseBackend
-	enconding::String
-	latex_enconding::String
-end
+])
 function LaTeXBackend(enconding=nothing)
 	local eenconding = "UTF-8"
 	return LaTeXBackend(eenconding, string("ulatex+",eenconding))
