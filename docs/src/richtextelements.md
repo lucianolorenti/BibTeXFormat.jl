@@ -13,22 +13,20 @@ end
 (simple but) rich text formatting tools
 
 ```jldoctest
-julia> import BibTeXFormat.RichTextElements: Tag, RichText, render_as
-
-julia> import BibTeXFormat.Backends: render_as
+julia> import BibTeXFormat: RichText, Tag, render_as, add_period, capitalize
 
 julia> t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"));
 
 julia> render_as(t,"LaTex")
-this is a \emph{very} rich text
+"this is a \\emph{very} rich text"
 
 julia> convert(String,t)
-this is a very rich text
+"this is a very rich text"
 
 julia> t = add_period(capitalize(t));
 
 julia> render_as(t,"latex")
-This is a \emph{very} rich text.
+"This is a \\emph{very} rich text."
 ```
 
 ## Types

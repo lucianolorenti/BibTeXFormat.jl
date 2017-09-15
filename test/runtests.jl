@@ -9,11 +9,16 @@ Documenter.makedocs(
     sitename = "BibTeXFormat.jl",
     root = joinpath(base_file, "docs"),
     pages = Any[
-                 "Home" => "index.md",
-                "Person" => "person.md",
-                "Rich Text Elements" => "richtextelements.md",
-                "Utilities"=>"utils.md"
-              ],
+                "Home" => "index.md",
+                "Public Components" => Any[
+                                          "Template Engine" => "templateengine.md",
+                                         ],
+                "Private Components" => Any[
+                    "Person" => "person.md",
+                    "Rich Text Elements" => "richtextelements.md",
+                    "Utilities"=>"utils.md",
+                 ]
+               ],
     #strict = true,
     linkcheck = true,
     #checkdocs = :exports,
@@ -21,7 +26,8 @@ Documenter.makedocs(
     doctest=true
 )
 @testset "Rich Text Utils" begin
-    import BibTeXFormat: RichText, Tag
+    import BibTeXFormat: RichText, Tag, add_period, capitalize, uppercase,
+                         TextSymbol, render_as
     local t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"))
     @test render_as(t,"LaTex") == "this is a \\emph{very} rich text"
     @test convert(String,t)    == "this is a very rich text"
@@ -43,15 +49,40 @@ Documenter.makedocs(
     @test render_as(t4,"latex") ==  "one, two, \\emph{three}"
     @test convert(String,t4)    == "one, two, three"
 
-    local t5 = join(RichText(TextSymbol("nbsp"),["one", "two", Tag("em", "three")]))
+    local t5 = join(RichText(TextSymbol("nbsp")),["one", "two", Tag("em", "three")])
     @test render_as(t5,"latex") == "one~two~\\emph{three}"
     @test convert(String ,t5) == "one<nbsp>two<nbsp>three"
 end
 
+@testset "Template Engine" begin
+	import BibTeXFormat: format, words, sentence, together
+	@testset "join" begin
+		@test convert(String, format(BibTeXFormat.join())) == ""
+		@test convert(String, format(BibTeXFormat.join["a","b","c","d","e"])) == "abcde"
+		@test convert(String, format(BibTeXFormat.join(sep=", ", sep2=" and ", last_sep=", and ")["Tom", "Jerry"])) == "Tom and Jerry"
+		@test convert(String, format(BibTeXFormat.join(sep=", ", sep2=" and ", last_sep=", and ")["Billy", "Willy", "Dilly"])) == "Billy, Willy, and Dilly"
+	end
+	@testset "words" begin
+        @test convert(String,format(words["Tom", "Jerry"])) == "Tom Jerry"
+	end
+	@testset "together" begin
+		@test convert(String, format(together["very", "long", "road"])) == "very long road"
+		@test convert(String,format(together(last_tie=true)["very", "long", "road"])) =="very long<nbsp>road"
+		@test convert(String,format(together["a", "very", "long", "road"])) == "a<nbsp>very long road"
+		@test convert(String,format(together["chapter", "8"])) == "chapter<nbsp>8"
+		@test convert(String,format(together["chapter", "666"])) == "chapter 666"
+	end
+	@testset "sentence" begin
+    	@test convert(String, format(sentence)) == ""
+    	@test convert(String, format(sentence(capitalize=true, sep=" ")["mary", "had", "a", "little", "lamb"])) == "Mary had a little lamb."
+		@test convert(String , format(sentence(capitalize=false, add_period=false)["uno", "dos", "tres"])) == "uno, dos, tres"
+	end
+end
 struct InvalidNameString
     s::String
 end
 @testset "Parse Name" begin
+    import BibTeXFormat: Person, bibtex_first_names
 sample_names = [
     ("A. E.                   Siegman", (["A.", "E."], [], ["Siegman"], [])),
     ("A. G. W. Cameron", (["A.", "G.", "W."], [], ["Cameron"], [])),
@@ -218,7 +249,7 @@ function parse_name(name, correct_result, expected_errors=nothing)
 
     local person = Person(name)
 
-    result = (person.bibtex_first_names, person.prelast_names, person.last_names, person.lineage_names)
+    result = (bibtex_first_names(person), person.prelast_names, person.last_names, person.lineage_names)
     @test result == correct_result
     #@test captured_errors == expected_errors
 end
@@ -228,5 +259,6 @@ function test_parse_name()
         parse_name(test_args...)
     end
 end
+test_parse_name()
 
 end

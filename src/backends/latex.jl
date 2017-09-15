@@ -45,7 +45,7 @@ function format(self::LaTeXBackend, str::String)
 	return str
 end
 function format(self::LaTeXBackend, t::Tag, text)
-    local tag = tags[t.name]
+    local tag = tags[LaTeXBackend][t.name]
     if tag ==nothing
 		if length(text)>0
 			return "{$text}"

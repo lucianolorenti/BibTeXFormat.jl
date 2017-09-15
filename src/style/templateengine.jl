@@ -1,23 +1,3 @@
-"""
-A template engine for bibliography entries and more.
-
-Inspired by BrevÃ© -- http://breve.twisty-industries.com/
-
->>> from pybtex.database import Entry, Person
->>> author = Person(first='First', last='Last', middle='Middle')
->>> fields = {
-...         'title': 'The Book',
-...         'year': '2000',
-... }
->>> e = Entry('book', fields=fields)
->>> book_format = sentence(capfirst=True, sep=', ') [
-...     field('title'), field('year'), optional [field('sdf')]
-... ]
->>> print(six.text_type(book_format.format_data({'entry': e})))
-The Book, 2000.
->>> print(six.text_type(words ['one', 'two', words ['three', 'four']].format_data(e)))
-one two three four
-"""
 
 struct Node
 	name::String
@@ -177,7 +157,7 @@ Join text fragments, capitalyze the first letter, add a period to the end.
 @node function sentence(children, data; capfirst=false, capitalize=false, add_period=true, sep=", ")
     local text = format_data(join(;sep=sep)[children],data)
     if capfirst
-        text = capfirst(text)
+        text = BibTeXFormat.capfirst(text)
     end
     if capitalize
         text = BibTeXFormat.capitalize(text)
@@ -290,29 +270,4 @@ end
 
 @node function toplevel(children, data)
     return format_data(join(;sep=TextSymbol("newblock"))[children],data)
-end
-using Base.Test
-@testset "RichTextElements" begin
-	import BibTeXFormat: format, words, sentence, together
-	@testset "join" begin
-		@test convert(String, format(BibTeXFormat.join())) == ""
-		@test convert(String, format(BibTeXFormat.join["a","b","c","d","e"])) == "abcde"
-		@test convert(String, format(BibTeXFormat.join(sep=", ", sep2=" and ", last_sep=", and ")["Tom", "Jerry"])) == "Tom and Jerry"
-		@test convert(String, format(BibTeXFormat.join(sep=", ", sep2=" and ", last_sep=", and ")["Billy", "Willy", "Dilly"])) == "Billy, Willy, and Dilly"
-	end
-	@testset "words" begin
-        @test convert(String,format(words["Tom", "Jerry"])) == "Tom Jerry"
-	end
-	@testset "together" begin
-		@test convert(String, format(together["very", "long", "road"])) == "very long road"
-		@test convert(String,format(together(last_tie=true)["very", "long", "road"])) =="very long<nbsp>road"
-		@test convert(String,format(together["a", "very", "long", "road"])) == "a<nbsp>very long road"
-		@test convert(String,format(together["chapter", "8"])) == "chapter<nbsp>8"
-		@test convert(String,format(together["chapter", "666"])) == "chapter 666"
-	end
-	@testset "sentence" begin
-    	@test convert(String, format(sentence)) == ""
-    	@test convert(String, format(sentence(capitalize=true, sep=" ")["mary", "had", "a", "little", "lamb"])) == "Mary had a little lamb."
-		@test convert(String , format(sentence(capitalize=false, add_period=false)["uno", "dos", "tres"])) == "uno, dos, tres"
-	end
 end

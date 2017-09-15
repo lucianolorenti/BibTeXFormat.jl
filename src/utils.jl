@@ -159,7 +159,7 @@ end
 function split_tex_string(sstring::Regex, sep=nothing; strip=true, filter_empty=false)
 	return split_tex_string(sstring.pattern,sep,strip=strip,filter_empty=filter_empty)
 end
-struct BibTeXString
+mutable struct BibTeXString
 	level::Integer
 	is_closed::Bool
 	contents::Vector
@@ -168,17 +168,20 @@ function BibTeXString(chars, level::Integer=0, max_level::Integer=100)
 	if level > max_level
 		throw("too many nested braces")
 	end
-	return BibTeXString(level,false,find_closing_brace(chars))
+    local bibs =  BibTeXString(level,false,[])
+    bibs.contents = find_closing_brace(bibs,chars, level)
+    return bibs
 end
 
-function find_closing_brace( chars)
+function find_closing_brace(self::BibTeXString, chars,  level)
 	bibtex_strings = []
-	for char in chars
+    for i=1:length(chars)
+        local char = chars[i]
 		if char == '{'
-			push!(bibtex_strings,BibTeXString(chars, self.level + 1))
-		elseif char == '}' && self.level > 0
+            push!(bibtex_strings,BibTeXString(chars[i+1:end], self.level + 1))
+		elseif char == '}' && level > 0
 			self.is_closed = true
-			return
+			return bibtex_strings
 		else
 			push!(bibtex_strings,char)
 		end
@@ -187,16 +190,17 @@ function find_closing_brace( chars)
 end
 
 function is_special_char(self::BibTeXString)
-	return self.level == 1 && self.contents && self.contents[1] == '\\'
+    return self.level == 1 && length(self.contents)>0 && self.contents[1] == '\\'
 end
 
-function traverse(self::BibTeXString; open=nothing, f=Function, close=nothing)
+function traverse(self::BibTeXString; open=nothing, f::Function=nothing, close=nothing)
 	t = []
 	if open != nothing && self.level > 0
 		push!(t,open(self))
 	end
-
+    println("A: ", self.contents)
 	for child in self.contents
+        println(child)
 		if isa(child,BibTeXString)
 			if is_special_char(child)
 				if open!=nothing
@@ -226,7 +230,7 @@ end
 	return ''.join(self.traverse(open=lambda string: '{', close=lambda string: '}'))=#
 
 function inner_string(self::BibTeXString)
-	return join([six.text_type(child) for child in self.contents], "")
+    return join([string(child) for child in self.contents], "")
 end
 
 """ Yield (char, brace_level) tuples.

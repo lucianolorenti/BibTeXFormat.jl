@@ -34,7 +34,7 @@ const SPECIAL_CHARS= [
     '.',   # dot
     '!',   # exclamation mark
 ]
-function MarkdownBackend(;encoding=none, php_extra=false)
+function MarkdownBackend(;encoding="utf-8", php_extra=false)
     return MarkdownBackend(encoding, php_extra)
 end
 
@@ -56,14 +56,14 @@ tags[MarkdownBackend] = Dict{String,String}(
 Escapes special markdown control characters.
 """
 function format(self::MarkdownBackend, text::String)
-    text = escape(text)
+    text = escape_string(text)
     for special_char in SPECIAL_CHARS
         text = replace(text,special_char, string('\\',special_char))
     end
     return text
 end
 function format(self::MarkdownBackend, tag::Tag, text)
-    tag = get(tags[typeof(self)],tag_name,nothing)
+    tag = get(tags[typeof(self)],tag.name,nothing)
     if tag == nothing
         return text
     else
@@ -74,8 +74,12 @@ function format(self::MarkdownBackend, tag::Tag, text)
         end
     end
 end
-function format(self::MarkdownBackend, url::HRef)
-    return Markdown.plaininline(Markdown.Link(text,url))
+function format(self::MarkdownBackend, url::HRef, text)
+    if (text!="")
+        return Markdown.plaininline(Markdown.Link(text,url.url))
+    else
+        return ""
+    end
 end
 
 function write_entry(self::MarkdownBackend, key, label, text)

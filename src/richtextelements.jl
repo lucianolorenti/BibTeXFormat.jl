@@ -12,6 +12,7 @@ import Base.isalpha
 import Base.append!
 import Base.show
 import Base.startswith
+import Base.write
 abstract type BaseText end
 function typeinfo(v::T) where T<:BaseText
     return (string(T),T,())
@@ -189,7 +190,7 @@ end
 function parts(d::T) where T<:MultiPartText
     return d.parts
 end
-function show(io::B, d::T) where {T<:MultiPartText, B<:Base.AbstractIOBuffer}
+function show(io::Union{IO,Base.AbstractIOBuffer}, d::T) where {T<:MultiPartText}
     write(io,string(T.name.name))
     write(io,"(")
     write(io,Base.join([string(part) for part in d.parts], ", "))
@@ -588,7 +589,7 @@ end
 function Base.endof(v::RichString)
     return length(v.value)
 end
-function Base.show(io::T, self::RichString) where T<:Base.AbstractIOBuffer
+function Base.show(io::Union{IO,Base.AbstractIOBuffer}, self::RichString)
     write(io, "\"")
     write(io, self.value)
     write(io,"\"")
@@ -679,6 +680,16 @@ function unpack(r::RichText)
 	end
 	return elems
 end
+function write(io::Base.AbstractIOBuffer, d::RichText)
+    show(io,d)
+end
+
+function show(io::Union{IO,Base.AbstractIOBuffer}, d::RichText)
+    write(io,"RichText")
+    write(io,"(")
+    write(io,Base.join([string(part) for part in d.parts], ", "))
+    write(io,")")
+end
 r"""
 A :py:class:`Tag` represents something like an HTML tag
 or a LaTeX formatting command:
@@ -703,7 +714,7 @@ mutable struct Tag <:MultiPartText
 	end
 end
 
-function Base.show(io::IO, self::Tag)
+function Base.show(io::Union{IO, Base.AbstractIOBuffer}, self::Tag)
     write(io,"Tag")
     write(io,"(\"")
     write(io, self.name)
@@ -716,11 +727,15 @@ end
 A `HRef` represends a hyperlink:
 ```jldoctest
 julia> href = HRef("http://ctan.org/", "CTAN");
+
 julia> print(render_as(href,"html"))
 <a href="http://ctan.org/">CTAN</a>
+
 julia> print(render_as(href, "latex"))
 \\href{http://ctan.org/}{CTAN}
-julia> href = HRef(String("http://ctan.org/"), String("http://ctan.org/"))
+
+julia> href = HRef(String("http://ctan.org/"), String("http://ctan.org/"));
+
 julia> print(render_as(href,"latex"))
 \\url{http://ctan.org/}
 
@@ -738,7 +753,7 @@ mutable struct HRef <: MultiPartText
     end
 end
 
-function Base.show(io::T, self::HRef) where T<:Base.AbstractIOBuffer
+function Base.show(io::Union{IO, Base.AbstractIOBuffer}, self::HRef)
     write(io,"HRef")
     write(io,"(\"")
     write(io, self.url)

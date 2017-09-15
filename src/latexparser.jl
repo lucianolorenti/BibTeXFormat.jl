@@ -52,7 +52,7 @@ function iter_string_parts(str)
 		throw("Unbalanced brackets")
 	end
 	if tokens[end] != "}"
-        append!(parts[end], RichText(String(tokens[end])))
+        append!(parts[end], RichText([String(t) for t in tokens[e:end]]...))
     end
 	return RichText(unpack(parts[1])...)
    end

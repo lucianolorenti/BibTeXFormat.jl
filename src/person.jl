@@ -47,8 +47,7 @@ Supported name formats are:
 (see BibTeX manual for explanation)
 
 """
-function Person(s::String="", first::String="", middle::String="", prelast::String="", last::String="", lineage::String="")
-
+function Person(s::String=""; first::String="", middle::String="", prelast::String="", last::String="", lineage::String="")
     local person = Person(String[], String[],String[], String[], String[])
 
     string = strip(s)
@@ -188,12 +187,7 @@ function _parse_string(self::Person, name::String)
 
     function rsplit_at(lst, pred)
         rpos = find_pos(reverse(lst), pred)
-        pos = length(lst) - rpos
-        if pos < 0
-            return lst, []
-        else
-
-        end
+        pos = length(lst)+1- rpos
         return lst[1:pos], lst[pos+1:end]
     end
 
@@ -201,13 +195,14 @@ function _parse_string(self::Person, name::String)
         if isupper(string[1])
             return false
         end
-        if isupper(string[1])
+        if islower(string[1])
             return true
         else
+            println(scan_bibtex_string(string))
             for (char, brace_level) in scan_bibtex_string(string)
                 if brace_level == 0 && isalpha(char)
                     return islower(char)
-                elseif brace_level == 1 && startswith(char,"\\")
+                elseif brace_level == 1 && startswith(char,'\\')
                     return special_char_islower(char)
                 end
             end
@@ -247,7 +242,8 @@ function _parse_string(self::Person, name::String)
     elseif length(parts) == 1  # First von Last
         parts = split_tex_string(name)
         first_middle, von_last = split_at(parts, is_von_name)
-        if (!(length(von_last)>0)) && length(first_middle)>0
+        println(first_middle, " ", von_last)
+        if (length(von_last)==0) && length(first_middle)>0
             last = pop!(first_middle)
             push!(von_last,last)
         end
