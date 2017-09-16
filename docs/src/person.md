@@ -1,4 +1,4 @@
-# BibTeXFormat
+# Person
 
 ```@index
 Pages    = ["person.jl"]

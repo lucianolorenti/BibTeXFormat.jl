@@ -159,12 +159,43 @@ end
 function split_tex_string(sstring::Regex, sep=nothing; strip=true, filter_empty=false)
 	return split_tex_string(sstring.pattern,sep,strip=strip,filter_empty=filter_empty)
 end
+
+mutable struct StringIterator
+    str::String
+    pos::Integer
+end
+function StringIterator(s::String)
+    return StringIterator(s,start(s))
+end
+import Base.next
+import Base.done
+function done(self::StringIterator)
+    return done(self.str, self.pos)
+end
+function next(self::StringIterator)
+    (elem, self.pos) = next(self.str, self.pos)
+    return elem
+end
 mutable struct BibTeXString
 	level::Integer
 	is_closed::Bool
 	contents::Vector
 end
-function BibTeXString(chars, level::Integer=0, max_level::Integer=100)
+
+function BibTeXString(chars::String, level::Integer=0, max_level::Integer=100)
+    return BibTeXString(StringIterator(chars), level, max_level)
+end
+"""
+```jldoctest
+julia> import BibTeXFormat: BibTeXString
+
+julia> a = BibTeXString("{aaaa{bbbb{cccc{dddd}}}ffff}");
+
+julia> convert(String,a ) == "{aaaa{bbbb{cccc{dddd}}}ffff}"
+true
+```
+"""
+function BibTeXString(chars::StringIterator, level::Integer=0, max_level::Integer=100)
 	if level > max_level
 		throw("too many nested braces")
 	end
@@ -172,13 +203,30 @@ function BibTeXString(chars, level::Integer=0, max_level::Integer=100)
     bibs.contents = find_closing_brace(bibs,chars, level)
     return bibs
 end
-
-function find_closing_brace(self::BibTeXString, chars,  level)
+import Base.convert
+function convert(::Type{String}, s::BibTeXString)
+    output = ""
+    if s.level > 0
+        output="{"
+    end
+    for c in s.contents
+        if isa(c,Char)
+            output=string(output, string(c))
+        else
+            output = string(output,convert(String,c))
+        end
+    end
+    if s.level > 0
+        output = string(output, "}")
+    end
+    return output
+end
+function find_closing_brace(self::BibTeXString, chars::StringIterator,  level)
 	bibtex_strings = []
-    for i=1:length(chars)
-        local char = chars[i]
+    while !done(chars)
+        local char = next(chars)
 		if char == '{'
-            push!(bibtex_strings,BibTeXString(chars[i+1:end], self.level + 1))
+            push!(bibtex_strings,BibTeXString(chars,  self.level + 1))
 		elseif char == '}' && level > 0
 			self.is_closed = true
 			return bibtex_strings
@@ -193,14 +241,12 @@ function is_special_char(self::BibTeXString)
     return self.level == 1 && length(self.contents)>0 && self.contents[1] == '\\'
 end
 
-function traverse(self::BibTeXString; open=nothing, f::Function=nothing, close=nothing)
+function traverse(self::BibTeXString; open=nothing, f=nothing, close=nothing)
 	t = []
 	if open != nothing && self.level > 0
 		push!(t,open(self))
 	end
-    println("A: ", self.contents)
 	for child in self.contents
-        println(child)
 		if isa(child,BibTeXString)
 			if is_special_char(child)
 				if open!=nothing
@@ -211,7 +257,7 @@ function traverse(self::BibTeXString; open=nothing, f::Function=nothing, close=n
 					push!(t,close(child))
 				end
 			else
-				for result in traverse(child,open, f, close)
+				for result in traverse(child,open=open, f=f, close=close)
 					push!(t, result)
 				end
 			end
@@ -230,7 +276,7 @@ end
 	return ''.join(self.traverse(open=lambda string: '{', close=lambda string: '}'))=#
 
 function inner_string(self::BibTeXString)
-    return join([string(child) for child in self.contents], "")
+    return Base.join([string(child) for child in self.contents], "")
 end
 
 """ Yield (char, brace_level) tuples.
@@ -239,7 +285,7 @@ end
 
 """
 function scan_bibtex_string(string)
-    return traverse(BibTeXString(string),
+    return traverse(BibTeXString(string);
         open=s-> ('{', s.level),
         f=(c,s)->(c, s.level),
         close=s-> ('}', s.level - 1),

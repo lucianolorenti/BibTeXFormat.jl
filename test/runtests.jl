@@ -11,11 +11,13 @@ Documenter.makedocs(
     pages = Any[
                 "Home" => "index.md",
                 "Public Components" => Any[
-                                          "Template Engine" => "templateengine.md",
+                    "Style"    => "style.md"
+                    "Backends" => "backends.md"
                                          ],
                 "Private Components" => Any[
                     "Person" => "person.md",
                     "Rich Text Elements" => "richtextelements.md",
+                    "Template Engine" => "templateengine.md",
                     "Utilities"=>"utils.md",
                  ]
                ],
@@ -77,9 +79,6 @@ end
     	@test convert(String, format(sentence(capitalize=true, sep=" ")["mary", "had", "a", "little", "lamb"])) == "Mary had a little lamb."
 		@test convert(String , format(sentence(capitalize=false, add_period=false)["uno", "dos", "tres"])) == "uno, dos, tres"
 	end
-end
-struct InvalidNameString
-    s::String
 end
 @testset "Parse Name" begin
     import BibTeXFormat: Person, bibtex_first_names
@@ -227,7 +226,7 @@ sample_names = [
     ["d'Aviano", "Pius", "von", "und", "zu"], ["Liechtenstein"],[])),
 
     # sort of wrong, but BibTeX parses it like this
-    (r"Brand\~{a}o, F", (["F"], [], ["Brand\\", "{a}o"], [])),
+    ("Brand\\~{a}o, F", (["F"], [], ["Brand\\", "{a}o"], [])),
 
     # incorrectly formatted name strings below
 
@@ -246,7 +245,7 @@ function parse_name(name, correct_result, expected_errors=nothing)
     if expected_errors == nothing
         expected_errors = []
     end
-
+    println(name)
     local person = Person(name)
 
     result = (bibtex_first_names(person), person.prelast_names, person.last_names, person.lineage_names)

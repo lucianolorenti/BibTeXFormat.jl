@@ -41,6 +41,19 @@ function transform(e::Citation)
     return e_n
 end
 
+"""
+```
+function format_entries(b::T, entries::Dict) where T <: BaseStyle
+```
+Format a Dict of `entries` with a given style `b::T where T <: BaseStyle`
+```julia
+using BibTeX
+using BibTeXFormat
+bibliography      = Bibliography(readstring("test/Clustering.bib"))
+formatted_entries = format_entries(AlphaStyle,bibliography)
+```
+"""
+
 function format_entries(b::T, entries) where T <: BaseStyle
     local transformed_entries = Dict()
     for k in keys(entries)
@@ -59,6 +72,14 @@ function format_entries(b::T, entries) where T <: BaseStyle
     return formatted_entries
 end
 
+"""
+```
+function format_entry(b::T, label, entry) where T <: BaseStyle
+```
+
+Format an `entry` with a given style `b::T where T <: BaseStyle`
+
+"""
 function format_entry(b::T, label, entry) where T<:BaseStyle
     entry["key"] = label
 	local context = Dict{String,Any}("entry" => entry, "style"=>b)
@@ -74,11 +95,24 @@ function format_entry(b::T, label, entry) where T<:BaseStyle
 end
 
 """
+```julia
+function format_bibliography(self::T, bib_data, citations=nothing) where T<:BaseStyle
+```
 Format bibliography entries with the given keys and return a
-``FormattedBibliography`` object.
+`FormattedBibliography` object.
 
-:param bib_data: A :py:class:`pybtex.database.BibliographyData` object.
-:param citations: A list of citation keys.
+Params:
+- `self::T where T<:BaseStyle`. The style
+- `bib_data` A :py:class:`pybtex.database.BibliographyData` object.
+- `param citations`: A list of citation keys.
+
+```julia
+using BibTeX
+using BibTeXFormat
+bibliography      = Bibliography(readstring("test/Clustering.bib"))
+
+formatted_entries = format_entries(AlphaStyle,bibliography)
+```
 """
 function format_bibliography(self::T, bib_data, citations=nothing) where T<:BaseStyle
 	if citations == nothing
@@ -90,5 +124,103 @@ function format_bibliography(self::T, bib_data, citations=nothing) where T<:Base
 	formatted_bibliography = FormattedBibliography(formatted_entries, style=self, preamble=bib_data.preamble)
 	return formatted_bibliography
 end
+
+@fix_unicode_literals_in_doctest
+def _expand_wildcard_citations(self, citations):
+    """
+    Expand wildcard citations (\citation{*} in .aux file).
+
+    >>> from pybtex.database import Entry
+    >>> data = BibliographyData((
+    ...     ('uno', Entry('article')),
+    ...     ('dos', Entry('article')),
+    ...     ('tres', Entry('article')),
+    ...     ('cuatro', Entry('article')),
+    ... ))
+    >>> list(data._expand_wildcard_citations([]))
+    []
+    >>> list(data._expand_wildcard_citations(['*']))
+    [u'uno', u'dos', u'tres', u'cuatro']
+    >>> list(data._expand_wildcard_citations(['uno', '*']))
+    [u'uno', u'dos', u'tres', u'cuatro']
+    >>> list(data._expand_wildcard_citations(['dos', '*']))
+    [u'dos', u'uno', u'tres', u'cuatro']
+    >>> list(data._expand_wildcard_citations(['*', 'uno']))
+    [u'uno', u'dos', u'tres', u'cuatro']
+    >>> list(data._expand_wildcard_citations(['*', 'DOS']))
+    [u'uno', u'dos', u'tres', u'cuatro']
+
+    """
+
+    citation_set = CaseInsensitiveSet()
+    for citation in citations:
+        if citation == '*':
+            for key in self.entries:
+                if key not in citation_set:
+                    citation_set.add(key)
+                    yield key
+        else:
+            if citation not in citation_set:
+                citation_set.add(citation)
+                yield citation
+
+def add_extra_citations(self, citations, min_crossrefs):
+    expanded_citations = list(self._expand_wildcard_citations(citations))
+    crossrefs = list(self._get_crossreferenced_citations(expanded_citations, min_crossrefs))
+    return expanded_citations + crossrefs
+
+"""
+Expand wildcard citations (\citation{*} in .aux file).
+´´´jldoctest
+julia> using BibTeX
+
+julia> data = Bibliography("", Dict{String,Citation}(
+		"uno"=>Citation{:article}(),
+		"dos"=>Citation{:article}(),
+		"tres"=>Citation{:article}(),
+		"cuatro"=>Citation{:article}()));
+
+julia> expand_wildcard_citations(data, []
+0-element Array{Any,1}
+
+julia> print(expand_wildcard_citations(data, ["*"]))
+Any["tres", "dos", "uno", "cuatro"]
+julia> print(expand_wildcard_citations(data, ["uno", "*"]))
+Any["uno", "dos", "tres", "cuatro"]
+julia> print(expand_wildcard_citations(data, ["dos", "*"]))
+Any["dos", "uno", "tres", "cuatro"]
+julia> print(expand_wildcard_citations(data, ["*", "uno"]))
+Any["uno", "dos", "tres", "cuatro"]
+julia> print(expand_wildcard_citations(data, ["*", "DOS"]))
+Any["uno", "dos", "tres", "cuatro"]
+´´´
+"""
+function expand_wildcard_citations(entries::Bibliography, citations)
+	local expanded_keys = []
+    local citation_set = Set{String}()
+    for citation in citations
+        if citation == "*"
+            for key in keys(entries)
+                if !(lowercase(key) in citation_set)
+                    push!(citation_set,lowercase(key))
+					push!(expanded_keys, key)
+				end
+			end
+        else
+            if !(lowercase(citation) in citation_set)
+                push!(citation_set,citation)
+                push!(expanded_keys, citation)
+			end
+		end
+	end
+	return expanded_keys
+end
+
+function add_extra_citations(self::Bibliography, citations, min_crossrefs)
+    local expanded_citations = expand_wildcard_citations(self,citations)
+    local crossrefs = get_crossreferenced_citations(expanded_citations, min_crossrefs)
+    return expanded_citations + crossrefs
+end
+
 include("UNSRT.jl")
 const AlphaStyle = UNSRTStyle(Config(label_style = AlphaLabelStyle(),sorting_style = AuthorYearTitleSortingStyle()))

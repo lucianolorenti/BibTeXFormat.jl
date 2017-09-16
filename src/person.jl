@@ -32,6 +32,10 @@ import Base.==
 import Base.convert
 valid_roles = Set(["author", "editor"])
 
+struct InvalidNameString
+    s::String
+end
+
 const  style1_re = r"^(.+),\s*(.+)$"
 const  style2_re = r"^(.+),\s*(.+),\s*(.+)$"
 
@@ -198,19 +202,22 @@ function _parse_string(self::Person, name::String)
         if islower(string[1])
             return true
         else
-            println(scan_bibtex_string(string))
             for (char, brace_level) in scan_bibtex_string(string)
                 if brace_level == 0 && isalpha(char)
                     return islower(char)
-                elseif brace_level == 1 && startswith(char,'\\')
-                    return special_char_islower(char)
+                elseif brace_level == 1
+                    if (isa(char,Char) && char == '\\' ) || ((isa(char, String)) &&  startswith(char,'\\'))
+                        return special_char_islower(char)
+                    end
                 end
             end
         end
         return false
     end
-
-    function special_char_islower(special_char)
+    function special_char_islower(special_char::Char)
+        return islower(special_char)
+    end
+    function special_char_islower(special_char::String)
         control_sequence = true
         for char in special_char[2:end]  # skip the backslash
             if control_sequence
@@ -219,16 +226,15 @@ function _parse_string(self::Person, name::String)
                 end
             else
                 if isalpha(char)
-                    return islowercase(char)
+                    return islower(char)
                 end
             end
         end
         return false
     end
-
     local parts = split_tex_string(name, ",")
     if length(parts) > 3
-        report_error(InvalidNameString(name))
+        throw(InvalidNameString(name))
         last_parts = parts[2:end]
         parts = vcat(parts[1:2],join(last_parts, " "))
     end
@@ -242,7 +248,6 @@ function _parse_string(self::Person, name::String)
     elseif length(parts) == 1  # First von Last
         parts = split_tex_string(name)
         first_middle, von_last = split_at(parts, is_von_name)
-        println(first_middle, " ", von_last)
         if (length(von_last)==0) && length(first_middle)>0
             last = pop!(first_middle)
             push!(von_last,last)
