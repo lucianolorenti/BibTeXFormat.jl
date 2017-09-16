@@ -114,65 +114,76 @@ bibliography      = Bibliography(readstring("test/Clustering.bib"))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 ```
 """
-function format_bibliography(self::T, bib_data, citations=nothing) where T<:BaseStyle
+function format_bibliography(style::T, bib_data::Bibliography, citations=nothing) where T<:BaseStyle
 	if citations == nothing
 		citations = keys(bib_data)
 	end
-	citations = bib_data.add_extra_citations(citations, self.min_crossrefs)
-	entries = [bib_data.entries[key] for key in citations]
-	formatted_entries = format_entries(self,entries)
-	formatted_bibliography = FormattedBibliography(formatted_entries, style=self, preamble=bib_data.preamble)
-	return formatted_bibliography
+	citations = add_extra_citations(bib_data, citations, self.min_crossrefs)
+	entries = [bib_data[key] for key in citations]
+	formatted_entries = format_entries(style,entries)
+	return (formatted_entries, style)
 end
 
-@fix_unicode_literals_in_doctest
-def _expand_wildcard_citations(self, citations):
-    """
-    Expand wildcard citations (\citation{*} in .aux file).
+"""
+Get cititations not cited explicitly but referenced by other citations.
 
-    >>> from pybtex.database import Entry
-    >>> data = BibliographyData((
-    ...     ('uno', Entry('article')),
-    ...     ('dos', Entry('article')),
-    ...     ('tres', Entry('article')),
-    ...     ('cuatro', Entry('article')),
-    ... ))
-    >>> list(data._expand_wildcard_citations([]))
-    []
-    >>> list(data._expand_wildcard_citations(['*']))
-    [u'uno', u'dos', u'tres', u'cuatro']
-    >>> list(data._expand_wildcard_citations(['uno', '*']))
-    [u'uno', u'dos', u'tres', u'cuatro']
-    >>> list(data._expand_wildcard_citations(['dos', '*']))
-    [u'dos', u'uno', u'tres', u'cuatro']
-    >>> list(data._expand_wildcard_citations(['*', 'uno']))
-    [u'uno', u'dos', u'tres', u'cuatro']
-    >>> list(data._expand_wildcard_citations(['*', 'DOS']))
-    [u'uno', u'dos', u'tres', u'cuatro']
+´´´jldoctest
+julia> using BibTeX
 
-    """
+julia> import BibTeXFormat: get_crossreferenced_citations
 
-    citation_set = CaseInsensitiveSet()
-    for citation in citations:
-        if citation == '*':
-            for key in self.entries:
-                if key not in citation_set:
-                    citation_set.add(key)
-                    yield key
-        else:
-            if citation not in citation_set:
-                citation_set.add(citation)
-                yield citation
+julia> data = Bibliography("", Dict{String,Citation}(
+		"main_article"=>Citation{:article}(Dict("crossref"=>"xrefd_article")),
+		"xrefd_article"=>Citation{:article}()));
 
-def add_extra_citations(self, citations, min_crossrefs):
-    expanded_citations = list(self._expand_wildcard_citations(citations))
-    crossrefs = list(self._get_crossreferenced_citations(expanded_citations, min_crossrefs))
-    return expanded_citations + crossrefs
+julia> print(get_crossreferenced_citations(data, [], min_crossrefs=1))
+Any[]
+julia> print(get_crossreferenced_citations(data, ["main_article"], min_crossrefs=1))
+Any["xrefd_arcicle"]
+julia> print(get_crossreferenced_citations(data,["Main_article"], min_crossrefs=1))
+Any["xrefd_arcicle"]
+julia> print(get_crossreferenced_citations(data, ["main_article"], min_crossrefs=2))
+Any[]
+julia> print(get_crossreferenced_citations(data, ["xrefd_arcicle"], min_crossrefs=1))
+Any[]
+´´´
+
+"""
+function  get_crossreferenced_citations(entries::Bibliography, citations; min_crossrefs::Integer=1)
+	canonical_crossrefs = []
+    crossref_count = Dict{String,Int}()
+    citation_set = Set{String}([lowercase(c) for c in citations])
+	local crossref = nothing
+    for citation in [lowercase(c) for c in citations]
+		if haskey(entries, citation) &&  haskey(entries[citation], "crossref")  && haskey(entries, entries[citation]["crossref"])
+			local entry     = entries[citation]
+			crossref = entry["crossref"]
+            local crossref_entry = entries[crossref]
+        	local canonical_crossref = lowercase(crossref)
+			if !haskey(crossref_count, canonical_crossref)
+				crossref_count[canonical_crossref] = 1
+			else
+				crossref_count[canonical_crossref] = crossref_count[canonical_crossref] + 1
+			end
+    	    if crossref_count[canonical_crossref] >= min_crossrefs && !(canonical_crossref in citation_set)
+        	    push!(citation_set, canonical_crossref)
+				push!(canonical_crossrefs, canonical_crossref)
+			end
+	 	else
+			warn("bad cross-reference: entry \"$citation\" refers to
+                entry \"$crossref\" which does not exist.")
+            continue
+		end
+	end
+	return canonical_crossrefs
+end
 
 """
 Expand wildcard citations (\citation{*} in .aux file).
 ´´´jldoctest
 julia> using BibTeX
+
+julia> import BibTeXFormat: expand_wildcard_citations
 
 julia> data = Bibliography("", Dict{String,Citation}(
 		"uno"=>Citation{:article}(),
@@ -216,10 +227,10 @@ function expand_wildcard_citations(entries::Bibliography, citations)
 	return expanded_keys
 end
 
-function add_extra_citations(self::Bibliography, citations, min_crossrefs)
-    local expanded_citations = expand_wildcard_citations(self,citations)
-    local crossrefs = get_crossreferenced_citations(expanded_citations, min_crossrefs)
-    return expanded_citations + crossrefs
+function add_extra_citations(entries::Bibliography, citations, min_crossrefs::Bool)
+    local expanded_citations = expand_wildcard_citations(entries,citations)
+    local crossrefs = get_crossreferenced_citations(entries, expanded_citations, min_crossrefs)
+    return vcat(expanded_citations, crossrefs)
 end
 
 include("UNSRT.jl")

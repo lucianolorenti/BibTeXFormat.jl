@@ -1,6 +1,6 @@
 using BibTeXFormat
 using Base.Test
-
+import BibTeXFormat: InvalidNameString
 base_file = dirname(dirname(@__FILE__))
 import Documenter
 Documenter.makedocs(
@@ -245,7 +245,6 @@ function parse_name(name, correct_result, expected_errors=nothing)
     if expected_errors == nothing
         expected_errors = []
     end
-    println(name)
     local person = Person(name)
 
     result = (bibtex_first_names(person), person.prelast_names, person.last_names, person.lineage_names)
