@@ -127,7 +127,7 @@ end
 """
 Get cititations not cited explicitly but referenced by other citations.
 
-´´´jldoctest
+```jldoctest
 julia> using BibTeX
 
 julia> import BibTeXFormat: get_crossreferenced_citations
@@ -146,7 +146,7 @@ julia> print(get_crossreferenced_citations(data, ["main_article"], min_crossrefs
 Any[]
 julia> print(get_crossreferenced_citations(data, ["xrefd_arcicle"], min_crossrefs=1))
 Any[]
-´´´
+```
 
 """
 function  get_crossreferenced_citations(entries::Bibliography, citations; min_crossrefs::Integer=1)
@@ -180,7 +180,7 @@ end
 
 """
 Expand wildcard citations (\citation{*} in .aux file).
-´´´jldoctest
+```jldoctest
 julia> using BibTeX
 
 julia> import BibTeXFormat: expand_wildcard_citations
@@ -204,7 +204,7 @@ julia> print(expand_wildcard_citations(data, ["*", "uno"]))
 Any["uno", "dos", "tres", "cuatro"]
 julia> print(expand_wildcard_citations(data, ["*", "DOS"]))
 Any["uno", "dos", "tres", "cuatro"]
-´´´
+```
 """
 function expand_wildcard_citations(entries::Bibliography, citations)
 	local expanded_keys = []
@@ -234,4 +234,20 @@ function add_extra_citations(entries::Bibliography, citations, min_crossrefs::Bo
 end
 
 include("UNSRT.jl")
+"""
+Alpha Style
+
+`Config(label_style = AlphaLabelStyle(),sorting_style = AuthorYearTitleSortingStyle())`
+"""
 const AlphaStyle = UNSRTStyle(Config(label_style = AlphaLabelStyle(),sorting_style = AuthorYearTitleSortingStyle()))
+"""
+UNSRTAlphaStyle
+
+`Config(label_style = AlphaLabelStyle())`
+
+"""
+const UNSRTAlphaStyle = UNSRTStyle(Config(label_style = AlphaLabelStyle()))
+"""
+PlainAlphaStyle
+"""
+const PlainAlphaStyle = UNSRTStyle()
