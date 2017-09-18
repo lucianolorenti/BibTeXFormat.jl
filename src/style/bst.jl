@@ -68,11 +68,11 @@ function strip_comment(line)
     end
     return line
 end
-LBRACE = (r"\{", "left brace")
-RBRACE = (r"\}", "right brace")
-STRING = (r"\"[^\"]*\"", "string")
-INTEGER = (r"#-?\d+", "integer")
-NAME = (r"[^#\"\{\}\s]+", "name")
+LBRACE = (r"^\{", "left brace")
+RBRACE = (r"^\}", "right brace")
+STRING = (r"^\"[^\"]*\"", "string")
+INTEGER = (r"^#-?\d+", "integer")
+NAME = (r"^[^#\"\{\}\s]+", "name")
 
 COMMANDS = Dict{String,Integer}(
 	"ENTRY" => 3,
@@ -118,7 +118,6 @@ function parse_command(self::BstParser)
 	push!(commands, command_name)
 	for i =1:arity
 		brace = optional(self, [LBRACE])
-		println(brace)
 		println(self.pos)
 		if brace == nothing
 			break
@@ -139,6 +138,7 @@ function parse(self::BstParser)
 			if e==:EOF
 				break;
 			else
+                println(e)
 				println(catch_stacktrace())
 				break
 			end
@@ -150,11 +150,8 @@ end
 function parse_group(self::BstParser)
 	local endgroup = false
 	local tokens = []
-	println("Empieza grupo")
 	while !endgroup
 		token = required(self, [NAME, STRING, INTEGER, LBRACE, RBRACE])
-		println(token)
-		println(self.text[self.pos-2:self.pos+2])
 		if token[2] == LBRACE
 			push!(tokens , FunctionLiteral(list(self.parse_group())))
 		elseif token[2] == RBRACE
@@ -163,7 +160,6 @@ function parse_group(self::BstParser)
 			push!(tokens, LITERAL_TYPES[token[2]](token[1]))
 		end
 	end
-	println("CIerro Grupo")
 	return tokens
 end
 
@@ -222,16 +218,16 @@ function get_token(self::Scanner, patterns; allow_eof=false)
 		if allow_eof
 			throw(:EOF)
 		else
-			throw((:PrematureEOF,self))
+			throw((:PrematureEOF))
 		end
 	end
 	println("BUSCOOO")
-	println(self.text[self.pos:end])
 	for pattern in patterns
 		local matched = match(pattern[1], self.text, self.pos)
 		println(pattern[1], " " ,matched!=nothing)
 		if matched != nothing
 			value = matched.match
+            println(value, " ", self.text[self.pos:self.pos+10])
 			self.pos = matched.offset + length(matched.match)
 			# print '->', value
 			return ( value, pattern)
