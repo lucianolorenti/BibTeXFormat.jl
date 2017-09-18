@@ -1,3 +1,5 @@
+import Base.parse
+import Base.eof
 abstract type Variable end
 struct QuotedVar <: Variable
 	value
@@ -31,22 +33,22 @@ end
 quote_or_comment = r"[%\"]"
 
 """Strip the commented part of the line."
-
->>> print(strip_comment('a normal line'))
+´´´jldoctest
+julia> print(strip_comment("a normal line"))
 a normal line
->>> print(strip_comment('%'))
-<BLANKLINE>
->>> print(strip_comment('%comment'))
-<BLANKLINE>
->>> print(strip_comment('trailing%'))
+julia> print(strip_comment("%"))
+
+julia> print(strip_comment("%comment"))
+
+julia> print(strip_comment("trailing%"))
 trailing
->>> print(strip_comment('a normal line% and a comment'))
+julia> print(strip_comment("a normal line% and a comment"))
 a normal line
->>> print(strip_comment('"100% compatibility" is a myth'))
+julia> print(strip_comment("\"100% compatibility\" is a myth"))
 "100% compatibility" is a myth
->>> print(strip_comment('"100% compatibility" is a myth% or not?'))
+julia> print(strip_comment("\"100% compatibility\" is a myth% or not?"))
 "100% compatibility" is a myth
-
+´´´
 """
 function strip_comment(line)
     local pos = 1
@@ -126,6 +128,7 @@ function parse_command(self::BstParser)
 	println("F")
 	return commands
 end
+
 function parse(self::BstParser)
 	local commands =[]
 	while true
