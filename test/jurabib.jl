@@ -1,3 +1,4 @@
+import BibTeXFormat.BST: Identifier, FunctionLiteral, QuotedVar
 
 bst = [["ENTRY",
   [Identifier("address"),

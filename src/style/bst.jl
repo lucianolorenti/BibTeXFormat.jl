@@ -1,4 +1,4 @@
-
+module BST
 import Base.==
 import Base.parse
 import Base.eof
@@ -110,18 +110,18 @@ LITERAL_TYPES = Dict{Any, Function}(
 )
 
 abstract type  Scanner end
-mutable struct BstParser <: Scanner
+mutable struct Parser <: Scanner
 	text::String
 	lineno::Integer
 	pos::Integer
 	end_pos::Integer
 end
-function BstParser(text::String)
+function Parser(text::String)
 	text = join([strip_comment(rstrip(String(line))) for line in split(text, "\n")],"\n")
-	return BstParser(text,1,1, length(text))
+	return Parser(text,1,1, length(text))
 end
 
-function parse_command(self::BstParser)
+function parse_command(self::Parser)
 	local commands = []
 	command_name = required(self, [NAME], "BST command", allow_eof=true)
 	local arity = nothing
@@ -141,7 +141,7 @@ function parse_command(self::BstParser)
 	return commands
 end
 
-function parse(self::BstParser)
+function parse(self::Parser)
 	local commands =[]
 	while true
 		try
@@ -160,7 +160,7 @@ function parse(self::BstParser)
 	return commands
 end
 
-function parse_group(self::BstParser)
+function parse_group(self::Parser)
 	local endgroup = false
 	local tokens = []
 	while !endgroup
@@ -182,11 +182,11 @@ end
 
 def parse_stream(stream, filename='<INPUT>'):
     bst = '\n'.join(strip_comment(line.rstrip()) for line in stream)
-    return BstParser(bst, filename=filename).parse()
+    return Parser(bst, filename=filename).parse()
 
 def parse_string(bst_string):
     bst = '\n'.join(strip_comment(line) for line in bst_string.splitlines())
-    return BstParser(bst).parse()
+    return Parser(bst).parse()
 =#
 WHITESPACE = (r"\s+", "whitespace")
 WHITESPACE[1].match_options |= Base.PCRE.ANCHORED
@@ -281,4 +281,5 @@ function get_error_context(self::Scanner, context_info)
 end
 function get_remainder(self::Scanner)
 	return self.text[self.pos:end]
+end
 end

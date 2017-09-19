@@ -26,6 +26,7 @@ struct Person
     prelast_names :: Vector{String}
     last_names    :: Vector{String}
     lineage_names :: Vector{String}
+    errors        :: Vector
 end
 
 import Base.==
@@ -52,7 +53,7 @@ Supported name formats are:
 
 """
 function Person(s::String=""; first::String="", middle::String="", prelast::String="", last::String="", lineage::String="")
-    local person = Person(String[], String[],String[], String[], String[])
+    local person = Person(String[], String[],String[], String[], String[], [])
 
     string = strip(s)
     if length(s) >0
@@ -234,9 +235,9 @@ function _parse_string(self::Person, name::String)
     end
     local parts = split_tex_string(name, ",")
     if length(parts) > 3
-        throw(InvalidNameString(name))
-        last_parts = parts[2:end]
-        parts = vcat(parts[1:2],join(last_parts, " "))
+        push!(self.errors,InvalidNameString(name))
+        last_parts = parts[3:end]
+        parts = vcat(parts[1:2],Base.join(last_parts, " "))
     end
     if length(parts) == 3  # von Last, Jr, First
         process_von_last(split_tex_string(parts[1]))
@@ -256,7 +257,7 @@ function _parse_string(self::Person, name::String)
         process_von_last(von_last)
     else
         # should hot really happen
-        throw(name)
+        push!(self.errors,name)
     end
 end
 

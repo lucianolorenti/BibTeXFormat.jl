@@ -132,19 +132,19 @@ julia> using BibTeX
 
 julia> import BibTeXFormat: get_crossreferenced_citations
 
-julia> data = Bibliography("", Dict{String,Citation}(
-		"main_article"=>Citation{:article}(Dict("crossref"=>"xrefd_article")),
-		"xrefd_article"=>Citation{:article}()));
+julia> data = Bibliography("", Dict{String,Citation}("main_article"=>Citation{:article}(Dict("crossref"=>"xrefd_article")),"xrefd_article"=>Citation{:article}()));
 
 julia> print(get_crossreferenced_citations(data, [], min_crossrefs=1))
 Any[]
 julia> print(get_crossreferenced_citations(data, ["main_article"], min_crossrefs=1))
-Any["xrefd_arcicle"]
+Any["xrefd_article"]
 julia> print(get_crossreferenced_citations(data,["Main_article"], min_crossrefs=1))
-Any["xrefd_arcicle"]
+Any["xrefd_article"]
 julia> print(get_crossreferenced_citations(data, ["main_article"], min_crossrefs=2))
 Any[]
 julia> print(get_crossreferenced_citations(data, ["xrefd_arcicle"], min_crossrefs=1))
+WARNING: bad cross-reference: entry "xrefd_arcicle" refers to
+                entry "nothing" which does not exist.
 Any[]
 ```
 
@@ -185,25 +185,21 @@ julia> using BibTeX
 
 julia> import BibTeXFormat: expand_wildcard_citations
 
-julia> data = Bibliography("", Dict{String,Citation}(
-		"uno"=>Citation{:article}(),
-		"dos"=>Citation{:article}(),
-		"tres"=>Citation{:article}(),
-		"cuatro"=>Citation{:article}()));
+julia> data = Bibliography("", Dict{String,Citation}("uno"=>Citation{:article}(),"dos"=>Citation{:article}(),"tres"=>Citation{:article}(),	"cuatro"=>Citation{:article}()));
 
-julia> expand_wildcard_citations(data, []
+julia> expand_wildcard_citations(data, [])
 0-element Array{Any,1}
 
 julia> print(expand_wildcard_citations(data, ["*"]))
 Any["tres", "dos", "uno", "cuatro"]
 julia> print(expand_wildcard_citations(data, ["uno", "*"]))
-Any["uno", "dos", "tres", "cuatro"]
+Any["uno", "tres", "dos", "cuatro"]
 julia> print(expand_wildcard_citations(data, ["dos", "*"]))
-Any["dos", "uno", "tres", "cuatro"]
+Any["dos", "tres", "uno", "cuatro"]
 julia> print(expand_wildcard_citations(data, ["*", "uno"]))
-Any["uno", "dos", "tres", "cuatro"]
+Any["tres", "dos", "uno", "cuatro"]
 julia> print(expand_wildcard_citations(data, ["*", "DOS"]))
-Any["uno", "dos", "tres", "cuatro"]
+Any["tres", "dos", "uno", "cuatro"]
 ```
 """
 function expand_wildcard_citations(entries::Bibliography, citations)

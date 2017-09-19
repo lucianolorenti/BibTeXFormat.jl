@@ -262,12 +262,13 @@ end
 end
 
 @testset "BST Parser" begin
+    import BibTeXFormat: BST
     formats = ["apacite", "jurabib", "plain"]
-    path    = basename(@__FILE__)
+    path    = dirname(@__FILE__)
     for format in formats
-    content = readstring(joinpath("./format/",string(format,".bst")))
-        parser = BstParser(content)
-        output = parse(parser)
+    content = readstring(joinpath(path,"format/",string(format,".bst")))
+        parser = BST.Parser(content)
+        output = BST.parse(parser)
         include("$format.jl")
         @test output == bst
 

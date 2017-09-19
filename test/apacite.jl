@@ -1,3 +1,4 @@
+import BibTeXFormat.BST: Identifier, FunctionLiteral, QuotedVar
 bst = Any[Any["FUNCTION",
   Any[Identifier("identify.apacite.version")],
   Any[String("apacite.bst"),
