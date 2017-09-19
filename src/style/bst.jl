@@ -151,6 +151,7 @@ function parse(self::BstParser)
 			if e==:EOF
 				break;
 			else
+
                 throw(e)
 				break
 			end
@@ -239,7 +240,6 @@ function get_token(self::Scanner, patterns; allow_eof=false)
 		local matched = match(pattern[1], self.text, self.pos)
 		if matched != nothing
 			value = matched.match
-            println(value, " ", self.text[self.pos:self.pos+10])
 			self.pos = matched.offset + length(matched.match)
 			# print '->', value
 			return ( value, pattern)

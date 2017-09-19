@@ -263,10 +263,13 @@ end
 
 @testset "BST Parser" begin
     formats = ["apacite", "jurabib", "plain"]
+    path    = basename(@__FILE__)
     for format in formats
-        content = readstring(joinpath("./format/",format,".bst"))
+    content = readstring(joinpath("./format/",string(format,".bst")))
         parser = BstParser(content)
         output = parse(parser)
+        include("$format.jl")
+        @test output == bst
 
     end
 end
