@@ -4,8 +4,7 @@ os:
   - linux
   - osx
 julia:
-  - 0.6
-  - nightly
+  - release
 notifications:
   email: false
 git:
