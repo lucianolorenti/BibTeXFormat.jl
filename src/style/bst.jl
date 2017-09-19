@@ -1,3 +1,5 @@
+
+import Base.==
 abstract type Variable end
 struct QuotedVar <: Variable
 	value
@@ -5,19 +7,28 @@ end
 struct Identifier <: Variable
 	value
 end
-
+function ==(a1::T, a2::T) where T <: Variable
+    a1.value == a2.value
+end
+abstract type ParsedFunction end
+struct FunctionLiteral <: ParsedFunction
+    body
+end
+function ==(a1::FunctionLiteral, a2::FunctionLiteral)
+    return a1.body==a2.body
+end
 function process_int_literal(value)
-    return Integer(int(value.strip('#')))
+    return Base.parse(Int32,string(strip(value,'#')))
 end
 
 function process_string_literal(value)
     assert(startswith(value, "\""))
     assert(endswith(value,"\""))
-    return String(value[1:-1])
+    return value[2:end-1]
 end
 
 function process_identifier(name)
-    if name[1] == "'"
+    if name[1] == '\''
         return QuotedVar(name[2:end])
     else
         return Identifier(name)
@@ -67,11 +78,15 @@ function strip_comment(line)
     return line
 end
 LBRACE = (r"\{", "left brace")
+LBRACE[1].match_options |=  Base.PCRE.ANCHORED
 RBRACE = (r"\}", "right brace")
+RBRACE[1].match_options |= Base.PCRE.ANCHORED
 STRING = (r"\"[^\"]*\"", "string")
+STRING[1].match_options |= Base.PCRE.ANCHORED
 INTEGER = (r"#-?\d+", "integer")
+INTEGER[1].match_options |= Base.PCRE.ANCHORED
 NAME = (r"[^#\"\{\}\s]+", "name")
-
+NAME[1].match_options |= Base.PCRE.ANCHORED
 COMMANDS = Dict{String,Integer}(
 	"ENTRY" => 3,
 	"EXECUTE" => 1,
@@ -110,20 +125,16 @@ function parse_command(self::BstParser)
 	try
         arity = COMMANDS[uppercase(command_name[1])]
 	catch e
-		println(e)
 		throw((:TokenRequired,"BST command"))
 	end
-	push!(commands, command_name)
+    push!(commands, command_name[1])
 	for i =1:arity
 		brace = optional(self, [LBRACE])
-		println(brace)
-		println(self.pos)
 		if brace == nothing
 			break
 		end
         push!(commands, parse_group(self))
 	end
-	println("F")
 	return commands
 end
 function parse(self::BstParser)
@@ -136,7 +147,8 @@ function parse(self::BstParser)
 			if e==:EOF
 				break;
 			else
-				println(catch_stacktrace())
+                println(catch_stacktrace())
+                throw(e)
 				break
 			end
 		end
@@ -147,20 +159,16 @@ end
 function parse_group(self::BstParser)
 	local endgroup = false
 	local tokens = []
-	println("Empieza grupo")
 	while !endgroup
 		token = required(self, [NAME, STRING, INTEGER, LBRACE, RBRACE])
-		println(token)
-		println(self.text[self.pos-2:self.pos+2])
 		if token[2] == LBRACE
-			push!(tokens , FunctionLiteral(list(self.parse_group())))
+			push!(tokens , FunctionLiteral(parse_group(self)))
 		elseif token[2] == RBRACE
 			endgroup = true
 		else
 			push!(tokens, LITERAL_TYPES[token[2]](token[1]))
 		end
 	end
-	println("CIerro Grupo")
 	return tokens
 end
 
@@ -177,7 +185,9 @@ def parse_string(bst_string):
     return BstParser(bst).parse()
 =#
 WHITESPACE = (r"\s+", "whitespace")
+WHITESPACE[1].match_options |= Base.PCRE.ANCHORED
 NEWLINE = (r"\n|(\r\n)|\r", "newline")
+NEWLINE[1].match_options |= Base.PCRE.ANCHORED
 
 function skip_to(self::Scanner, patterns)
 	local end_pos = nothing
@@ -222,11 +232,8 @@ function get_token(self::Scanner, patterns; allow_eof=false)
 			throw((:PrematureEOF,self))
 		end
 	end
-	println("BUSCOOO")
-	println(self.text[self.pos:end])
 	for pattern in patterns
 		local matched = match(pattern[1], self.text, self.pos)
-		println(pattern[1], " " ,matched!=nothing)
 		if matched != nothing
 			value = matched.match
 			self.pos = matched.offset + length(matched.match)
@@ -271,7 +278,3 @@ end
 function get_remainder(self::Scanner)
 	return self.text[self.pos:end]
 end
-
-content = readstring("../../test/format/small.bst")
-parser = BstParser(content)
-parse(parser)
