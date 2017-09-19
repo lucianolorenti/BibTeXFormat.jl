@@ -251,3 +251,5 @@ const UNSRTAlphaStyle = UNSRTStyle(Config(label_style = AlphaLabelStyle()))
 PlainAlphaStyle
 """
 const PlainAlphaStyle = UNSRTStyle(Config())
+
+include("bst.jl")
