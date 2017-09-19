@@ -28,6 +28,6 @@ git:
 #script:
 #  - julia -e 'Pkg.clone(pwd()); Pkg.build("BibTeXFormat"); Pkg.test("BibTeXFormat"; coverage=true)'
 after_success:
-  - julia -e 'cd(Pkg.dir("BibTeXFormat")); Pkg.add("Documenter"); include(joinpath("docs", "make.jl"))'
+  - julia -e 'cd(Pkg.dir("BibTeXFormat")); Pkg.clone("https://github.com/bramtayl/BibTeX.jl.git"); Pkg.add("Documenter"); include(joinpath("docs", "make.jl"))'
 # push coverage results to Codecov
   - julia -e 'cd(Pkg.dir("BibTeXFormat")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
