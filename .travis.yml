@@ -25,8 +25,9 @@ git:
 #  - if [ $TRAVIS_OS_NAME = osx ]; then brew install gcc; fi
 
 ## uncomment the following lines to override the default test script
-#script:
-#  - julia -e 'Pkg.clone(pwd()); Pkg.build("BibTeXFormat"); Pkg.test("BibTeXFormat"; coverage=true)'
+script:
+  - julia -e 'Pkg.add("Documenter")'
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("BibTeXFormat"); Pkg.test("BibTeXFormat"; coverage=true)'
 after_success:
   - julia -e 'cd(Pkg.dir("BibTeXFormat")); Pkg.clone("https://github.com/bramtayl/BibTeX.jl.git"); Pkg.add("Documenter"); include(joinpath("docs", "make.jl"))'
 # push coverage results to Codecov
