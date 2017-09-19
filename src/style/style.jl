@@ -250,4 +250,4 @@ const UNSRTAlphaStyle = UNSRTStyle(Config(label_style = AlphaLabelStyle()))
 """
 PlainAlphaStyle
 """
-const PlainAlphaStyle = UNSRTStyle()
+const PlainAlphaStyle = UNSRTStyle(Config())

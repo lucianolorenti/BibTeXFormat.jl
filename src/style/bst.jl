@@ -1,5 +1,7 @@
 
 import Base.==
+import Base.parse
+import Base.eof
 abstract type Variable end
 struct QuotedVar <: Variable
 	value
@@ -42,22 +44,22 @@ end
 quote_or_comment = r"[%\"]"
 
 """Strip the commented part of the line."
-
->>> print(strip_comment('a normal line'))
+´´´jldoctest
+julia> print(strip_comment("a normal line"))
 a normal line
->>> print(strip_comment('%'))
-<BLANKLINE>
->>> print(strip_comment('%comment'))
-<BLANKLINE>
->>> print(strip_comment('trailing%'))
+julia> print(strip_comment("%"))
+
+julia> print(strip_comment("%comment"))
+
+julia> print(strip_comment("trailing%"))
 trailing
->>> print(strip_comment('a normal line% and a comment'))
+julia> print(strip_comment("a normal line% and a comment"))
 a normal line
->>> print(strip_comment('"100% compatibility" is a myth'))
+julia> print(strip_comment("\"100% compatibility\" is a myth"))
 "100% compatibility" is a myth
->>> print(strip_comment('"100% compatibility" is a myth% or not?'))
+julia> print(strip_comment("\"100% compatibility\" is a myth% or not?"))
 "100% compatibility" is a myth
-
+´´´
 """
 function strip_comment(line)
     local pos = 1
@@ -87,6 +89,7 @@ INTEGER = (r"#-?\d+", "integer")
 INTEGER[1].match_options |= Base.PCRE.ANCHORED
 NAME = (r"[^#\"\{\}\s]+", "name")
 NAME[1].match_options |= Base.PCRE.ANCHORED
+
 COMMANDS = Dict{String,Integer}(
 	"ENTRY" => 3,
 	"EXECUTE" => 1,
@@ -137,6 +140,7 @@ function parse_command(self::BstParser)
 	end
 	return commands
 end
+
 function parse(self::BstParser)
 	local commands =[]
 	while true
@@ -147,7 +151,6 @@ function parse(self::BstParser)
 			if e==:EOF
 				break;
 			else
-                println(catch_stacktrace())
                 throw(e)
 				break
 			end
@@ -229,13 +232,14 @@ function get_token(self::Scanner, patterns; allow_eof=false)
 		if allow_eof
 			throw(:EOF)
 		else
-			throw((:PrematureEOF,self))
+			throw((:PrematureEOF))
 		end
 	end
 	for pattern in patterns
 		local matched = match(pattern[1], self.text, self.pos)
 		if matched != nothing
 			value = matched.match
+            println(value, " ", self.text[self.pos:self.pos+10])
 			self.pos = matched.offset + length(matched.match)
 			# print '->', value
 			return ( value, pattern)

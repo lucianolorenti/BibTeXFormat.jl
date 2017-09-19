@@ -1,5 +1,5 @@
 # BibTeXFormat
-`BibTeXStyle.jl` is a port of the formatting submodule of the python library [Pybtex!](https://pybtex.org/). Allows to format a bibliography parsed with [BibTeX.jl](https://github.com/bramtayl/BibTeX.jl) and convert it to HTML, LaTeX, or plain text
+`BibTeXFormat.jl` is a port of the formatting submodule of the python library [Pybtex!](https://pybtex.org/). Allows to format a bibliography parsed with [BibTeX.jl](https://github.com/bramtayl/BibTeX.jl) and convert it to HTML, LaTeX, or plain text
 
 ## Usage mode
 ```julia
