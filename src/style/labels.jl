@@ -13,7 +13,6 @@ function _strip_accents(s)
 	return Base.join([c for c in Base.UTF8proc.normalize_string(s, :NFD) ])
 end
 
-const _nonalnum_pattern = r"[^A-Za-z0-9]+"
 """
 Strip all non-alphanumerical characters from a list of strings.
 ```jldoctest

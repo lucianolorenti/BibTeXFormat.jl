@@ -1,3 +1,4 @@
 julia 0.6
 HttpCommon
-BibTeX
+https://github.com/bramtayl/BibTeX.jl.git
+Formatting
