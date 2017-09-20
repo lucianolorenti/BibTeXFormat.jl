@@ -1,5 +1,6 @@
 export AlphaStyle,
-       format_entries
+       format_entries,
+       BST
 include("templateengine.jl")
 include("names.jl")
 include("labels.jl")

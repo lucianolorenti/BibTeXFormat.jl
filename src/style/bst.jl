@@ -282,4 +282,12 @@ end
 function get_remainder(self::Scanner)
 	return self.text[self.pos:end]
 end
+function parse_file(filename::String)
+    local content  = readstring(filename)
+    return parse_string(content)
+end
+function parse_string(content::String)
+        parser = Parser(content)
+        return parse(parser)
+end
 end
