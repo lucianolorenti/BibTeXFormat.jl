@@ -33,6 +33,14 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "style.html#BST-1",
+    "page": "Style",
+    "title": "BST",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\nbibliography = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"), \"test/Clustering.bib\")))\nstyle        = BST.parse_file(joinpath(Pkg.dir(\"BibTeXFormat\"),\"test/format/apacite.bst\"))\nformatted_entries = format_entries(style, bibliography)\nHTMLoutput        = write_to_string( HTMLBackend(),formatted_entries )"
+},
+
+{
     "location": "style.html#BibTeXFormat.AlphaStyle",
     "page": "Style",
     "title": "BibTeXFormat.AlphaStyle",
@@ -97,11 +105,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "style.html#BST-1",
+    "location": "style.html#Julia-Format-1",
     "page": "Style",
-    "title": "BST",
+    "title": "Julia Format",
     "category": "section",
-    "text": "using BibTeX\nusing BibTeXFormat\nbibliography = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"), \"test/Clustering.bib\")))\nstyle        = BST.parse_file(joinpath(Pkg.dir(\"BibTeXFormat\"),\"test/format/apacite.bst\"))\nformatted_entries = format_entries(style, bibliography)\nHTMLoutput        = write_to_string( HTMLBackend(),formatted_entries )Pages    = [\"style.jl\"]Modules = [BibTeXFormat]\nPages    = [\"style.jl\"]"
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"), \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)Pages    = [\"style.jl\"]Modules = [BibTeXFormat]\nPages    = [\"style.jl\"]"
 },
 
 {
