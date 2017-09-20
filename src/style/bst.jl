@@ -2,22 +2,150 @@ module BST
 import Base.==
 import Base.parse
 import Base.eof
+import Base.push!
+import Base.pop!
+
+mutable struct Interpreter
+	bib_format
+	bib_encoding
+	stack::Array
+	vars::Dict
+	macros::Dict
+	output_buffer::Array
+	output_lines::Array
+end
+function Interpreter(bib_format, bib_encoding)
+	local int  = Interpreter(bib_format, bib_encoding, [], Dict(), Dict(), [],[])
+	add_variable(int,"global.max\$", 20000)
+	add_variable(int,"entry.max\$", 250)
+	add_variable(int, "sort.key\$", EntryString(int, "sort.key\$"))
+	return int
+end
 abstract type Variable end
+
+function set(self::Variable, value)
+	if (value == nothing)
+		value = default(typeof(self))
+	end
+	validate(self, value)
+	self.value = value
+end
+function validate(self::Variable, value)
+	if ! (isa(value, value_type(self)) || value == nothing)
+		throw("Invalid value for BibTeX $(typeof(self))")
+	end
+end
+function execute(self::Variable, interpreter)
+    push!(interpreter, value(self))
+end
+function value(self::Variable)
+	return self.value
+end
+function ==(a::T, b::T) where T<:Variable
+    return a.value == b.value
+end
 struct QuotedVar <: Variable
 	value
+end
+
+function execute(self::QuotedVar, interpreter)
+	try
+		var = interpreter.vars[self.value]
+	catch e
+		throw("can not push undefined variable %(self.value)")
+	end
+	push!(interpreter, var)
 end
 struct Identifier <: Variable
 	value
 end
-function ==(a1::T, a2::T) where T <: Variable
-    a1.value == a2.value
+function execute(self::Identifier, interpreter)
+	try
+		f = interpreter.vars[self.value]
+		execute(f, interpreter)
+	catch e
+		throw("can not execute undefined function $self")
+	end
 end
-abstract type ParsedFunction end
-struct FunctionLiteral <: ParsedFunction
+
+abstract type   EntryVariable <: Variable end
+function set(self::EntryVariable, value)
+	if value != None
+		validate(self, value)
+		self.interpreter.current_entry.vars[self.name] = value
+	end
+end
+function value(self)
+	return self.interpreter.current_entry.vars.get(self.name, self.default)
+end
+struct BSTInteger <: Variable
+	interpreter::Interpreter
+	name::String
+end
+function value_type(n::BSTInteger)
+	return Integer
+end
+function default(n::BSTInteger)
+	return 0
+end
+
+struct  BSTString <: Variable
+	interpreter::Interpreter
+	name::String
+end
+function default(a::BSTString)
+	return ""
+end
+function value_type(a::BSTString)
+	return String
+end
+
+struct EntryInteger <: EntryVariable
+	interpreter::Interpreter
+	name::String
+end
+
+function value_type(n::EntryInteger)
+	return Integer
+end
+function default(n::EntryInteger)
+	return 0
+end
+
+struct EntryString <: EntryVariable
+	interpreter::Interpreter
+	name::String
+end
+
+function default(a::EntryVariable)
+	return ""
+end
+function value_type(a::EntryVariable)
+	return String
+end
+
+abstract type AbstractParsedFunction end
+function ==(a::AbstractParsedFunction, b::AbstractParsedFunction)
+	return typeof(a) == typeof(B) && a.body == b.body
+end
+type ParsedFunction <: AbstractParsedFunction
+	body
+end
+
+function  execute(self::ParsedFunction, interpreter)
+    for element in self.body
+    	execute(element, interpreter)
+	end
+end
+struct FunctionLiteral <: AbstractParsedFunction
     body
 end
 function ==(a1::FunctionLiteral, a2::FunctionLiteral)
     return a1.body==a2.body
+end
+
+function  execute(self::FunctionLiteral, interpreter)
+        push!(interpreter.Function(self.body))
 end
 function process_int_literal(value)
     return Base.parse(Int32,string(strip(value,'#')))
@@ -290,4 +418,187 @@ function parse_string(content::String)
         parser = Parser(content)
         return parse(parser)
 end
+
+struct MissingField
+	name
+end
+
+abstract type AbstractField end
+function execute(self::T, interpreter) where T<:AbstractField
+	push!(self.interpreter, value(self))
+end
+mutable struct Field <: AbstractField
+	interpreter
+	name::String
+end
+
+function value(self::Field)
+	try
+		return self.interpreter.current_entry.fields[self.name]
+	catch e
+		return MissingField(self.name)
+	end
+end
+
+mutable struct Crossref <: AbstractField
+	interpreter::Interpreter
+	name::String
+end
+function value(self::Crossref)
+	try
+		value = self.interpreter.current_entry.fields[self.name]
+		crossref_entry = self.interpreter.bib_data.entries[value]
+		return crossref_entry.key
+	catch e
+		return MissingField(self.name)
+	end
+
+end
+
+function push!(self::Interpreter, value)
+	push!(self.stack,value)
+end
+function pop!(self::Interpreter)
+	try
+		value = self.stack.pop()
+		return value
+	catch IndexError
+		throw("pop from empty stack")
+	end
+end
+function get_token(self::Interpreter)
+	return next(self.bst_script)
+end
+function add_variable(self::Interpreter, name, value)
+	if haskey(self.vars, name)
+		throw("variable $name already declared")
+	end
+	self.vars[name] = value
+end
+function output(self::Interpreter, str)
+	push!(self.output_buffer,str)
+end
+function newline(self::Interpreter)
+	output = Base.join(Self.output_buffer,"")
+	push!(self.output_lines,output)
+	push!(self.output_lines, "\n")
+	self.output_buffer = []
+end
+
+"""
+```
+function run(self, bst_script, citations, bib_files, min_crossrefs):
+```
+Run bst script and return formatted bibliography.
+"""
+function run(self::Interpreter, bst_script, citations, bib_files, min_crossrefs):
+
+	self.bst_script = bst_script
+	self.citations = citations
+	self.bib_files = bib_files
+	self.min_crossrefs = min_crossrefs
+	for command in self.bst_script
+		name = command[1]
+		args = command[2:end]
+		method = string("command_", lowercase(name))
+		try
+			f = getfield(BST, Symbol(method))
+			f(args...)
+		catch
+			println("Unknown command", name)
+		end
+	end
+	return Base.join(self.output_lines, "")
+end
+function command_entry(self::Interpreter, fields, ints, strings)
+	for id in fields
+		name = id.value
+		add_variable(self, name, Field(self, name))
+	end
+	add_variable(self, "crossref", Crossref(self))
+	for id in ints
+		name = id.value
+		add_variable(self, name, EntryInteger(self, name))
+	end
+	for id in strings
+		name = id.value
+		add_variable(self, name, EntryString(self, name))
+	end
+end
+function command_execute(self::Interpreter, command_)
+	execute(command_[1],self)
+end
+function command_function(self::Interpreter, name_, body)
+	name = name_[1]
+	add_variable(self, name, Function(body))
+end
+function command_integers(self, identifiers)
+	for identifier in identifiers
+		self.vars[identifier.value] = BSTInteger()
+	end
+end
+
+function command_iterate(self::Interpreter, function_group)
+	f = function_group[1].value
+	_iterate(self, f, self.citations)
+end
+
+function _iterate(self::Interpreter, ff, citations)
+	f = self.vars[fff]
+	for key in keys(citations)
+		self.current_entry_key = key
+		self.current_entry = self.bib_data[key]
+		execute(f, self)
+	end
+	self.currentEntry = None
+end
+function command_macro(self::Interpreter, name_, value_)
+	name = name_[1].value
+	value = value_[1].value
+	self.macros[name] = value
+end
+function  command_read(self)
+#        print 'READ'
+	p = bib_format(self,
+		encoding=self.bib_encoding,
+		macros=self.macros,
+		person_fields=[],
+		wanted_entries=self.citations,
+	)
+	self.bib_data = p.parse_files(self.bib_files)
+	self.citations = add_extra_citations(self.bib_data, self.citations, self.min_crossrefs)
+	self.citations = remove_missing_citations(self, self.citations)
+#        for k, v in self.bib_data.items():
+#            print k
+#            for field, value in v.fields.items():
+#                print '\t', field, value
+#        pass
+end
+function remove_missing_citations(self::Interpreter, citations)
+	cit = []
+	for citation in citations
+		if haskey(self.bib_data, citation)
+			push!(cit,citation)
+		else
+			warning("missing database entry for \"$citation\"")
+		end
+	end
+end
+function command_reverse(self, function_group)
+	f = function_group[1].value
+	self._iterate(f, reverse(self.citations))
+end
+function command_sort(self::Interpreter)
+	function key(citation)
+		return self.bib_data[citation].vars["sort.key\$"]
+	end
+	sort(self.citations, key=key)
+end
+
+function command_strings(self::Interpreter, identifiers)
+	for identifier in identifiers
+		self.vars[identifier.value] = String()
+	end
+end
+
 end

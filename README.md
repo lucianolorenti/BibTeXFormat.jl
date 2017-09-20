@@ -5,7 +5,8 @@
 ```julia
 using BibTeX
 using BibTeXFormat
-bibliography      = Bibliography(readstring("test/Clustering.bib"))
+
+bibliography = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 HTMLoutput        = write_to_string( HTMLBackend(),formatted_entries)
 ```
