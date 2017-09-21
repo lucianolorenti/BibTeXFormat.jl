@@ -99,12 +99,10 @@ end
 ```julia
 function format_bibliography(self::T, bib_data, citations=nothing) where T<:BaseStyle
 ```
-Format bibliography entries with the given keys and return a
-`FormattedBibliography` object.
-
+Format bibliography entries with the given keys
 Params:
 - `self::T where T<:BaseStyle`. The style
-- `bib_data` A :py:class:`pybtex.database.BibliographyData` object.
+- `bib_data` BibTeX.Bibliography
 - `param citations`: A list of citation keys.
 
 ```julia
@@ -206,7 +204,7 @@ Any["tres", "dos", "uno", "cuatro"]
 function expand_wildcard_citations(entries::Bibliography, citations)
 	local expanded_keys = []
     local citation_set = Set{String}()
-    for citation in citations
+    for citation in keys(citations)
         if citation == "*"
             for key in keys(entries)
                 if !(lowercase(key) in citation_set)
@@ -224,9 +222,9 @@ function expand_wildcard_citations(entries::Bibliography, citations)
 	return expanded_keys
 end
 
-function add_extra_citations(entries::Bibliography, citations, min_crossrefs::Bool)
+function add_extra_citations(entries::Bibliography, citations; min_crossrefs::Integer=0)
     local expanded_citations = expand_wildcard_citations(entries,citations)
-    local crossrefs = get_crossreferenced_citations(entries, expanded_citations, min_crossrefs)
+    local crossrefs = get_crossreferenced_citations(entries, expanded_citations, min_crossrefs=min_crossrefs)
     return vcat(expanded_citations, crossrefs)
 end
 

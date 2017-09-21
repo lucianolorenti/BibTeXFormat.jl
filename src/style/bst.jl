@@ -1,21 +1,38 @@
 module BST
+using BibTeX
 import Base.==
 import Base.parse
 import Base.eof
 import Base.push!
 import Base.pop!
+import Base.isequal
+import Base.hash
+import BibTeXFormat: BaseStyle, format_bibliography, format_entries, add_extra_citations
 
+"""
+```
+type Style <: BaseStyle
+```
+A Style obtained from a .bst file
+"""
+type Style <: BaseStyle
+    commands
+end
 mutable struct Interpreter
-	bib_format
+	bst_style::Style
 	bib_encoding
 	stack::Array
 	vars::Dict
 	macros::Dict
 	output_buffer::Array
 	output_lines::Array
+    citations
+    bib_files
+    min_crossrefs::Integer
+    bib_data
 end
 function Interpreter(bib_format, bib_encoding)
-	local int  = Interpreter(bib_format, bib_encoding, [], Dict(), Dict(), [],[])
+    local int  = Interpreter(bib_format, bib_encoding, [], Dict(), Dict(), [],[], nothing, nothing, true, nothing)
 	add_variable(int,"global.max\$", 20000)
 	add_variable(int,"entry.max\$", 250)
 	add_variable(int, "sort.key\$", EntryString(int, "sort.key\$"))
@@ -23,6 +40,15 @@ function Interpreter(bib_format, bib_encoding)
 end
 abstract type Variable end
 
+function value_type(n::T) where T<:Variable
+    return typeof(n.value)
+end
+function hash(x::T) where T<:Variable
+    return hash(x.value)
+end
+function isequal(x::T, y::T) where T <: Variable
+    return x.value ==  y.value
+end
 function set(self::Variable, value)
 	if (value == nothing)
 		value = default(typeof(self))
@@ -60,12 +86,18 @@ struct Identifier <: Variable
 	value
 end
 function execute(self::Identifier, interpreter)
-	try
-		f = interpreter.vars[self.value]
+#	try
+		f = interpreter.vars[self]
 		execute(f, interpreter)
-	catch e
-		throw("can not execute undefined function $self")
-	end
+#	catch e
+ #       println(e)
+        for i in keys(interpreter.vars)
+            if isequal(i,self)
+                println(hash(i)," ", hash(self))
+            end
+        end
+ #       throw("can not execute undefined function $(self.value)")
+#	end
 end
 
 abstract type   EntryVariable <: Variable end
@@ -75,31 +107,31 @@ function set(self::EntryVariable, value)
 		self.interpreter.current_entry.vars[self.name] = value
 	end
 end
-function value(self)
+function value(self::EntryVariable)
 	return self.interpreter.current_entry.vars.get(self.name, self.default)
 end
 struct BSTInteger <: Variable
 	interpreter::Interpreter
 	name::String
-end
-function value_type(n::BSTInteger)
-	return Integer
+    value::Integer
 end
 function default(n::BSTInteger)
 	return 0
 end
-
+function BSTInteger(interpreter::Interpreter, name="")
+    return BSTInteger(interpreter,name, 0)
+end
 struct  BSTString <: Variable
 	interpreter::Interpreter
 	name::String
+    value::String
 end
 function default(a::BSTString)
 	return ""
 end
-function value_type(a::BSTString)
-	return String
+function BSTString(interpreter::Interpreter, name="")
+    return BSTString(interpreter, name, "")
 end
-
 struct EntryInteger <: EntryVariable
 	interpreter::Interpreter
 	name::String
@@ -115,6 +147,10 @@ end
 struct EntryString <: EntryVariable
 	interpreter::Interpreter
 	name::String
+    value::String
+end
+function EntryString(interpreter::Interpreter, name::String)
+    return EntryString(interpreter, name, "")
 end
 
 function default(a::EntryVariable)
@@ -145,7 +181,7 @@ function ==(a1::FunctionLiteral, a2::FunctionLiteral)
 end
 
 function  execute(self::FunctionLiteral, interpreter)
-        push!(interpreter.Function(self.body))
+        push!(interpreter, ParsedFunction(self.body))
 end
 function process_int_literal(value)
     return Base.parse(Int32,string(strip(value,'#')))
@@ -159,9 +195,9 @@ end
 
 function process_identifier(name)
     if name[1] == '\''
-        return QuotedVar(name[2:end])
+        return QuotedVar(string(name[2:end]))
     else
-        return Identifier(name)
+        return Identifier(string(name))
 	end
 end
 
@@ -236,7 +272,6 @@ LITERAL_TYPES = Dict{Any, Function}(
 	INTEGER=> process_int_literal,
 	NAME=> process_identifier,
 )
-
 abstract type  Scanner end
 mutable struct Parser <: Scanner
 	text::String
@@ -284,8 +319,24 @@ function parse(self::Parser)
 				break
 			end
 		end
-	end
-	return commands
+    end
+    return Style(commands)
+end
+"""
+```
+function parse_string(content::String)
+```
+"""
+function parse_string(content::String)
+    return parse(Parser(content))
+end
+"""
+```
+function parse_file(filename::String)
+```
+"""
+function parse_file(filename::String)
+    return parse_string(readall(filename))
 end
 
 function parse_group(self::Parser)
@@ -304,18 +355,6 @@ function parse_group(self::Parser)
 	return tokens
 end
 
-#=def parse_file(filename, encoding=None):
-    with pybtex.io.open_unicode(filename, encoding=encoding) as bst_file:
-        return parse_stream(bst_file, filename)
-
-def parse_stream(stream, filename='<INPUT>'):
-    bst = '\n'.join(strip_comment(line.rstrip()) for line in stream)
-    return Parser(bst, filename=filename).parse()
-
-def parse_string(bst_string):
-    bst = '\n'.join(strip_comment(line) for line in bst_string.splitlines())
-    return Parser(bst).parse()
-=#
 WHITESPACE = (r"\s+", "whitespace")
 WHITESPACE[1].match_options |= Base.PCRE.ANCHORED
 NEWLINE = (r"\n|(\r\n)|\r", "newline")
@@ -469,11 +508,11 @@ end
 function get_token(self::Interpreter)
 	return next(self.bst_script)
 end
-function add_variable(self::Interpreter, name, value)
+function add_variable(self::Interpreter, name, val)
 	if haskey(self.vars, name)
 		throw("variable $name already declared")
 	end
-	self.vars[name] = value
+	self.vars[name] = val
 end
 function output(self::Interpreter, str)
 	push!(self.output_buffer,str)
@@ -487,26 +526,26 @@ end
 
 """
 ```
-function run(self, bst_script, citations, bib_files, min_crossrefs):
+function run(self, citations, bib_files, min_crossrefs):
 ```
 Run bst script and return formatted bibliography.
 """
-function run(self::Interpreter, bst_script, citations, bib_files, min_crossrefs):
+function run(self::Interpreter,  citations, bib_files, min_crossrefs=true)
 
-	self.bst_script = bst_script
 	self.citations = citations
 	self.bib_files = bib_files
 	self.min_crossrefs = min_crossrefs
-	for command in self.bst_script
+	for command in self.bst_style.commands
 		name = command[1]
 		args = command[2:end]
 		method = string("command_", lowercase(name))
-		try
+#		try
 			f = getfield(BST, Symbol(method))
-			f(args...)
-		catch
-			println("Unknown command", name)
-		end
+			f(self,args...)
+#		catch e
+ ##           throw(e)
+#			println("Unknown command", name)
+#		end
 	end
 	return Base.join(self.output_lines, "")
 end
@@ -515,13 +554,13 @@ function command_entry(self::Interpreter, fields, ints, strings)
 		name = id.value
 		add_variable(self, name, Field(self, name))
 	end
-	add_variable(self, "crossref", Crossref(self))
+	add_variable(self, "crossref", Crossref(self, "crossref"))
 	for id in ints
 		name = id.value
 		add_variable(self, name, EntryInteger(self, name))
 	end
 	for id in strings
-		name = id.value
+        name = String(id.value)
 		add_variable(self, name, EntryString(self, name))
 	end
 end
@@ -530,11 +569,12 @@ function command_execute(self::Interpreter, command_)
 end
 function command_function(self::Interpreter, name_, body)
 	name = name_[1]
-	add_variable(self, name, Function(body))
+    println(body)
+	add_variable(self, name, ParsedFunction(body))
 end
-function command_integers(self, identifiers)
+function command_integers(self::Interpreter, identifiers)
 	for identifier in identifiers
-		self.vars[identifier.value] = BSTInteger()
+		self.vars[identifier.value] = BSTInteger(self)
 	end
 end
 
@@ -552,21 +592,20 @@ function _iterate(self::Interpreter, ff, citations)
 	end
 	self.currentEntry = None
 end
+function value(a::T) where T<:AbstractString
+    return String(a)
+end
+function value(a::T) where T<:Variable
+    return a.value
+end
 function command_macro(self::Interpreter, name_, value_)
-	name = name_[1].value
-	value = value_[1].value
-	self.macros[name] = value
+    local name = value(name_[1])
+    local val = value(value_[1])
+	self.macros[name] = val
 end
 function  command_read(self)
-#        print 'READ'
-	p = bib_format(self,
-		encoding=self.bib_encoding,
-		macros=self.macros,
-		person_fields=[],
-		wanted_entries=self.citations,
-	)
-	self.bib_data = p.parse_files(self.bib_files)
-	self.citations = add_extra_citations(self.bib_data, self.citations, self.min_crossrefs)
+	self.bib_data =  Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
+	self.citations = add_extra_citations(self.bib_data, self.citations; min_crossrefs= self.min_crossrefs)
 	self.citations = remove_missing_citations(self, self.citations)
 #        for k, v in self.bib_data.items():
 #            print k
@@ -597,8 +636,41 @@ end
 
 function command_strings(self::Interpreter, identifiers)
 	for identifier in identifiers
-		self.vars[identifier.value] = String()
+		self.vars[identifier.value] = BSTString(self)
 	end
 end
 
+"""
+```julia
+function format_bibliography(self::Style, bib_data, citations=nothing)
+```
+Format bibliography entries with the given keys
+
+Params:
+- `style::Style`. The BST style
+- `bib_data`
+- `param citations`: A list of citation keys.
+
+"""
+function format_bibliography(style::Style, bib_data::Bibliography, citations=nothing)
+    println("aa")
+end
+
+"""
+```
+function format_entries(b::Style, entries::Dict)
+```
+Format a Dict of `entries` with a given style `b::Style`
+```julia
+using BibTeX
+using BibTeXFormat
+bibliography      = Bibliography(readstring("test/Clustering.bib"))
+style        = BST.parse_file(joinpath(Pkg.dir("BibTeXFormat"),"test/format/apacite.bst"))
+formatted_entries = format_entries(style, bibliography)
+```
+"""
+
+function format_entries(b::Style, entries)
+    run(Interpreter(b, "utf-8"), entries, nothing)
+end
 end
