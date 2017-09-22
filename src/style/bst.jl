@@ -86,18 +86,13 @@ struct Identifier <: Variable
 	value
 end
 function execute(self::Identifier, interpreter)
-#	try
+	try
 		f = interpreter.vars[self]
 		execute(f, interpreter)
-#	catch e
- #       println(e)
-        for i in keys(interpreter.vars)
-            if isequal(i,self)
-                println(hash(i)," ", hash(self))
-            end
-        end
- #       throw("can not execute undefined function $(self.value)")
-#	end
+	catch e
+        println(e)
+        throw("can not execute undefined function $(self.value)")
+	end
 end
 
 abstract type   EntryVariable <: Variable end
@@ -111,26 +106,16 @@ function value(self::EntryVariable)
 	return self.interpreter.current_entry.vars.get(self.name, self.default)
 end
 struct BSTInteger <: Variable
-	interpreter::Interpreter
-	name::String
     value::Integer
 end
 function default(n::BSTInteger)
 	return 0
 end
-function BSTInteger(interpreter::Interpreter, name="")
-    return BSTInteger(interpreter,name, 0)
-end
 struct  BSTString <: Variable
-	interpreter::Interpreter
-	name::String
     value::String
 end
 function default(a::BSTString)
 	return ""
-end
-function BSTString(interpreter::Interpreter, name="")
-    return BSTString(interpreter, name, "")
 end
 struct EntryInteger <: EntryVariable
 	interpreter::Interpreter
@@ -184,20 +169,20 @@ function  execute(self::FunctionLiteral, interpreter)
         push!(interpreter, ParsedFunction(self.body))
 end
 function process_int_literal(value)
-    return Base.parse(Int32,string(strip(value,'#')))
+    return BSTInteger(Base.parse(Int32,string(strip(value,'#'))))
 end
 
 function process_string_literal(value)
     assert(startswith(value, "\""))
     assert(endswith(value,"\""))
-    return value[2:end-1]
+    return BSTString(String(value[2:end-1]))
 end
 
 function process_identifier(name)
     if name[1] == '\''
-        return QuotedVar(string(name[2:end]))
+        return QuotedVar(String(name[2:end]))
     else
-        return Identifier(string(name))
+        return Identifier(String(name))
 	end
 end
 
@@ -314,7 +299,6 @@ function parse(self::Parser)
 			if e==:EOF
 				break;
 			else
-
                 throw(e)
 				break
 			end
@@ -489,6 +473,7 @@ function value(self::Crossref)
 		crossref_entry = self.interpreter.bib_data.entries[value]
 		return crossref_entry.key
 	catch e
+        println(e)
 		return MissingField(self.name)
 	end
 
@@ -501,7 +486,8 @@ function pop!(self::Interpreter)
 	try
 		value = self.stack.pop()
 		return value
-	catch IndexError
+	catch e
+        println(e)
 		throw("pop from empty stack")
 	end
 end
@@ -531,7 +517,7 @@ function run(self, citations, bib_files, min_crossrefs):
 Run bst script and return formatted bibliography.
 """
 function run(self::Interpreter,  citations, bib_files, min_crossrefs=true)
-
+    println("A: ",citations)
 	self.citations = citations
 	self.bib_files = bib_files
 	self.min_crossrefs = min_crossrefs
@@ -539,28 +525,28 @@ function run(self::Interpreter,  citations, bib_files, min_crossrefs=true)
 		name = command[1]
 		args = command[2:end]
 		method = string("command_", lowercase(name))
-#		try
+		try
 			f = getfield(BST, Symbol(method))
 			f(self,args...)
-#		catch e
- ##           throw(e)
-#			println("Unknown command", name)
-#		end
+		catch e
+            println(e)
+    		println("Unknown command", name)
+		end
 	end
 	return Base.join(self.output_lines, "")
 end
 function command_entry(self::Interpreter, fields, ints, strings)
 	for id in fields
-		name = id.value
+        name = value(id)
 		add_variable(self, name, Field(self, name))
 	end
 	add_variable(self, "crossref", Crossref(self, "crossref"))
 	for id in ints
-		name = id.value
+        name = value(id)
 		add_variable(self, name, EntryInteger(self, name))
 	end
 	for id in strings
-        name = String(id.value)
+        name = String(value(id))
 		add_variable(self, name, EntryString(self, name))
 	end
 end
@@ -569,22 +555,22 @@ function command_execute(self::Interpreter, command_)
 end
 function command_function(self::Interpreter, name_, body)
 	name = name_[1]
-    println(body)
 	add_variable(self, name, ParsedFunction(body))
 end
 function command_integers(self::Interpreter, identifiers)
 	for identifier in identifiers
-		self.vars[identifier.value] = BSTInteger(self)
+        self.vars[value(identifier)] = BSTInteger(0)
 	end
 end
 
 function command_iterate(self::Interpreter, function_group)
-	f = function_group[1].value
+    f = function_group[1]
+    println(self.citations)
 	_iterate(self, f, self.citations)
 end
 
 function _iterate(self::Interpreter, ff, citations)
-	f = self.vars[fff]
+	f = self.vars[ff]
 	for key in keys(citations)
 		self.current_entry_key = key
 		self.current_entry = self.bib_data[key]
@@ -624,19 +610,21 @@ function remove_missing_citations(self::Interpreter, citations)
 	end
 end
 function command_reverse(self, function_group)
-	f = function_group[1].value
+    f = function_group[1]
+    println(self.citations)
 	self._iterate(f, reverse(self.citations))
 end
 function command_sort(self::Interpreter)
 	function key(citation)
 		return self.bib_data[citation].vars["sort.key\$"]
 	end
+
 	sort(self.citations, key=key)
 end
 
 function command_strings(self::Interpreter, identifiers)
 	for identifier in identifiers
-		self.vars[identifier.value] = BSTString(self)
+        self.vars[value(identifier)] = BSTString("")
 	end
 end
 
