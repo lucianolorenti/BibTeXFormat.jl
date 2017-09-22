@@ -149,30 +149,33 @@ Any[]
 
 """
 function  get_crossreferenced_citations(entries::Bibliography, citations; min_crossrefs::Integer=1)
+
 	canonical_crossrefs = []
     crossref_count = Dict{String,Int}()
     citation_set = Set{String}([lowercase(c) for c in citations])
 	local crossref = nothing
     for citation in [lowercase(c) for c in citations]
-		if haskey(entries, citation) &&  haskey(entries[citation], "crossref")  && haskey(entries, entries[citation]["crossref"])
-			local entry     = entries[citation]
-			crossref = entry["crossref"]
-            local crossref_entry = entries[crossref]
-        	local canonical_crossref = lowercase(crossref)
-			if !haskey(crossref_count, canonical_crossref)
-				crossref_count[canonical_crossref] = 1
-			else
-				crossref_count[canonical_crossref] = crossref_count[canonical_crossref] + 1
-			end
-    	    if crossref_count[canonical_crossref] >= min_crossrefs && !(canonical_crossref in citation_set)
-        	    push!(citation_set, canonical_crossref)
-				push!(canonical_crossrefs, canonical_crossref)
-			end
-	 	else
-			warn("bad cross-reference: entry \"$citation\" refers to
-                entry \"$crossref\" which does not exist.")
-            continue
-		end
+		if haskey(entries, citation) &&  haskey(entries[citation], "crossref")
+            if haskey(entries, entries[citation]["crossref"])
+                local entry     = entries[citation]
+                crossref = entry["crossref"]
+                local crossref_entry = entries[crossref]
+                local canonical_crossref = lowercase(crossref)
+                if !haskey(crossref_count, canonical_crossref)
+                    crossref_count[canonical_crossref] = 1
+                else
+                    crossref_count[canonical_crossref] = crossref_count[canonical_crossref] + 1
+                end
+                if crossref_count[canonical_crossref] >= min_crossrefs && !(canonical_crossref in citation_set)
+                    push!(citation_set, canonical_crossref)
+                    push!(canonical_crossrefs, canonical_crossref)
+                end
+            else
+                warn("bad cross-reference: entry \"$citation\" refers to
+                    entry \"$crossref\" which does not exist.")
+                continue
+            end
+        end
 	end
 	return canonical_crossrefs
 end

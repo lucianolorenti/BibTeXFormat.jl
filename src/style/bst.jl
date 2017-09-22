@@ -32,12 +32,13 @@ mutable struct Interpreter
     bib_data
 end
 function Interpreter(bib_format, bib_encoding)
-    local int  = Interpreter(bib_format, bib_encoding, [], Dict(), Dict(), [],[], nothing, nothing, true, nothing)
+    local int  = Interpreter(bib_format, bib_encoding, [], copy(builtins), Dict(), [],[], nothing, nothing, true, nothing)
 	add_variable(int,"global.max\$", 20000)
 	add_variable(int,"entry.max\$", 250)
 	add_variable(int, "sort.key\$", EntryString(int, "sort.key\$"))
 	return int
 end
+include("bst/builtins.jl")
 abstract type Variable end
 
 function value_type(n::T) where T<:Variable
@@ -70,7 +71,7 @@ end
 function ==(a::T, b::T) where T<:Variable
     return a.value == b.value
 end
-struct QuotedVar <: Variable
+mutable struct QuotedVar <: Variable
 	value
 end
 
@@ -82,13 +83,12 @@ function execute(self::QuotedVar, interpreter)
 	#end
 	push!(interpreter, var)
 end
-struct Identifier <: Variable
+mutable struct Identifier <: Variable
 	value
 end
 function execute(self::Identifier, interpreter)
 	#try
-        println(self.value)
-		f = interpreter.vars[self]
+        f = interpreter.vars[value(self)]
 		execute(f, interpreter)
 #	catch e
  #       println(e)
@@ -106,19 +106,19 @@ end
 function value(self::EntryVariable)
 	return self.interpreter.current_entry.vars.get(self.name, self.default)
 end
-struct BSTInteger <: Variable
+mutable struct BSTInteger <: Variable
     value::Integer
 end
 function default(n::BSTInteger)
 	return 0
 end
-struct  BSTString <: Variable
+mutable struct  BSTString <: Variable
     value::String
 end
 function default(a::BSTString)
 	return ""
 end
-struct EntryInteger <: EntryVariable
+mutable struct EntryInteger <: EntryVariable
 	interpreter::Interpreter
 	name::String
 end
@@ -130,7 +130,7 @@ function default(n::EntryInteger)
 	return 0
 end
 
-struct EntryString <: EntryVariable
+mutable struct EntryString <: EntryVariable
 	interpreter::Interpreter
 	name::String
     value::String
@@ -485,7 +485,7 @@ function push!(self::Interpreter, value)
 end
 function pop!(self::Interpreter)
 #	try
-		value = self.stack.pop()
+        value = pop!(self.stack)
 		return value
 #	catch e
  #       println(e)
@@ -499,6 +499,7 @@ function add_variable(self::Interpreter, name, val)
 	if haskey(self.vars, name)
 		throw("variable $name already declared")
 	end
+    println("B: ", name)
 	self.vars[name] = val
 end
 function output(self::Interpreter, str)
@@ -524,6 +525,7 @@ function run(self::Interpreter,  citations, bib_files, min_crossrefs::Integer=1)
 	for command in self.bst_style.commands
 		name = command[1]
 		args = command[2:end]
+        println("A: ",name)
 		method = string("command_", lowercase(name))
 		#try
 			f = getfield(BST, Symbol(method))
@@ -554,7 +556,7 @@ function command_execute(self::Interpreter, command_)
 	execute(command_[1],self)
 end
 function command_function(self::Interpreter, name_, body)
-	name = name_[1]
+    name = value(name_[1])
 	add_variable(self, name, ParsedFunction(body))
 end
 function command_integers(self::Interpreter, identifiers)
@@ -564,7 +566,9 @@ function command_integers(self::Interpreter, identifiers)
 end
 
 function command_iterate(self::Interpreter, function_group)
-    f = function_group[1]
+    f = value(function_group[1])
+    println("AAAAAAA")
+    println(self.citations)
 	_iterate(self, f, self.citations)
 end
 
@@ -589,15 +593,9 @@ function command_macro(self::Interpreter, name_, value_)
 	self.macros[name] = val
 end
 function  command_read(self::Interpreter)
-    println(self.bib_data)
     self.bib_data =  self.bib_files
 	self.citations = add_extra_citations(self.bib_data, self.citations; min_crossrefs= self.min_crossrefs)
 	self.citations = remove_missing_citations(self, self.citations)
-#        for k, v in self.bib_data.items():
-#            print k
-#            for field, value in v.fields.items():
-#                print '\t', field, value
-#        pass
 end
 function remove_missing_citations(self::Interpreter, citations)
 	cit = []
@@ -610,7 +608,7 @@ function remove_missing_citations(self::Interpreter, citations)
 	end
 end
 function command_reverse(self, function_group)
-    f = function_group[1]
+    f = value(function_group[1])
 	_iterate(self, f, reverse(self.citations))
 end
 function command_sort(self::Interpreter)
