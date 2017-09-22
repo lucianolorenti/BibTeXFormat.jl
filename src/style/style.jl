@@ -204,7 +204,12 @@ Any["tres", "dos", "uno", "cuatro"]
 function expand_wildcard_citations(entries::Bibliography, citations)
 	local expanded_keys = []
     local citation_set = Set{String}()
-    for citation in keys(citations)
+    if isa(citations, Dict)
+        citations_keys = keys(citations)
+    else
+        citations_keys = citations
+    end
+    for citation in citations_keys
         if citation == "*"
             for key in keys(entries)
                 if !(lowercase(key) in citation_set)

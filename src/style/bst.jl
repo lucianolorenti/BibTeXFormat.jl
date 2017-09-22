@@ -75,28 +75,29 @@ struct QuotedVar <: Variable
 end
 
 function execute(self::QuotedVar, interpreter)
-	try
+	#try
 		var = interpreter.vars[self.value]
-	catch e
-		throw("can not push undefined variable %(self.value)")
-	end
+	#catch e
+		#throw("can not push undefined variable %(self.value)")
+	#end
 	push!(interpreter, var)
 end
 struct Identifier <: Variable
 	value
 end
 function execute(self::Identifier, interpreter)
-	try
+	#try
+        println(self.value)
 		f = interpreter.vars[self]
 		execute(f, interpreter)
-	catch e
-        println(e)
-        throw("can not execute undefined function $(self.value)")
-	end
+#	catch e
+ #       println(e)
+  #      throw("can not execute undefined function $(self.value)")
+#	end
 end
 
 abstract type   EntryVariable <: Variable end
-function set(self::EntryVariable, value)
+function set(self::T, value) where T<:EntryVariable
 	if value != None
 		validate(self, value)
 		self.interpreter.current_entry.vars[self.name] = value
@@ -273,11 +274,11 @@ function parse_command(self::Parser)
 	local commands = []
 	command_name = required(self, [NAME], "BST command", allow_eof=true)
 	local arity = nothing
-	try
+	#try
         arity = COMMANDS[uppercase(command_name[1])]
-	catch e
-		throw((:TokenRequired,"BST command"))
-	end
+#	catch e
+#		throw((:TokenRequired,"BST command"))
+#	end
     push!(commands, command_name[1])
 	for i =1:arity
 		brace = optional(self, [LBRACE])
@@ -456,11 +457,11 @@ mutable struct Field <: AbstractField
 end
 
 function value(self::Field)
-	try
+	#try
 		return self.interpreter.current_entry.fields[self.name]
-	catch e
-		return MissingField(self.name)
-	end
+	#catch e
+#		return MissingField(self.name)
+#	end
 end
 
 mutable struct Crossref <: AbstractField
@@ -468,14 +469,14 @@ mutable struct Crossref <: AbstractField
 	name::String
 end
 function value(self::Crossref)
-	try
+#	try
 		value = self.interpreter.current_entry.fields[self.name]
 		crossref_entry = self.interpreter.bib_data.entries[value]
 		return crossref_entry.key
-	catch e
-        println(e)
-		return MissingField(self.name)
-	end
+#	catch e
+ #       println(e)
+#		return MissingField(self.name)
+#	end
 
 end
 
@@ -483,13 +484,13 @@ function push!(self::Interpreter, value)
 	push!(self.stack,value)
 end
 function pop!(self::Interpreter)
-	try
+#	try
 		value = self.stack.pop()
 		return value
-	catch e
-        println(e)
-		throw("pop from empty stack")
-	end
+#	catch e
+ #       println(e)
+#		throw("pop from empty stack")
+#	end
 end
 function get_token(self::Interpreter)
 	return next(self.bst_script)
@@ -516,8 +517,7 @@ function run(self, citations, bib_files, min_crossrefs):
 ```
 Run bst script and return formatted bibliography.
 """
-function run(self::Interpreter,  citations, bib_files, min_crossrefs=true)
-    println("A: ",citations)
+function run(self::Interpreter,  citations, bib_files, min_crossrefs::Integer=1)
 	self.citations = citations
 	self.bib_files = bib_files
 	self.min_crossrefs = min_crossrefs
@@ -525,13 +525,13 @@ function run(self::Interpreter,  citations, bib_files, min_crossrefs=true)
 		name = command[1]
 		args = command[2:end]
 		method = string("command_", lowercase(name))
-		try
+		#try
 			f = getfield(BST, Symbol(method))
 			f(self,args...)
-		catch e
-            println(e)
-    		println("Unknown command", name)
-		end
+	#	catch e
+     #       println(e)
+    #		println("Unknown command", name)
+	#	end
 	end
 	return Base.join(self.output_lines, "")
 end
@@ -565,7 +565,6 @@ end
 
 function command_iterate(self::Interpreter, function_group)
     f = function_group[1]
-    println(self.citations)
 	_iterate(self, f, self.citations)
 end
 
@@ -589,8 +588,9 @@ function command_macro(self::Interpreter, name_, value_)
     local val = value(value_[1])
 	self.macros[name] = val
 end
-function  command_read(self)
-	self.bib_data =  Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
+function  command_read(self::Interpreter)
+    println(self.bib_data)
+    self.bib_data =  self.bib_files
 	self.citations = add_extra_citations(self.bib_data, self.citations; min_crossrefs= self.min_crossrefs)
 	self.citations = remove_missing_citations(self, self.citations)
 #        for k, v in self.bib_data.items():
@@ -611,15 +611,14 @@ function remove_missing_citations(self::Interpreter, citations)
 end
 function command_reverse(self, function_group)
     f = function_group[1]
-    println(self.citations)
-	self._iterate(f, reverse(self.citations))
+	_iterate(self, f, reverse(self.citations))
 end
 function command_sort(self::Interpreter)
 	function key(citation)
 		return self.bib_data[citation].vars["sort.key\$"]
 	end
-
-	sort(self.citations, key=key)
+    println(self.bib_data[citation].vars["sort.key\$"])
+	sort(self.citations, by=key)
 end
 
 function command_strings(self::Interpreter, identifiers)
@@ -659,6 +658,6 @@ formatted_entries = format_entries(style, bibliography)
 """
 
 function format_entries(b::Style, entries)
-    run(Interpreter(b, "utf-8"), entries, nothing)
+    run(Interpreter(b, "utf-8"), ["*"], entries)
 end
 end
