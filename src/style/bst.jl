@@ -30,9 +30,11 @@ mutable struct Interpreter
     bib_files
     min_crossrefs::Integer
     bib_data
+    current_entry_key::String
+    current_entry
 end
 function Interpreter(bib_format, bib_encoding)
-    local int  = Interpreter(bib_format, bib_encoding, [], copy(builtins), Dict(), [],[], nothing, nothing, true, nothing)
+    local int  = Interpreter(bib_format, bib_encoding, [], copy(builtins), Dict(), [],[], nothing, nothing, true, nothing, "", nothing)
 	add_variable(int,"global.max\$", 20000)
 	add_variable(int,"entry.max\$", 250)
 	add_variable(int, "sort.key\$", EntryString(int, "sort.key\$"))
@@ -458,7 +460,7 @@ end
 
 function value(self::Field)
 	#try
-		return self.interpreter.current_entry.fields[self.name]
+		return self.interpreter.current_entry[self.name]
 	#catch e
 #		return MissingField(self.name)
 #	end
@@ -574,7 +576,7 @@ end
 
 function _iterate(self::Interpreter, ff, citations)
 	f = self.vars[ff]
-	for key in keys(citations)
+	for key in citations
 		self.current_entry_key = key
 		self.current_entry = self.bib_data[key]
 		execute(f, self)
@@ -606,6 +608,7 @@ function remove_missing_citations(self::Interpreter, citations)
 			warning("missing database entry for \"$citation\"")
 		end
 	end
+    return cit
 end
 function command_reverse(self, function_group)
     f = value(function_group[1])

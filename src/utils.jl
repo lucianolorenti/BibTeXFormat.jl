@@ -185,6 +185,10 @@ end
 function BibTeXString(chars::String, level::Integer=0, max_level::Integer=100)
     return BibTeXString(StringIterator(chars), level, max_level)
 end
+import Base.string
+function string(a::BibTeXString)
+	Base.join([string(b) for b in a.contents], "")
+end
 """
 ```jldoctest
 julia> import BibTeXFormat: BibTeXString
@@ -276,7 +280,7 @@ end
 	return ''.join(self.traverse(open=lambda string: '{', close=lambda string: '}'))=#
 
 function inner_string(self::BibTeXString)
-    return Base.join([string(child) for child in self.contents], "")
+    return   Base.join([string(child) for child in self.contents], "")
 end
 
 """ Yield (char, brace_level) tuples.
@@ -348,4 +352,73 @@ function abbreviate(text, split_re=delimiter_re)
 		end
 	end
     return Base.join([abbreviate(part) for part in split_keep_separator(text,split_re)], "")
+end
+
+import Base.replace
+function replace(c::Char, r::Regex, s::String)
+	replace(string(c),r,s)
+end
+const purify_special_char_re = r"^\\[A-Za-z]+"
+"""
+
+Strip special characters from the string.
+```jldoctest
+julia> import BibTeXFormat: bibtex_purify
+
+julia> print(bibtex_purify("Abc 1234"))
+Abc 1234
+julia> print(bibtex_purify("Abc  1234"))
+Abc  1234
+julia> print(bibtex_purify("Abc-Def"))
+Abc Def
+julia> print(bibtex_purify("Abc-~-Def"))
+Abc   Def
+julia> print(bibtex_purify("{XXX YYY}"))
+XXX YYY
+julia> print(bibtex_purify("{XXX {YYY}}"))
+XXX YYY
+julia> print(bibtex_purify("XXX {\YYY} XXX"))
+XXX  XXX
+julia> print(bibtex_purify("{XXX {\YYY} XXX}"))
+XXX YYY XXX
+julia> print(bibtex_purify("'\\abc def"))
+abc def
+julia> print(bibtex_purify("a@#\$@#\$b@#\$@#\$c"))
+abc
+julia> print(bibtex_purify("{\\noopsort{1973b}}1973"))
+1973b1973
+julia> print(bibtex_purify("{sort{1973b}}1973"))
+sort1973b1973
+julia> print(bibtex_purify("{sort{\\abc1973b}}1973"))
+sortabc1973b1973
+julia> print(bibtex_purify("{\\noopsort{1973a}}{\\switchargs{--90}{1968}}"))
+1973a901968
+```
+"""
+function bibtex_purify(str)
+
+    # FIXME BibTeX treats some accented and foreign characterss specially
+    function purify_iter(str)
+		local chars = []
+        for (token, brace_level) in scan_bibtex_string(str)
+			b = brace_level ==  1
+			b = b || (isa(token, Char) && token == '\\')
+			b = b || (!isa(token,Char) && startswith(token, '\\'))
+			if (b)
+                for char in replace(token, purify_special_char_re, "")
+    	            if isalnum(char)
+        	            push!(chars, char)
+					end
+				end
+            else
+                if isalnum(token)
+                    push!(chars, token)
+                elseif (isspace(token)) || (isa(token,Char) && (contains("-~", string(token))) || contains("-~", string(token)))
+                    push!(chars, " ")
+				end
+			end
+		end
+		return chars
+	end
+    return Base.join(purify_iter(str),"")
 end

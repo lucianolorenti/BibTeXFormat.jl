@@ -94,7 +94,7 @@ end
             return
         end
     end
-    func.execute(i)
+    execute(func, i)
 end
 @builtin "change.case\$" function change_case(i)
 
@@ -156,9 +156,9 @@ end
     f2 = pop!(i)
     p = pop!(i)
     if p > 0
-        f2.execute(i)
+        execute(f2, i)
     else
-        f1.execute(i)
+        execute(f1, i)
 	end
 end
 @builtin "int.to.chr\$" function int_to_chr(i)
