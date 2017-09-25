@@ -257,4 +257,4 @@ PlainAlphaStyle
 """
 const PlainAlphaStyle = UNSRTStyle(Config())
 
-include("bst.jl")
+include("bst/bst.jl")

@@ -1,16 +1,17 @@
 
 struct NamePart
-	pre_text::String
-	post_text::String
-	tie::String
+	pre_text
+	post_text
+	tie
 	format_char::Char
 	abbreviate::Bool
 end
 function NamePart(format_list)
-	pre_text, format_chars, self.delimiter, post_text = format_list
+	pre_text, format_chars, delimiter, post_text = format_list
 	local tie = ""
 	local format_char = ""
 	local abbreviate = false
+    local post_test = ""
 	if length(format_chars)>0 && length(pre_text)>0 && length(post_text)<=0
 		post_text = pre_text
 		pre_text = ""
@@ -18,14 +19,14 @@ function NamePart(format_list)
 
 	if endswith(post_text, "~~")
 		tie = "~~"
-	elseif post_text.endswith('~')
+	elseif endswith(post_test, "~")
 		tie = "~"
 	else
 		tie = nothing
 	end
 
 	pre_text = pre_text
-	post_text = rstrip(post_text,"~")
+	post_text = rstrip(post_text,'~')
 
 	if !(length(format_chars)>0)
 		format_char = ""
@@ -43,256 +44,263 @@ function NamePart(format_list)
 	end
 	return NamePart(pre_text, post_text, tie, format_char, abbreviate)
 end
-function ==(a::NamePart, b::NamePart)
-	return  a.pre_text == b.pre_text
-            && a.format_char == b.format_char
-            && a.abbreviate == b.abbreviate
-            && a.delimiter == b.delimiter
-            && a.post_text == b.post_text
-end
-    def __repr__(self):
-        format_chars = self.format_char * (1 if self.abbreviate else 2)
-        format_list = [self.pre_text, format_chars, self.delimiter, self.post_text]
-        return u'{0}({1})'.format(type(self).__name__, repr(format_list))
 
-const format_name_ types = Dict{Char, String}([
+const format_name_types = Dict{Char, String}([
             'f'=> "bibtex_first",
-            'l'=> "last'"
+            'l'=> "last",
             'v'=> "prelast",
             'j'=> "lineage"
     ])
+function ==(a::NamePart, b::NamePart)
+	return  a.pre_text == b.pre_text  &&
+            a.format_char == b.format_char  &&
+            a.abbreviate == b.abbreviate &&
+            a.delimiter == b.delimiter &&
+            a.post_text == b.post_text
+end
+
 function format(self::NamePart, person)
+    local names = []
+    if self.format_char != nothing
+        names = get_part(person, format_name_types[self.format_char])
+    end
+    if self.format_char != nothing && length(names)==0
+		return ""
+    end
 
-	local names = get_part(person, format_name_types[self.format_char]) if self.format_char else []
-
-	if self.format_char and not names:
-		return ''
-
-	if self.abbreviate:
+	if self.abbreviate
 		names = [bibtex_abbreviate(name, self.delimiter) for name in names]
-	if self.delimiter is None:
-		if self.abbreviate:
-			names = join(names, '.~', '. ')
-		else:
-			names = join(names)
-	else:
-		names = self.delimiter.join(names)
-	formatted_part = self.pre_text + names + self.post_text
+    end
+	if self.delimiter == nothing  None
+		if self.abbreviate
+			names = bst_join(names, ".~", ".")
+        else
+			names = bst_join(names)
+        end
+	else
+		names = (self.delimiter, names)
+    end
+    formatted_part = string(self.pre_text, names, self.post_text)
 
-	if self.tie == '~':
+    local discretionary = ""
+	if self.tie == "~"
 		discretionary = tie_or_space(formatted_part)
-	elif self.tie == '~~':
-		discretionary = '~'
-	else:
-		discretionary = ''
+    elseif self.tie == "~~"
+		discretionary = "~"
+    end
 
-	return formatted_part + discretionary
+    return string(formatted_part, discretionary)
+end
 
-    def to_python(self):
-        from pybtex.style.names import name_part
-        class NamePart(object):
-            def __init__(self, part, abbr=False):
-                self.part = part
-                self.abbr = abbr
-            def __repr__(self):
-                abbr = 'abbr' if self.abbr else ''
-                return 'person.%s(%s)' % (self.part, abbr)
+module NamePatterns
+const LBRACE = (r"{", "lbrace")
+LBRACE[1].match_options |=  Base.PCRE.ANCHORED
+const RBRACE = (r"}", "rbrace")
+RBRACE[1].match_options |=  Base.PCRE.ANCHORED
+const TEXT =  (r"[^{}]+", "text")
+TEXT[1].match_options |=  Base.PCRE.ANCHORED
+const NON_LETTERS = (r"[^{}\w]|\d+", "non-letter characters")
+NON_LETTERS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
+const FORMAT_CHARS = (r"[^\W\d_]+", "format chars", Base.PCRE.CASELESS | Base.PCRE.UTF)
+FORMAT_CHARS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
+end
+"""
+```
+struct NameFormat
+```
+BibTeX name format string.
+```jldoctest
+julia> import BibTeXFormat.BST.NameFormat
 
-        kwargs = {}
-        if self.pre_text:
-            kwargs['before'] = self.pre_text
-        if self.tie:
-            kwargs['tie'] = True
+julia> f = NameFormat("{ff~}{vv~}{ll}{, jj}");
+julia> f.parts == [
+...     NamePart(['', 'ff', None, '']),
+...     NamePart(['', 'vv', None, '']),
+...     NamePart(['', 'll', None, '']),
+...     NamePart([', ', 'jj', None, ''])
+... ]
+True
+julia> f = NameFormat('{{ }ff~{ }}{vv~{- Test text here -}~}{ll}{, jj}')
+julia> f.parts == [
+...     NamePart(['{ }', 'ff', None, '~{ }']),
+...     NamePart(['', 'vv', None, '~{- Test text here -}']),
+...     NamePart(['', 'll', None, '']),
+...     NamePart([u', ', 'jj', None, ''])
+... ]
+True
+julia> f = NameFormat('abc def {f~} xyz {f}?')
+julia> f.parts == [
+...     Text('abc def '),
+...     NamePart(['', 'f', None, '']),
+...     Text(' xyz '),
+...     NamePart(['', 'f', None, '']),
+...     Text('?'),
+... ]
+True
+julia> f = NameFormat('{{abc}{def}ff~{xyz}{#@\$}}')
+julia> f.parts == [NamePart(['{abc}{def}', 'ff', None, '~{xyz}{#@\$}'])]
+True
+julia> f = NameFormat('{{abc}{def}ff{xyz}{#@\${}{sdf}}}')
+julia> f.parts == [NamePart(['{abc}{def}', 'ff', 'xyz', '{#@\${}{sdf}}'])]
+True
+julia> f = NameFormat('{f.~}')
+julia> f.parts == [NamePart(['', 'f', None, '.'])]
+True
+julia> f = NameFormat('{f~.}')
+julia> f.parts == [NamePart(['', 'f', None, '~.'])]
+True
+julia> f = NameFormat('{f{.}~}')
+julia> f.parts == [NamePart(['', 'f', '.', ''])]
+True
+```
+"""
+struct NameFormat
+    format_string::String
+    parts::Vector
+end
+function NameFormat(s::String)
+    return NameFormat(s, parse(NameFormatParser(s)))
+end
+function format(self::NameFormat, name)
+    local person = Person(name)
+    return Base.join([format(part,person) for part in self.parts], "")
+end
+const enough_chars = 3
 
-        return repr(name_part(**kwargs) [
-            NamePart(self.types[self.format_char], self.abbreviate)
-        ])
-
-class NameFormat(object):
-    """
-    BibTeX name format string.
-
-    >>> f = NameFormat('{ff~}{vv~}{ll}{, jj}')
-    >>> f.parts == [
-    ...     NamePart(['', 'ff', None, '']),
-    ...     NamePart(['', 'vv', None, '']),
-    ...     NamePart(['', 'll', None, '']),
-    ...     NamePart([', ', 'jj', None, ''])
-    ... ]
-    True
-    >>> f = NameFormat('{{ }ff~{ }}{vv~{- Test text here -}~}{ll}{, jj}')
-    >>> f.parts == [
-    ...     NamePart(['{ }', 'ff', None, '~{ }']),
-    ...     NamePart(['', 'vv', None, '~{- Test text here -}']),
-    ...     NamePart(['', 'll', None, '']),
-    ...     NamePart([u', ', 'jj', None, ''])
-    ... ]
-    True
-    >>> f = NameFormat('abc def {f~} xyz {f}?')
-    >>> f.parts == [
-    ...     Text('abc def '),
-    ...     NamePart(['', 'f', None, '']),
-    ...     Text(' xyz '),
-    ...     NamePart(['', 'f', None, '']),
-    ...     Text('?'),
-    ... ]
-    True
-    >>> f = NameFormat('{{abc}{def}ff~{xyz}{#@$}}')
-    >>> f.parts == [NamePart(['{abc}{def}', 'ff', None, '~{xyz}{#@$}'])]
-    True
-    >>> f = NameFormat('{{abc}{def}ff{xyz}{#@${}{sdf}}}')
-    >>> f.parts == [NamePart(['{abc}{def}', 'ff', 'xyz', '{#@${}{sdf}}'])]
-    True
-    >>> f = NameFormat('{f.~}')
-    >>> f.parts == [NamePart(['', 'f', None, '.'])]
-    True
-    >>> f = NameFormat('{f~.}')
-    >>> f.parts == [NamePart(['', 'f', None, '~.'])]
-    True
-    >>> f = NameFormat('{f{.}~}')
-    >>> f.parts == [NamePart(['', 'f', '.', ''])]
-    True
-
-    """
-
-    def __init__(self, format):
-        self.format_string = format
-        self.parts = list(NameFormatParser(format).parse())
-
-    def format(self, name):
-        person = Person(name)
-        return ''.join(part.format(person) for part in self.parts)
-
-    def to_python(self):
-        """Convert BibTeX name format to Python (inexactly)."""
-        parts = ',\n'.join(' ' * 8 + part.to_python() for part in self.parts)
-        comment = ' ' * 4 + (
-            '"""Format names similarly to %s in BibTeX."""' % self.format_string
-        )
-        body = ' ' * 4 + 'return join [\n%s,\n]' % parts
-        return '\n'.join([
-            'def format_names(person, abbr=False):',
-            comment,
-            body,
-        ])
-
-enough_chars = 3
-
-def tie_or_space(word, tie='~', space = ' '):
-    if bibtex_len(word) < enough_chars:
+function tie_or_space(word; tie='~', space = ' ')
+    if bibtex_len(word) < enough_chars
         return tie
-    else:
+    else
         return space
+    end
+end
 
-def join(words, tie='~', space=' '):
-    """Join some words, inserting ties (~) when nessessary.
+"""Join some words, inserting ties (~) when nessessary.
     Ties are inserted:
     - after the first word, if it is short
     - before the last word
     Otherwise space is inserted.
     Should produce the same oubput as BibTeX.
 
-    >>> print(join(['a', 'long', 'long', 'road']))
+    julia> print(join(['a', 'long', 'long', 'road']))
     a~long long~road
-    >>> print(join(['very', 'long', 'phrase']))
+    julia> print(join(['very', 'long', 'phrase']))
     very long~phrase
-    """
+"""
+function bst_join(words, tie='~', space=' ')
+    if length(words) <= 2
+        return Base.join(tie, words)
+    else
+        return string(words[1], tie_or_space(words[1], tie, space),
+                      join(words[2:end-1], space), tie, words[end])
+    end
+end
+function  format_name(name, format)
+    return format(NameFormat(format), name)
+end
+mutable struct NameFormatParser <: Scanner
+	text::String
+	lineno::Integer
+	pos::Integer
+	end_pos::Integer
+end
 
-    if len(words) <= 2:
-        return tie.join(words)
-    else:
-        return (words[0] + tie_or_space(words[0], tie, space) +
-                space.join(words[1:-1]) +
-                tie + words[-1])
-
-def format_name(name, format):
-    return NameFormat(format).format(name)
-
-class UnbalancedBraceError(PybtexSyntaxError):
-    def __init__(self, parser):
-        message = u'name format string "{0}" has unbalanced braces'.format(parser.text)
-        super(UnbalancedBraceError, self).__init__(message, parser)
-
-class NameFormatParser(Scanner):
-    LBRACE = Literal(u'{')
-    RBRACE = Literal(u'}')
-    TEXT = Pattern(r'[^{}]+', 'text')
-    NON_LETTERS = Pattern(r'[^{}\w]|\d+', 'non-letter characters', flags=re.IGNORECASE | re.UNICODE)
-    FORMAT_CHARS = Pattern(r'[^\W\d_]+', 'format chars', flags=re.IGNORECASE | re.UNICODE)
-
-    lineno = None
-
-    def parse(self):
-        while True:
-            try:
-                result = self.parse_toplevel()
-                yield result
-            except EOFError:
+function NameFormatParser(text::String)
+	return NameFormatParser(text,1,1, length(text))
+end
+function parse(s::NameFormatParser)
+    local results = []
+    while true
+        try
+            result = parse_toplevel(s)
+            push!(results,result)
+            println(results)
+        catch e
+            if e==:EOF
                 break
+            end
+            rethrow(e)
+        end
+    end
+    return results
+end
+function parse_toplevel(self::NameFormatParser)
+    token = required(self, [NamePatterns.TEXT, NamePatterns.LBRACE, NamePatterns.RBRACE], allow_eof=true)
+    if token[2] == NamePatterns.TEXT
+        return Text(token[1])
+    elseif token[2] == NamePatterns.LBRACE
+        return NamePart(parse_name_part(self))
+    elseif token[2] == NamePatterns.RBRACE
+        throw(:UnbalancedBraceError)
+    end
+end
 
-    def parse_toplevel(self):
-        token = self.required([self.TEXT, self.LBRACE, self.RBRACE], allow_eof=True)
-        if token.pattern is self.TEXT:
-            return Text(token.value)
-        elif token.pattern is self.LBRACE:
-            return NamePart(self.parse_name_part())
-        elif token.pattern is self.RBRACE:
-            raise UnbalancedBraceError(self)
+function parse_braced_string(self::NameFormatParser)
+    tokens = []
+    while true
+        try
+            token = required(self, [NamePatterns.TEXT, NamePatterns.RBRACE, NamePatterns.LBRACE])
+        catch e
+            if e==:PrematureEOF
+                throw(:UnbalancedBraceError)
+            end
+        end
+        if token[2] == NamePatterns.TEXT
+            push!(tokens, token[1])
+        elseif token[2] == NamePatterns.RBRACE
+            break
+        elseif token[2] == NamePatterns.LBRACE
+            local v = Base.join(parse_braced_string(self), "")
+            push!(tokens, "{{$v}}")
+        else
+            throw(:ValueError, token)
+        end
+    end
+    return tokens
+end
+function parse_name_part(self::NameFormatParser)
+    local verbatim_prefix = []
+    local format_chars = nothing
+    local verbatim_postfix = []
+    local verbatim = verbatim_prefix
+    local delimiter = nothing
 
-    def parse_braced_string(self):
-        while True:
-            try:
-                token = self.required([self.TEXT, self.RBRACE, self.LBRACE])
-            except PrematureEOF:
-                raise UnbalancedBraceError(self)
-            if token.pattern is self.TEXT:
-                yield token.value
-            elif token.pattern is self.RBRACE:
-                break
-            elif token.pattern is self.LBRACE:
-                yield u'{{{0}}}'.format(''.join(self.parse_braced_string()))
-            else:
-                raise ValueError(token)
+    function  check_format_chars(self, value)
+        value = lowercase(value)
+        if format_chars != nothing || (length(value) != 1 && length(value) != 2) || value[1] != value[end] ||  !contains("flvj",string(value[1]))
+#            throw(:PybtexSyntaxError, "name format string "$(self.text)" has illegal brace-level-1 letters: $(token[1])")
+        end
+    end
+    local token =nothing
+    while true
+        try
+            token = required(self, [NamePatterns.LBRACE, NamePatterns.NON_LETTERS, NamePatterns.FORMAT_CHARS, NamePatterns.RBRACE])
+        catch e
+            if e == :PrematureEOF
+                throw(:UnbalancedBraceError)
+            end
+            rethrow(e)
+        end
 
-    def parse_name_part(self):
-        verbatim_prefix = []
-        format_chars = None
-        verbatim_postfix = []
-        verbatim = verbatim_prefix
-        delimiter = None
+        if token[2] == NamePatterns.LBRACE
+            local b  = Base.join(parse_braced_string(self), "")
+            push!(verbatim, "{{$b}}")
+        elseif token[2] == NamePatterns.FORMAT_CHARS
+            check_format_chars(self, token[1])
+            format_chars = token[1]
+            verbatim = verbatim_postfix
+            if optional(self, [NamePatterns.LBRACE]) != nothing
+                delimiter = join(parse_braced_string(self), "")
+            end
+        elseif token[2] == NamePatterns.NON_LETTERS
+            push!(verbatim, token[1])
+        elseif token[2] == NamePatterns.RBRACE
+            return (join(verbatim_prefix, ""), format_chars, delimiter, join(verbatim_postfix, ""))
+        else
+            throw(:ValueError, token)
+        end
+    end
+end
 
-        def check_format_chars(value):
-            value = value.lower()
-            if (
-                format_chars is not None
-                or len(value) not in [1, 2]
-                or value[0] != value[-1]
-                or value[0] not in 'flvj'
-            ):
-                raise PybtexSyntaxError(u'name format string "{0}" has illegal brace-level-1 letters: {1}'.format(self.text, token.value), self)
-
-        while True:
-            try:
-                token = self.required([self.LBRACE, self.NON_LETTERS, self.FORMAT_CHARS, self.RBRACE])
-            except PrematureEOF:
-                raise UnbalancedBraceError(self)
-
-            if token.pattern is self.LBRACE:
-                verbatim.append(u'{{{0}}}'.format(''.join(self.parse_braced_string())))
-            elif token.pattern is self.FORMAT_CHARS:
-                check_format_chars(token.value)
-                format_chars = token.value
-                verbatim = verbatim_postfix
-                if self.optional([self.LBRACE]):
-                    delimiter = ''.join(self.parse_braced_string())
-            elif token.pattern is self.NON_LETTERS:
-                verbatim.append(token.value)
-            elif token.pattern is self.RBRACE:
-                return ''.join(verbatim_prefix), format_chars, delimiter, ''.join(verbatim_postfix)
-            else:
-                raise ValueError(token)
-
-    def eat_whitespace(self):
-        pass
-	end
+function eat_whitespace(self::NameFormatParser)
 end
