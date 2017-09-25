@@ -28,20 +28,27 @@ end
 function citation_type(e::Dict{String,Any})
     return e["type"]
 end
-function transform(e::Citation)
+function transform(e::Citation, label)
     local e_n = Dict{String,Any}()
     local e_n["persons"] = Dict{String,Vector{Person}}()
     for k in keys(e)
         e_n[k] = e[k]
     end
     e_n["type"] = citation_type(e)
+    e_n["key"] = label
     if haskey(e_n, "author")
         e_n["persons"]["author"] = [Person(p) for p in split_name_list(e["author"])]
     end
     pop!(e_n,"author")
     return e_n
 end
-
+function transform_entries(entries)
+    local transformed_entries = Dict()
+    for k in keys(entries)
+        transformed_entries[k] = transform(entries[k], k)
+    end
+    return  transformed_entries
+end
 """
 ```
 function format_entries(b::T, entries::Dict) where T <: BaseStyle
@@ -56,11 +63,7 @@ formatted_entries = format_entries(AlphaStyle,bibliography)
 """
 
 function format_entries(b::T, entries) where T <: BaseStyle
-    local transformed_entries = Dict()
-    for k in keys(entries)
-        transformed_entries[k] = transform(entries[k])
-    end
-    entries = transformed_entries
+    entries = transform_entries(entries)
 	local sorted_entries = sort(b.config.sorting_style, entries)
 	local labels  = format_labels(b.config.label_style, sorted_entries)
     local formatted_entries = []
@@ -82,7 +85,6 @@ Format an `entry` with a given style `b::T where T <: BaseStyle`
 
 """
 function format_entry(b::T, label, entry) where T<:BaseStyle
-    entry["key"] = label
 	local context = Dict{String,Any}("entry" => entry, "style"=>b)
     local text    = ""
 	try
@@ -148,7 +150,7 @@ Any[]
 ```
 
 """
-function  get_crossreferenced_citations(entries::Bibliography, citations; min_crossrefs::Integer=1)
+function  get_crossreferenced_citations(entries, citations; min_crossrefs::Integer=1)
 
 	canonical_crossrefs = []
     crossref_count = Dict{String,Int}()
@@ -204,7 +206,7 @@ julia> print(expand_wildcard_citations(data, ["*", "DOS"]))
 Any["tres", "dos", "uno", "cuatro"]
 ```
 """
-function expand_wildcard_citations(entries::Bibliography, citations)
+function expand_wildcard_citations(entries, citations)
 	local expanded_keys = []
     local citation_set = Set{String}()
     if isa(citations, Dict)
@@ -230,7 +232,7 @@ function expand_wildcard_citations(entries::Bibliography, citations)
 	return expanded_keys
 end
 
-function add_extra_citations(entries::Bibliography, citations; min_crossrefs::Integer=0)
+function add_extra_citations(entries, citations; min_crossrefs::Integer=0)
     local expanded_citations = expand_wildcard_citations(entries,citations)
     local crossrefs = get_crossreferenced_citations(entries, expanded_citations, min_crossrefs=min_crossrefs)
     return vcat(expanded_citations, crossrefs)

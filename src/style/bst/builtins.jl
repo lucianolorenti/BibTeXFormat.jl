@@ -2,7 +2,8 @@
 #Built-in functions for BibTeX interpreter.
 
 #CAUTION: functions should PUSH results, not RETURN
-
+import BibTeXFormat: bibtex_purify, change_case, bibtex_substring,
+                     bibtex_len, split_name_list
 function print_warning(msg)
     warn(msg)
 end
@@ -96,20 +97,20 @@ end
     end
     execute(func, i)
 end
-@builtin "change.case\$" function change_case(i)
+@builtin "change.case\$" function _change_case(i)
 
     mode = pop!(i)
-    string = pop!(i)
+    str = pop!(i)
 
     if length(mode)==0
         throw("empty mode string passed to change.case\$")
 	end
-    mode_letter = lowercase(mode[0])
-    if !contains("lut", mode_letter)
+    mode_letter = lowercase(mode[1])
+    if !contains("lut", Base.string(mode_letter))
         throw("incorrect change.case\$ mode: $mode")
 	end
 
-    push!(i,change_case(string, mode_letter))
+    push!(i,change_case(str, mode_letter))
 end
 @builtin "chr.to.int\$" function chr_to_int(i)
     s = pop!(i)
@@ -138,11 +139,11 @@ end
 	end
 end
 function _split_names(names)
-    return utils.split_name_list(names)
+    return split_name_list(names)
 end
 
 function _format_name(names, n, format)
-    name = _split_names(names)[n - 1]
+    name = _split_names(names)[n]
     return format_bibtex_name(name, format)
 end
 @builtin "format.name\$" function format_name(i)
@@ -190,7 +191,7 @@ end
     names = pop!(i)
     push!(i,length(split_name_list(names)))
 end
-@builtin "pop\$" function pop!(i)
+@builtin "pop\$" function _pop!(i)
     pop!(i)
 end
 @builtin "preamble\$" function preamble(i)
@@ -198,7 +199,7 @@ end
 end
 @builtin "purify\$" function purify(i)
     s = pop!(i)
-    push!(i,utils.bibtex_purify(s))
+    push!(i,bibtex_purify(s))
 end
 @builtin "quote\$" function builtin_quote(i)
     push!(i,"'")
@@ -211,7 +212,7 @@ end
     length = pop!(i)
     start = pop!(i)
     string = pop!(i)
-    push!(i,utils.bibtex_substring(string, start, length))
+    push!(i,bibtex_substring(string, start, length))
 end
 @builtin "stack\$" function stack(i)
     while length(i.stack)>0
@@ -226,7 +227,7 @@ end
 end
 @builtin "text.length\$" function text_length(i)
     s = pop!(i)
-    push!(i,utils.bibtex_len(s))
+    push!(i,bibtex_len(s))
 end
 @builtin "text.prefix\$" function text_prefix(i)
     l = pop!(i)
@@ -247,11 +248,11 @@ end
     f = pop!(i)
     p = pop!(i)
     while true
-        p.execute(i)
+        execute(p, i)
         if pop!(i) <= 0
             break
 		end
-        f.execute(i)
+        execute(f, i)
 	end
 end
 

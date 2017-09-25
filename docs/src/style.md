@@ -27,3 +27,28 @@ Pages    = ["style.jl"]
 Modules = [BibTeXFormat]
 Pages    = ["style.jl"]
 ```
+
+## Name formatting
+
+BibTeX-like name formatting.
+```jldoctest
+>>> name = 'Charles Louis Xavier Joseph de la Vallee Poussin'
+>>> print(format_name(name, '{vv~}{ll}{, jj}{, f.}'))
+de~la Vallee~Poussin, C.~L. X.~J.
+>>> name = 'abc'
+>>> print(format_name(name, '{vv~}{ll}{, jj}{, f.}'))
+abc
+>>> name = 'Jean-Pierre Hansen'
+>>> print(format_name(name, '{ff~}{vv~}{ll}{, jj}'))
+Jean-Pierre Hansen
+>>> print(format_name(name, '{f.~}{vv~}{ll}{, jj}'))
+J.-P. Hansen
+
+>>> name = 'F. Phidias Phony-Baloney'
+>>> print(format_name(name, '{v{}}{l}'))
+P.-B
+>>> print(format_name(name, '{v{}}{l.}'))
+P.-B.
+>>> print(format_name(name, '{v{}}{l{}}'))
+PB
+```

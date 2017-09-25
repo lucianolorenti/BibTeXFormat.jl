@@ -182,6 +182,9 @@ mutable struct BibTeXString
 	contents::Vector
 end
 
+function BibTeXString(chars, level::Integer=0, max_level::Integer=100)
+	return BibTeXString(string(chars), level, max_level)
+end
 function BibTeXString(chars::String, level::Integer=0, max_level::Integer=100)
     return BibTeXString(StringIterator(chars), level, max_level)
 end
@@ -358,9 +361,15 @@ import Base.replace
 function replace(c::Char, r::Regex, s::String)
 	replace(string(c),r,s)
 end
+import Base.startswith
+function startswith(c::Char,b::Char)
+	return c==b
+end
 const purify_special_char_re = r"^\\[A-Za-z]+"
 """
-
+```julia
+function bibtex_purify(str)
+```
 Strip special characters from the string.
 ```jldoctest
 julia> import BibTeXFormat: bibtex_purify
@@ -402,8 +411,7 @@ function bibtex_purify(str)
 		local chars = []
         for (token, brace_level) in scan_bibtex_string(str)
 			b = brace_level ==  1
-			b = b || (isa(token, Char) && token == '\\')
-			b = b || (!isa(token,Char) && startswith(token, '\\'))
+            b = b && startswith(token, '\\')
 			if (b)
                 for char in replace(token, purify_special_char_re, "")
     	            if isalnum(char)
@@ -412,7 +420,7 @@ function bibtex_purify(str)
 				end
             else
                 if isalnum(token)
-                    push!(chars, token)
+                   push!(chars, token)
                 elseif (isspace(token)) || (isa(token,Char) && (contains("-~", string(token))) || contains("-~", string(token)))
                     push!(chars, " ")
 				end
@@ -421,4 +429,183 @@ function bibtex_purify(str)
 		return chars
 	end
     return Base.join(purify_iter(str),"")
+end
+
+"""
+```julia
+function change_case(string, mode)
+```
+```jldoctest
+julia> import BibTeXFormat: change_case
+
+julia> print(change_case("aBcD", 'l'))
+abcd
+julia> print(change_case("aBcD", 'u'))
+ABCD
+julia> print(change_case("ABcD", 't'))
+Abcd
+julia> print(change_case("The {\\TeX book \\noop}", 'u'))
+THE {\TeX BOOK \noop}
+julia> print(change_case("And Now: BOOO!!!", 't'))
+And now: Booo!!!
+julia> print(change_case("And {Now: BOOO!!!}", 't'))
+And {Now: BOOO!!!}
+julia> print(change_case("And {Now: {BOOO}!!!}", 'l'))
+and {Now: {BOOO}!!!}
+julia> print(change_case("And {\\Now: BOOO!!!}", 't'))
+And {\Now: booo!!!}
+julia> print(change_case("And {\\Now: {BOOO}!!!}", 'l'))
+and {\Now: {booo}!!!}
+julia> print(change_case("{\\TeX\\ and databases\\Dash\\TeX DBI}", 't'))
+{\TeX\ and databases\Dash\TeX DBI}
+```
+"""
+function change_case(string::String, mode::Char)
+
+    function title(char, state)
+        if state == "start"
+            return char
+        else
+            return lowercase(char)
+		end
+	end
+    lower = (char,state)-> lowercase(char)
+    upper = (char,state)-> uppercase(char)
+
+    convert = Dict{Char, Function}(['l'=> lower,
+                                    'u'=> upper,
+                                    't'=> title])[mode]
+
+    function convert_special_char(special_char, state)
+        # FIXME BibTeX treats some accented and foreign characterss specially
+        function convert_words(words)
+			local w = []
+            for word in words
+                if startswith(word, '\\')
+                    push!(w,word)
+                else
+                    push!(w,convert(word, state))
+				end
+			end
+			return w
+		end
+        return Base.join(convert_words(split(special_char," ")), " ")
+	end
+
+    function change_case_iter(string, mode)
+		local chars = []
+        local state = "start"
+        for (char, brace_level) in scan_bibtex_string(string)
+            if brace_level == 0
+                push!(chars, convert(char, state))
+                if char == ':'
+                    state = "after colon"
+                elseif isspace(char) && state == "after colon"
+                    state = "start"
+                else
+                    state = "normal"
+				end
+            else
+                if brace_level == 1 && startswith(char, '\\')
+                    push!(chars, convert_special_char(char, state))
+                else
+                    push!(chars,  char)
+				end
+			end
+		end
+		return chars
+	end
+
+    return Base.join(change_case_iter(string, mode), "")
+end
+
+"""
+```
+function bibtex_substring(string, start, length)
+```
+Return a substring of the given length, starting from the given position.
+
+start and length are 1-based. If start is < 0, it is counted from the end
+of the string. If start is 0, an empty string is returned.
+
+```jldoctest
+julia> import BibTeXFormat: bibtex_substring
+
+julia> print(bibtex_substring("abcdef", 1, 3))
+abc
+julia> print(bibtex_substring("abcdef", 2, 3))
+bcd
+julia> print(bibtex_substring("abcdef", 2, 1000))
+bcdef
+julia> print(bibtex_substring("abcdef", 0, 1000))
+
+julia> print(bibtex_substring("abcdef", -1, 1))
+f
+julia> print(bibtex_substring("abcdef", -1, 2))
+ef
+julia> print(bibtex_substring("abcdef", -2, 3))
+cde
+julia> print(bibtex_substring("abcdef", -2, 1000))
+abcde
+```
+"""
+function bibtex_substring(string, start, len)
+    if start > 0
+        start0 = start
+        end0 = Base.min(start0 + len - 1, length(string))
+    elseif start < 0
+        end0 = length(string) + start + 1
+        start0 = max(1,end0 - len + 1)
+    else # start == 0:
+        return ""
+	end
+    return string[start0:end0]
+end
+
+"""
+Return the number of characters in the string.
+```
+function bibtex_len(string)
+```
+
+Braces are ignored. "Special characters" are ignored. A "special character"
+is a substring at brace level 1, if the first character after the opening
+brace is a backslash, like in "de la Vall{\'e}e Poussin".
+```jldoctest
+julia> import BibTeXFormat: bibtex_len
+
+julia> print(bibtex_len("de la Vall{\\'e}e Poussin"))
+20
+julia> print(bibtex_len("de la Vall{e}e Poussin"))
+20
+julia> print(bibtex_len("de la Vallee Poussin"))
+20
+julia> print(bibtex_len("\\ABC 123"))
+8
+julia> print(bibtex_len("{\\abc}"))
+1
+julia> print(bibtex_len("{\\abc"))
+1
+julia> print(bibtex_len("}\\abc"))
+4
+julia> print(bibtex_len("\\abc}"))
+4
+julia> print(bibtex_len("\\abc{"))
+4
+julia> print(bibtex_len("level 0 {1 {2}}"))
+11
+julia> print(bibtex_len("level 0 {\\1 {2}}"))
+9
+julia> print(bibtex_len("level 0 {1 {\\2}}"))
+12
+```
+"""
+function bibtex_len(string)
+    local length = 0
+    for (char, brace_level) in scan_bibtex_string(string)
+        if char != '{' && char != '}'
+            length += 1
+		end
+	end
+    return length
 end

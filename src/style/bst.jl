@@ -5,9 +5,13 @@ import Base.parse
 import Base.eof
 import Base.push!
 import Base.pop!
+import Base.length
 import Base.isequal
 import Base.hash
-import BibTeXFormat: BaseStyle, format_bibliography, format_entries, add_extra_citations
+import Base.string
+import BibTeXFormat: BaseStyle, format_bibliography,
+                     format_entries, add_extra_citations,
+                     transform_entries
 
 """
 ```
@@ -32,11 +36,12 @@ mutable struct Interpreter
     bib_data
     current_entry_key::String
     current_entry
+    entries_var::Dict{String,Dict}
 end
 function Interpreter(bib_format, bib_encoding)
-    local int  = Interpreter(bib_format, bib_encoding, [], copy(builtins), Dict(), [],[], nothing, nothing, true, nothing, "", nothing)
-	add_variable(int,"global.max\$", 20000)
-	add_variable(int,"entry.max\$", 250)
+    local int  = Interpreter(bib_format, bib_encoding, [], copy(builtins), Dict(), [],[], nothing, nothing, true, nothing, "", nothing, Dict{String,Dict}())
+	add_variable(int,"global.max\$", BSTInteger(20000))
+	add_variable(int,"entry.max\$", BSTInteger(250))
 	add_variable(int, "sort.key\$", EntryString(int, "sort.key\$"))
 	return int
 end
@@ -44,7 +49,7 @@ include("bst/builtins.jl")
 abstract type Variable end
 
 function value_type(n::T) where T<:Variable
-    return typeof(n.value)
+    return typeof(n.value).super
 end
 function hash(x::T) where T<:Variable
     return hash(x.value)
@@ -60,6 +65,7 @@ function set(self::Variable, value)
 	self.value = value
 end
 function validate(self::Variable, value)
+    println(typeof(value), " ", value_type(self))
 	if ! (isa(value, value_type(self)) || value == nothing)
 		throw("Invalid value for BibTeX $(typeof(self))")
 	end
@@ -100,13 +106,18 @@ end
 
 abstract type   EntryVariable <: Variable end
 function set(self::T, value) where T<:EntryVariable
-	if value != None
+	if value != nothing
 		validate(self, value)
-		self.interpreter.current_entry.vars[self.name] = value
+        local current_entry = self.interpreter.current_entry
+        local entries_var   = self.interpreter.entries_var
+        if !haskey(entries_var, current_entry["key"])
+            entries_var[current_entry["key"]]=Dict()
+        end
+		entries_var[current_entry["key"]][self.name] = value
 	end
 end
 function value(self::EntryVariable)
-	return self.interpreter.current_entry.vars.get(self.name, self.default)
+	return get(self.interpreter.entries_var,self.name, default(self))
 end
 mutable struct BSTInteger <: Variable
     value::Integer
@@ -145,7 +156,7 @@ function default(a::EntryVariable)
 	return ""
 end
 function value_type(a::EntryVariable)
-	return String
+	return AbstractString
 end
 
 abstract type AbstractParsedFunction end
@@ -445,10 +456,23 @@ function parse_string(content::String)
         return parse(parser)
 end
 
-struct MissingField
+struct MissingField <: AbstractString
 	name
 end
-
+import Base.endof
+import Base.next
+function endof(m::MissingField)
+    return endof(m.name)
+end
+function next(m::MissingField, state)
+    return next(m.name, state)
+end
+function length(m::MissingField)
+    return 1
+end
+function string(m::MissingField)
+    return m.name
+end
 abstract type AbstractField end
 function execute(self::T, interpreter) where T<:AbstractField
 	push!(self.interpreter, value(self))
@@ -459,11 +483,11 @@ mutable struct Field <: AbstractField
 end
 
 function value(self::Field)
-	#try
+	try
 		return self.interpreter.current_entry[self.name]
-	#catch e
-#		return MissingField(self.name)
-#	end
+	catch e
+		return MissingField(self.name)
+	end
 end
 
 mutable struct Crossref <: AbstractField
@@ -501,7 +525,6 @@ function add_variable(self::Interpreter, name, val)
 	if haskey(self.vars, name)
 		throw("variable $name already declared")
 	end
-    println("B: ", name)
 	self.vars[name] = val
 end
 function output(self::Interpreter, str)
@@ -527,7 +550,6 @@ function run(self::Interpreter,  citations, bib_files, min_crossrefs::Integer=1)
 	for command in self.bst_style.commands
 		name = command[1]
 		args = command[2:end]
-        println("A: ",name)
 		method = string("command_", lowercase(name))
 		#try
 			f = getfield(BST, Symbol(method))
@@ -569,8 +591,6 @@ end
 
 function command_iterate(self::Interpreter, function_group)
     f = value(function_group[1])
-    println("AAAAAAA")
-    println(self.citations)
 	_iterate(self, f, self.citations)
 end
 
@@ -581,7 +601,7 @@ function _iterate(self::Interpreter, ff, citations)
 		self.current_entry = self.bib_data[key]
 		execute(f, self)
 	end
-	self.currentEntry = None
+	self.current_entry = nothing
 end
 function value(a::T) where T<:AbstractString
     return String(a)
@@ -616,9 +636,8 @@ function command_reverse(self, function_group)
 end
 function command_sort(self::Interpreter)
 	function key(citation)
-		return self.bib_data[citation].vars["sort.key\$"]
+		return self.entries_var[citation]["sort.key\$"]
 	end
-    println(self.bib_data[citation].vars["sort.key\$"])
 	sort(self.citations, by=key)
 end
 
@@ -659,6 +678,6 @@ formatted_entries = format_entries(style, bibliography)
 """
 
 function format_entries(b::Style, entries)
-    run(Interpreter(b, "utf-8"), ["*"], entries)
+    run(Interpreter(b, "utf-8"), ["*"], transform_entries(entries))
 end
 end
