@@ -140,11 +140,6 @@ function render(self::RichString, backend)
     return format(backend,self.value)
 end
 
-function  render(self::Protected, backend)
-    text = render_multipart(self,backend)
-    return format(backend,self, text)
-end
-
 function render(self::TextSymbol, backend)
     local s = get(symbols[typeof(backend)],self.name,nothing)
     if (s==nothing)

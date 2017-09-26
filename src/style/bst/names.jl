@@ -99,7 +99,7 @@ NON_LETTERS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
 const FORMAT_CHARS = (r"[^\W\d_]+", "format chars")
 FORMAT_CHARS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
 end
-"""
+doc"""
 ```
 struct NameFormat
 ```
@@ -111,34 +111,42 @@ julia> f = NameFormat("{ff~}{vv~}{ll}{, jj}");
 
 julia> f.parts == [ NamePart(["", "ff", nothing, ""]),  NamePart(["", "vv", nothing, ""]),  NamePart(["", "ll", nothing, ""]),  NamePart([", ", "jj", nothing, ""]) ]
 true
+
 julia> f = NameFormat("{{ }ff~{ }}{vv~{- Test text here -}~}{ll}{, jj}");
 
 julia> f.parts == [NamePart(["{ }", "ff", nothing, "~{ }"]), NamePart(["", "vv", nothing, "~{- Test text here -}"]), NamePart(["", "ll", nothing, ""]),  NamePart([", ", "jj", nothing, ""]) ]
 true
+
 julia> f = NameFormat("abc def {f~} xyz {f}?");
 
 julia> f.parts == ["abc def ", NamePart(["", "f", nothing, ""]), " xyz ", NamePart(["", "f", nothing, ""]),  "?" ]
 true
+
 julia> f = NameFormat("{{abc}{def}ff~{xyz}{#@\$}}");
 
 julia> f.parts == [NamePart(["{abc}{def}", "ff", nothing, "~{xyz}{#@\$}"])]
 true
+
 julia> f = NameFormat("{{abc}{def}ff{xyz}{#@\${}{sdf}}}");
 
 julia> f.parts == [NamePart(["{abc}{def}", "ff", "xyz", "{#@\${}{sdf}}"])]
 true
+
 julia> f = NameFormat("{f.~}");
 
 julia> f.parts == [NamePart(["", "f", nothing, "."])]
 true
+
 julia> f = NameFormat("{f~.}");
 
 julia> f.parts == [NamePart(["", "f", nothing, "~."])]
 true
+
 julia> f = NameFormat("{f{.}~}");
 
 julia> f.parts == [NamePart(["", "f", ".", ""])]
 true
+
 ```
 """
 struct NameFormat

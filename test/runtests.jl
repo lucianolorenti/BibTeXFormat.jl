@@ -29,7 +29,7 @@ Documenter.makedocs(
 )
 exit
 @testset "Rich Text Utils" begin
-    import BibTeXFormat: RichText, Tag, add_period, capitalize, uppercase, TextSymbol, render_as, join
+    import BibTeXFormat.RichTextElements: RichText, Tag, add_period, capitalize, uppercase, TextSymbol, render_as, join
     local t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"))
     @test render_as(t,"LaTex") == "this is a \\emph{very} rich text"
     @test convert(String,t)    == "this is a very rich text"

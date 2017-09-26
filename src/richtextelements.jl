@@ -641,6 +641,9 @@ function getindex(self::RichString, index)
     return RichString(string(self.value[index]))
 end
 """
+```
+function split(self::RichString, sep=nothing; keep_empty_parts=nothing)
+```
 Split
 """
 function split(self::RichString, sep=nothing; keep_empty_parts=nothing)
@@ -657,6 +660,9 @@ function split(self::RichString, sep=nothing; keep_empty_parts=nothing)
 end
 
 """
+```
+function startswith(self::RichString, prefix)
+```
 Return True if string starts with the prefix,
 otherwise return False.
 
@@ -667,11 +673,14 @@ function startswith(self::RichString, prefix)
 end
 
 """
+```
+function endswith(self::RichString, suffix)
+```
 Return True if the string ends with the specified suffix,
 otherwise return False.
 
 suffix can also be a tuple of suffixes to look for.
-return self.value.endswith(text)
+`return value.endswith(self.value text)`
 """
 function endswith(self::RichString, suffix)
     return endswith(self.value,suffix)
@@ -723,6 +732,7 @@ doc"""
 A `Tag` represents something like an HTML tag or a LaTeX formatting command:
 
 ```jldoctest
+julia> import BibTeXFormat: render_as
 
 julia> tag = Tag("em", "The TeXbook");
 
@@ -757,6 +767,7 @@ end
 doc"""
 A `HRef` represends a hyperlink:
 ```jldoctest
+julia> import BibTeXFormat: render_as
 
 julia> href = HRef("http://ctan.org/", "CTAN");
 
@@ -764,12 +775,12 @@ julia> print(render_as(href,"html"))
 <a href="http://ctan.org/">CTAN</a>
 
 julia> print(render_as(href, "latex"))
-\\href{http://ctan.org/}{CTAN}
+\href{http://ctan.org/}{CTAN}
 
 julia> href = HRef(String("http://ctan.org/"), String("http://ctan.org/"));
 
 julia> print(render_as(href,"latex"))
-\\url{http://ctan.org/}
+\url{http://ctan.org/}
 
 ```
 
@@ -794,22 +805,25 @@ function Base.show(io::Union{IO, Base.AbstractIOBuffer}, self::HRef)
     write(io,")")
 end
 
-"""
+doc"""
 A `Protected` represents a "protected" piece of text.
 
 - `Protected.lowercase`, `Protected.uppercase`, `Protected.capitalize`, and `Protected.capitalize()`   are no-ops and just return the `Protected` struct itself.
 - `split` never splits the text. It always returns a  one-element list containing the `Protected` struct itself.
 - In LaTeX output, `Protected` is {surrounded by braces}.  HTML  and plain text backends just output the text as-is.
 
-´´´jldoctest
+```jldoctest
+julia> import BibTeXFormat: render_as
+
+julia> import BibTeXFormat.RichTextElements: Protected, RichString
 
 julia> text = Protected("The CTAN archive");
 
 julia> lowercase(text)
-BibTeXFormat.Protected(Any[BibTeXFormat.RichString("The CTAN archive")], 16, "")
+Protected("The CTAN archive")
 
 julia> print(split(text))
-BibTeXFormat.Protected[BibTeXFormat.Protected(Any[BibTeXFormat.RichString("The CTAN archive")], 16, "")]
+BibTeXFormat.RichTextElements.Protected[Protected("The CTAN archive")]
 
 julia> print(render_as(text, "latex"))
 {The CTAN archive}
@@ -817,8 +831,7 @@ julia> print(render_as(text, "latex"))
 julia> print(render_as(text,"html"))
 <span class="bibtex-protected">The CTAN archive</span>
 
-´´´
-
+```
 """
 mutable struct Protected <: MultiPartText
 	parts
@@ -887,6 +900,9 @@ function convert(::Type{String}, v::TextSymbol)
 	return "<$(v.name)>"
 end
 """
+```
+function isalpha(self::TextSymbol)
+```
 A TextSymbol is not alfanumeric. Returns false
 """
 function isalpha(self::TextSymbol)

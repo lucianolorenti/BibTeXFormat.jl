@@ -1,4 +1,6 @@
 module TemplateEngine
+import BibTeXFormat.RichTextElements: RichText, nbsp
+using BibTeXFormat.RichTextElements
 struct Node
 	name::String
 	f::Function
@@ -157,14 +159,14 @@ Join text fragments, capitalyze the first letter, add a period to the end.
 @node function sentence(children, data; capfirst=false, capitalize=false, add_period=true, sep=", ")
     local text = format_data(join(;sep=sep)[children],data)
     if capfirst
-        text = BibTeXFormat.capfirst(text)
+        text = RichTextElements.capfirst(text)
     end
     if capitalize
-        text = BibTeXFormat.capitalize(text)
+        text = RichTextElements.capitalize(text)
     end
 
     if add_period
-        text = BibTeXFormat.add_period(text)
+        text = RichTextElements.add_period(text)
     end
     return text
 end

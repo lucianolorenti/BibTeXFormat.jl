@@ -37,12 +37,12 @@ latexOutput = format_entries(style, bibliography)
 ### References
 
 ```@index
-Modules=[BibTeXFormat]
+Modules=[BibTeXFormat.BST]
 Pages = ["style/bst/bst.jl", "style/bst/interpreter.jl", "style/bst/names.jl"]
 ```
 
 ```@autodocs
-Modules=[BibTeXFormat]
+Modules=[BibTeXFormat.BST]
 Pages = ["style/bst/bst.jl", "style/bst/interpreter.jl", "style/bst/names.jl"]
 ```
 ## Name formatting
@@ -74,4 +74,26 @@ julia> print(format_name(name, "{v{}}{l.}"))
 P.-B.
 julia> print(format_name(name, "{v{}}{l{}}"))
 PB
+```
+
+```@index
+Modules=[BibTeXFormat]
+Pages = ["style/names.jl"]
+```
+
+```@autodocs
+Modules=[BibTeXFormat]
+Pages = ["style/names.jl"]
+```
+
+## Labels
+
+```@index
+Modules=[BibTeXFormat]
+Pages = ["style/labels.jl"]
+```
+
+```@autodocs
+Modules=[BibTeXFormat]
+Pages = ["style/labels.jl"]
 ```

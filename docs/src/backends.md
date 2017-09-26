@@ -1,5 +1,13 @@
 # Backends
 
+```@index
+Pages    = ["backends/backends.jl"]
+```
+
+```@autodocs
+Modules = [BibTeXFormat]
+Pages    = ["backends/backends.jl"]
+```
 ## HTML
 
 ```@index

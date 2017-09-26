@@ -5,6 +5,6 @@ Pages    = ["style/templateengine.jl"]
 ```
 
 ```@autodocs
-Modules = [BibTeXFormat]
+Modules = [BibTeXFormat.TemplateEngine]
 Pages    = ["style/templateengine.jl"]
 ```

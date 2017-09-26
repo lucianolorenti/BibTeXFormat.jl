@@ -12,7 +12,9 @@ end
 (simple but) rich text formatting tools
 
 ```jldoctest
-julia> import BibTeXFormat: RichText, Tag, render_as, add_period, capitalize
+julia> import BibTeXFormat: RichText, Tag, render_as
+
+julia> import BibTeXFormat.RichTextElements: add_period, capitalize
 
 julia> t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"));
 
