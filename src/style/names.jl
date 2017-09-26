@@ -1,6 +1,6 @@
 
 abstract type BaseNameStyle end
-
+import BibTeXFormat.TemplateEngine: @node
 @node function  name_part(children, data; before="", tie=false, abbr=false)
 
     if abbr

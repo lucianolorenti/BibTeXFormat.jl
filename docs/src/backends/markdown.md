@@ -1,7 +1,9 @@
 # Markdown backend
 Markdown output backend.
 ```jldoctest
-julia> import BibTeXFormat: Tag, HRef, MarkdownBackend, render
+julia> import BibTeXFormat.RichTextElements: Tag, HRef
+
+julia> import BibTeXFormat: MarkdownBackend, render
 
 julia> markdown = MarkdownBackend();
 

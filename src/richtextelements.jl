@@ -1,3 +1,4 @@
+module RichTextElements
 import Base.==
 import Base.getindex
 import Base.split
@@ -14,6 +15,7 @@ import Base.show
 import Base.startswith
 import Base.write
 abstract type BaseText end
+import BibTeXFormat: whitespace_re, render_as
 function typeinfo(v::T) where T<:BaseText
     return (string(T),T,())
 end
@@ -176,9 +178,13 @@ function  typeinfo(self::T) where T<:MultiPartText
 Return the type and the parameters used to create this text object.
 
 ```jldoctest
+julia> using BibTeXFormat
+
+julia> import BibTeXFormat.RichTextElements: Tag, typeinfo
+
 julia> text = Tag("strong", "Heavy rain!");
 
-julia> typeinfo(text) == ("BibTeXFormat.Tag", BibTeXFormat.Tag, "strong")
+julia> typeinfo(text) == ("BibTeXFormat.RichTextElements.Tag", BibTeXFormat.RichTextElements.Tag, "strong")
 true
 ```
 
@@ -365,6 +371,9 @@ function slice_beginning(self::T, slice_length::Integer) where T<:MultiPartText
 end
 
 """
+```
+function slice_end(self::T, slice_length::Integer) where T<:MultiPartText
+```
 Return a text consistng of the last slice_length characters
 of this text (with formatting preserved).
 """
@@ -384,10 +393,15 @@ function slice_end(self::T, slice_length::Integer) where T<:MultiPartText
 end
 
 """
+```
+function  append(self::T, text) where T<:MultiPartText
+```
 Append text to the end of this text.
 
 For Tags, HRefs, etc. the appended text is placed *inside* the tag.
-```julia
+```jldoctest
+julia> using  BibTeXFormat
+
 julia> text = Tag("strong", "Chuck Norris");
 
 julia> print(render_as(text +  " wins!","html"))
@@ -408,6 +422,9 @@ function append!(self::T, text) where T<:MultiPartText
 end
 
 """
+```
+function split(self::T, sep=nothing; keep_empty_parts=nothing) where T <:MultiPartText
+```
 ```jldoctest
 julia> print(split(RichText("a + b")))
 Any[RichText("a"), RichText("+"), RichText("b")]
@@ -452,6 +469,9 @@ function split(self::T, sep=nothing; keep_empty_parts=nothing) where T <:MultiPa
 end
 
 """
+```
+function startswith(self::T, prefix) where T<:MultiPartText
+```
 Return True if the text starts with the given prefix.
 ```jldoctest
 julia> startswith(RichText("Longcat!"),"Longcat")
@@ -496,7 +516,10 @@ function endswith(self::T, suffix) where T<:MultiPartText
 end
 
 """
-Return True if all characters in the string are alphabetic and there is
+```
+function isalpha(self::T) where T<:MultiPartText
+```
+Return true if all characters in the string are alphabetic and there is
 at least one character, False otherwise.
 """
 function isalpha(self::T) where T<:MultiPartText
@@ -504,6 +527,9 @@ function isalpha(self::T) where T<:MultiPartText
 end
 
 """
+```
+function lowercase(self::T) where T <:MultiPartText
+```
 Convert rich text to lowercasecase.
 ```jldoctest
 julia> lowercase(RichText(Tag("em", "Long cat")))
@@ -526,6 +552,9 @@ function uppercase(self::T) where T<:MultiPartText
 end
 
 """
+```julia
+function merge_similar(param_parts)
+```
 Merge adjacent text objects with the same type and parameters together.
 ```jldoctest
 julia> parts = [Tag("em", "Breaking"), Tag("em", " "), Tag("em", "news!")];
@@ -537,7 +566,7 @@ Any[Tag("em", "Breaking news!")]
 """
 function merge_similar(param_parts)
     local groups = nothing
-        groups = groupby(value-> BibTeXFormat.typeinfo(value)[1], param_parts)
+        groups = groupby(value-> RichTextElements.typeinfo(value)[1], param_parts)
     local output=[]
     for  group in groups
         cls, cls_type, info = typeinfo(group[1])
@@ -690,18 +719,20 @@ function show(io::Union{IO,Base.AbstractIOBuffer}, d::RichText)
     write(io,Base.join([string(part) for part in d.parts], ", "))
     write(io,")")
 end
-r"""
-A :py:class:`Tag` represents something like an HTML tag
-or a LaTeX formatting command:
+doc"""
+A `Tag` represents something like an HTML tag or a LaTeX formatting command:
 
->>> from pybtex.richtext import Tag
->>> tag = Tag("em", "The TeXbook")
->>> print(tag.render_as("html"))
-<em>The TeXbook</em>
->>> print(tag.render_as("latex"))
-\emph{The TeXbook}
+```jldoctest
 
-:py:class:`Tag` supports the same methods as :py:class:`Text`.
+julia> tag = Tag("em", "The TeXbook");
+
+julia> render_as(tag, "latex")
+"\\emph{The TeXbook}"
+
+julia> render_as(tag, "html")
+"<em>The TeXbook</em>"
+
+```
 """
 mutable struct Tag <:MultiPartText
 	parts
@@ -723,9 +754,10 @@ function Base.show(io::Union{IO, Base.AbstractIOBuffer}, self::Tag)
     write(io,")")
 end
 
-"""
+doc"""
 A `HRef` represends a hyperlink:
 ```jldoctest
+
 julia> href = HRef("http://ctan.org/", "CTAN");
 
 julia> print(render_as(href,"html"))
@@ -770,7 +802,9 @@ A `Protected` represents a "protected" piece of text.
 - In LaTeX output, `Protected` is {surrounded by braces}.  HTML  and plain text backends just output the text as-is.
 
 ´´´jldoctest
+
 julia> text = Protected("The CTAN archive");
+
 julia> lowercase(text)
 BibTeXFormat.Protected(Any[BibTeXFormat.RichString("The CTAN archive")], 16, "")
 
@@ -865,3 +899,4 @@ function lowercase(self::TextSymbol)
 	return self
 end
 const nbsp = TextSymbol("nbsp")
+end

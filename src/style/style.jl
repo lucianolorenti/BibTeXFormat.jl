@@ -144,8 +144,6 @@ Any["xrefd_article"]
 julia> print(get_crossreferenced_citations(data, ["main_article"], min_crossrefs=2))
 Any[]
 julia> print(get_crossreferenced_citations(data, ["xrefd_arcicle"], min_crossrefs=1))
-WARNING: bad cross-reference: entry "xrefd_arcicle" refers to
-                entry "nothing" which does not exist.
 Any[]
 ```
 

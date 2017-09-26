@@ -10,18 +10,18 @@ export write_to_stream,
 you to implement as many of the symbols and tags as
 possible when you create a new plugin.
 
-symbols[u'ndash']    : Used to separate pages
-symbols[u'newblock'] : Used to separate entries in the bibliography
-symbols[u'nbsp']     : A non-breakable space
+`symbols["ndash"]`    : Used to separate pages
+`symbols["newblock"]` : Used to separate entries in the bibliography
+`symbols["bst_script"]`      : A non-breakable space
 
-tags[u'em']          : emphasize text
-tags[u'strong']      : emphasize text even more
-tags[u'i']           : italicize text, not semantic
-tags[u'b']           : embolden text, not semantic
-tags[u'tt']          : typewrite text, not semantic
+`tags[""em']`          : emphasize text
+`tags["strong"]`      : emphasize text even more
+`tags["i"]`            : italicize text, not semantic
+`tags["b"]`           : embolden text, not semantic
+`tags["tt"]`          : typewrite text, not semantic
 """
 abstract type BaseBackend end
-
+import BibTeXFormat.RichTextElements: RichText, Protected, BaseText, MultiPartText, RichString, TextSymbol,Tag, HRef
 const symbols = Dict{Type,Dict{String,String}}(
              BaseBackend=>Dict{String,String}(
                 "ndash"=> "'&ndash;",
@@ -34,7 +34,11 @@ function write_prologue(self::BaseBackend, s)
 end
 function write_epilogue(self::BaseBackend,s )
 end
-:"""Format the given string *str_*.
+"""
+```
+function format(self::T, str::String) where T<:BaseBackend
+```
+Format the given string *str_*.
 The default implementation simply returns the string ad verbatim.
 Override this method for non-string backends.
 """

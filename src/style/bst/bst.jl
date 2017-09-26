@@ -75,9 +75,6 @@ end
 function execute(self::Variable, interpreter)
     push!(interpreter, value(self))
 end
-function value(self::Variable)
-	return self.value
-end
 function ==(a::T, b::T) where T<:Variable
     return a.value == b.value
 end
@@ -359,15 +356,6 @@ WHITESPACE = (r"\s+", "whitespace")
 WHITESPACE[1].match_options |= Base.PCRE.ANCHORED
 NEWLINE = (r"\n|(\r\n)|\r", "newline")
 NEWLINE[1].match_options |= Base.PCRE.ANCHORED
-
-function parse_file(filename::String)
-    local content  = readstring(filename)
-    return parse_string(content)
-end
-function parse_string(content::String)
-        parser = Parser(content)
-        return parse(parser)
-end
 
 struct MissingField <: AbstractString
 	name

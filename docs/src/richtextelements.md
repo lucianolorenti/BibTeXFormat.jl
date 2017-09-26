@@ -2,8 +2,7 @@
 
 ```@meta
 DocTestSetup = quote
-using BibTeXFormat
-import BibTeXFormat: RichText, Tag, append, render_as, add_period, capfirst,
+import BibTeXFormat.RichTextElements: RichText, Tag, append, render_as, add_period, capfirst,
                     capitalize, typeinfo, create_similar, HRef,
                     merge_similar, render_as, Protected,
                     RichString
@@ -32,20 +31,20 @@ julia> render_as(t,"latex")
 ## Types
 
 ```@index
-Pages   = ["richtextelements.md"]
+Modules = [BibTeXFormat.RichTextElements]
 Order   = [:type]
 ```
 
 ## Functions
 
 ```@index
-Pages   = ["richtextelements.md"]
+Modules = [BibTeXFormat.RichTextElements]
 Order   = [:function]
 ```
 
 ##  Reference
 
 ```@autodocs
-Modules = [BibTeXFormat]
+Modules = [BibTeXFormat.RichTextElements]
 Pages   = ["richtextelements.jl"]
 ```

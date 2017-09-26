@@ -366,7 +366,7 @@ function startswith(c::Char,b::Char)
 	return c==b
 end
 const purify_special_char_re = r"^\\[A-Za-z]+"
-"""
+doc"""
 ```julia
 function bibtex_purify(str)
 ```
@@ -386,11 +386,11 @@ julia> print(bibtex_purify("{XXX YYY}"))
 XXX YYY
 julia> print(bibtex_purify("{XXX {YYY}}"))
 XXX YYY
-julia> print(bibtex_purify("XXX {\YYY} XXX"))
+julia> print(bibtex_purify("XXX {\\YYY} XXX"))
 XXX  XXX
-julia> print(bibtex_purify("{XXX {\YYY} XXX}"))
+julia> print(bibtex_purify("{XXX {\\YYY} XXX}"))
 XXX YYY XXX
-julia> print(bibtex_purify("'\\abc def"))
+julia> print(bibtex_purify("\\abc def"))
 abc def
 julia> print(bibtex_purify("a@#\$@#\$b@#\$@#\$c"))
 abc
@@ -430,12 +430,11 @@ function bibtex_purify(str)
 	end
     return Base.join(purify_iter(str),"")
 end
-
-"""
+doc"""
 ```julia
 function change_case(string, mode)
 ```
-```jldoctest
+```
 julia> import BibTeXFormat: change_case
 
 julia> print(change_case("aBcD", 'l'))
@@ -456,14 +455,14 @@ julia> change_case("And {Now: BOOO!!!}", 't')
 julia> change_case("And {Now: {BOOO}!!!}", 'l')
 "and {Now: {BOOO}!!!}"
 
-julia> change_case("And {\\Now: BOOO!!!}", 't') == "And {\\Now: booo!!!}"
-true
+julia> change_case("And {\\Now: BOOO!!!}", 't')
+"And {\\Now: booo!!!}"
 
-julia> change_case("And {\\Now: {BOOO}!!!}", 'l') == "and {\\Now: {booo}!!!}"
-true
+julia> change_case("And {\\Now: {BOOO}!!!}", 'l')
+"and {\\Now: {booo}!!!}"
 
-julia> change_case("{\\TeX\\ and databases\\Dash\\TeX DBI}", 't') == "{\\TeX\\ and databases\\Dash\\TeX DBI}"
-true
+julia> change_case("{\\TeX\\ and databases\\Dash\\TeX DBI}", 't')
+"{\\TeX\\ and databases\\Dash\\TeX DBI}"
 
 ```
 """
@@ -568,7 +567,7 @@ function bibtex_substring(string, start, len)
     return string[start0:end0]
 end
 
-"""
+doc"""
 Return the number of characters in the string.
 ```
 function bibtex_len(string)
@@ -616,7 +615,7 @@ function bibtex_len(string)
     return length
 end
 
-"""
+doc"""
 ```julia
 function  bibtex_first_letter(string)
 ```
@@ -630,13 +629,13 @@ julia> print(bibtex_first_letter("{Andrew} Blake"))
 A
 julia> print(bibtex_first_letter("1Andrew"))
 A
-julia> print(bibtex_first_letter("{\TeX} markup"))
+julia> print(bibtex_first_letter("{\\TeX} markup"))
 {\TeX}
 julia> print(bibtex_first_letter(""))
 
 julia> print(bibtex_first_letter("123 123 123 {}"))
 
-julia> print(bibtex_first_letter("\LaTeX Project Team"))
+julia> print(bibtex_first_letter("\\LaTeX Project Team"))
 L
 ```
 """

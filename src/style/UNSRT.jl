@@ -1,4 +1,5 @@
 
+import BibTeXFormat.TemplateEngine: field, words, optional_field
 function dashify(text)
     dash_re = re.compile(r"-+")
     return join(Text(TextSymbol("ndash")),split(text,dash_re))

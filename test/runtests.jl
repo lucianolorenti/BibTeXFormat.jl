@@ -27,9 +27,9 @@ Documenter.makedocs(
     authors = "Luciano Lorenti",
     doctest=true
 )
+exit
 @testset "Rich Text Utils" begin
-    import BibTeXFormat: RichText, Tag, add_period, capitalize, uppercase,
-                         TextSymbol, render_as
+    import BibTeXFormat: RichText, Tag, add_period, capitalize, uppercase, TextSymbol, render_as, join
     local t = RichText("this ", "is a ", Tag("em", "very"), RichText(" rich", " text"))
     @test render_as(t,"LaTex") == "this is a \\emph{very} rich text"
     @test convert(String,t)    == "this is a very rich text"
@@ -57,12 +57,12 @@ Documenter.makedocs(
 end
 
 @testset "Template Engine" begin
-	import BibTeXFormat: format, words, sentence, together
+	import BibTeXFormat.TemplateEngine: format, words, sentence, together
 	@testset "join" begin
-		@test convert(String, format(BibTeXFormat.join())) == ""
-		@test convert(String, format(BibTeXFormat.join["a","b","c","d","e"])) == "abcde"
-		@test convert(String, format(BibTeXFormat.join(sep=", ", sep2=" and ", last_sep=", and ")["Tom", "Jerry"])) == "Tom and Jerry"
-		@test convert(String, format(BibTeXFormat.join(sep=", ", sep2=" and ", last_sep=", and ")["Billy", "Willy", "Dilly"])) == "Billy, Willy, and Dilly"
+		@test convert(String, format(BibTeXFormat.TemplateEngine.join())) == ""
+		@test convert(String, format(BibTeXFormat.TemplateEngine.join["a","b","c","d","e"])) == "abcde"
+		@test convert(String, format(BibTeXFormat.TemplateEngine.join(sep=", ", sep2=" and ", last_sep=", and ")["Tom", "Jerry"])) == "Tom and Jerry"
+		@test convert(String, format(BibTeXFormat.TemplateEngine.join(sep=", ", sep2=" and ", last_sep=", and ")["Billy", "Willy", "Dilly"])) == "Billy, Willy, and Dilly"
 	end
 	@testset "words" begin
         @test convert(String,format(words["Tom", "Jerry"])) == "Tom Jerry"

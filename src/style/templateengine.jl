@@ -1,4 +1,4 @@
-
+module TemplateEngine
 struct Node
 	name::String
 	f::Function
@@ -270,4 +270,5 @@ end
 
 @node function toplevel(children, data)
     return format_data(join(;sep=TextSymbol("newblock"))[children],data)
+end
 end
