@@ -264,13 +264,13 @@ end
 @testset "BST Parser" begin
     import BibTeXFormat: BST
     formats = ["apacite", "jurabib", "plain"]
-    path    = dirname(@__FILE__)
+    path    = joinpath(Pkg.dir("BibTeXFormat"), "test")
     for format in formats
     content = readstring(joinpath(path,"format/",string(format,".bst")))
         parser = BST.Parser(content)
         output = BST.parse(parser)
-        include("$format.jl")
-        @test output == bst
+        include(joinpath(path,"$format.jl"))
+        @test output.commands == bst
 
     end
 end

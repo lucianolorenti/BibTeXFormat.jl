@@ -190,7 +190,7 @@ function BibTeXString(chars::String, level::Integer=0, max_level::Integer=100)
 end
 import Base.string
 function string(a::BibTeXString)
-	Base.join([string(b) for b in a.contents], "")
+    return Base.join(traverse(a, open=x->'{', close=x->'}'), "")
 end
 """
 ```jldoctest
@@ -444,24 +444,30 @@ julia> print(change_case("aBcD", 'u'))
 ABCD
 julia> print(change_case("ABcD", 't'))
 Abcd
-julia> print(change_case("The {\\TeX book \\noop}", 'u'))
-THE {\TeX BOOK \noop}
-julia> print(change_case("And Now: BOOO!!!", 't'))
-And now: Booo!!!
-julia> print(change_case("And {Now: BOOO!!!}", 't'))
-And {Now: BOOO!!!}
-julia> print(change_case("And {Now: {BOOO}!!!}", 'l'))
-and {Now: {BOOO}!!!}
-julia> print(change_case("And {\\Now: BOOO!!!}", 't'))
-And {\Now: booo!!!}
-julia> print(change_case("And {\\Now: {BOOO}!!!}", 'l'))
-and {\Now: {booo}!!!}
-julia> print(change_case("{\\TeX\\ and databases\\Dash\\TeX DBI}", 't'))
-{\TeX\ and databases\Dash\TeX DBI}
+julia> change_case("The {\\TeX book \\noop}", 'u')
+"THE {\\TeX BOOK \\noop}"
+
+julia> change_case("And Now: BOOO!!!", 't')
+"And now: Booo!!!"
+
+julia> change_case("And {Now: BOOO!!!}", 't')
+"And {Now: BOOO!!!}"
+
+julia> change_case("And {Now: {BOOO}!!!}", 'l')
+"and {Now: {BOOO}!!!}"
+
+julia> change_case("And {\\Now: BOOO!!!}", 't') == "And {\\Now: booo!!!}"
+true
+
+julia> change_case("And {\\Now: {BOOO}!!!}", 'l') == "and {\\Now: {booo}!!!}"
+true
+
+julia> change_case("{\\TeX\\ and databases\\Dash\\TeX DBI}", 't') == "{\\TeX\\ and databases\\Dash\\TeX DBI}"
+true
+
 ```
 """
 function change_case(string::String, mode::Char)
-
     function title(char, state)
         if state == "start"
             return char

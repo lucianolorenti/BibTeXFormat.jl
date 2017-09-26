@@ -184,7 +184,7 @@ end
         push!(i,0)
     end
 end
-@builtin "newline\$" function newline(i)
+@builtin "newline\$" function _newline(i)
     newline(i)
 end
 @builtin "num.names\$" function num_names(i)
@@ -195,7 +195,8 @@ end
     pop!(i)
 end
 @builtin "preamble\$" function preamble(i)
-#    push!(i,i.bib_data.preamble)
+    push!(i,"")
+    #push!(i,i.bib_data.preamble)
 end
 @builtin "purify\$" function purify(i)
     s = pop!(i)

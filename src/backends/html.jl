@@ -1,19 +1,5 @@
-#="""
-HTML output backend.
-```
-using HTMLBackends.HTML
-html = HTMLBackend()
-render(Tag("em", ""),html)
-```
-<BLANKLINE>
-render(Tag("em", "Hard &", " heavy"),html)
-<em>Hard &amp; heavy</em>
-render(HRef("/", ""),html)
-<BLANKLINE>
-render(HRef("/", "Hard & heavy"),html)
-<a href="/">Hard &amp; heavy</a>
-"""=#
 using HttpCommon
+using Formatting
 const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
 <head><meta name="generator" content="Pybtex">

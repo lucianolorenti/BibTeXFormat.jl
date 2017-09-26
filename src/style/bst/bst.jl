@@ -99,6 +99,7 @@ end
 function execute(self::Identifier, interpreter)
 	#try
         f = interpreter.vars[value(self)]
+        println(value(self))
 		execute(f, interpreter)
 #	catch e
  #       println(e)
@@ -420,9 +421,11 @@ end
 
 function push!(self::Interpreter, value)
 	push!(self.stack,value)
+    println(length(self.stack))
 end
 function pop!(self::Interpreter)
 	try
+        println(length(self.stack))
         value = pop!(self.stack)
 		return value
 	catch e
@@ -443,7 +446,7 @@ function output(self::Interpreter, str)
 	push!(self.output_buffer,str)
 end
 function newline(self::Interpreter)
-	output = Base.join(Self.output_buffer,"")
+	output = Base.join(self.output_buffer,"")
 	push!(self.output_lines,output)
 	push!(self.output_lines, "\n")
 	self.output_buffer = []
