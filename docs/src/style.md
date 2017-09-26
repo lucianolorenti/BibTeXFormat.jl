@@ -32,23 +32,25 @@ Pages    = ["style.jl"]
 
 BibTeX-like name formatting.
 ```jldoctest
->>> name = 'Charles Louis Xavier Joseph de la Vallee Poussin'
->>> print(format_name(name, '{vv~}{ll}{, jj}{, f.}'))
-de~la Vallee~Poussin, C.~L. X.~J.
->>> name = 'abc'
->>> print(format_name(name, '{vv~}{ll}{, jj}{, f.}'))
-abc
->>> name = 'Jean-Pierre Hansen'
->>> print(format_name(name, '{ff~}{vv~}{ll}{, jj}'))
-Jean-Pierre Hansen
->>> print(format_name(name, '{f.~}{vv~}{ll}{, jj}'))
-J.-P. Hansen
+julia> import BibTeXFormat.BST: format_name
 
->>> name = 'F. Phidias Phony-Baloney'
->>> print(format_name(name, '{v{}}{l}'))
+julia> name = "Charles Louis Xavier Joseph de la Vallee Poussin"
+julia> print(format_name(name, "{vv~}{ll}{, jj}{, f.}"))
+de~la Vallee~Poussin, C.~L. X.~J.
+julia> name = "abc";
+
+julia> print(format_name(name, "{vv~}{ll}{, jj}{, f.}"))
+abc
+julia> name = "Jean-Pierre Hansen";
+julia> print(format_name(name, "{ff~}{vv~}{ll}{, jj}"))
+Jean-Pierre Hansen
+julia> print(format_name(name, "{f.~}{vv~}{ll}{, jj}"))
+J.-P. Hansen
+julia> name = "F. Phidias Phony-Baloney";
+julia> print(format_name(name, "{v{}}{l}"))
 P.-B
->>> print(format_name(name, '{v{}}{l.}'))
+julia> print(format_name(name, "{v{}}{l.}"))
 P.-B.
->>> print(format_name(name, '{v{}}{l{}}'))
+julia> print(format_name(name, "{v{}}{l{}}"))
 PB
 ```

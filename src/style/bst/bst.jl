@@ -422,13 +422,13 @@ function push!(self::Interpreter, value)
 	push!(self.stack,value)
 end
 function pop!(self::Interpreter)
-#	try
+	try
         value = pop!(self.stack)
 		return value
-#	catch e
- #       println(e)
-#		throw("pop from empty stack")
-#	end
+	catch e
+        println(e)
+		throw("pop from empty stack")
+	end
 end
 function get_token(self::Interpreter)
 	return next(self.bst_script)

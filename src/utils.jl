@@ -248,7 +248,7 @@ function is_special_char(self::BibTeXString)
     return self.level == 1 && length(self.contents)>0 && self.contents[1] == '\\'
 end
 
-function traverse(self::BibTeXString; open=nothing, f=nothing, close=nothing)
+function traverse(self::BibTeXString; open=nothing, f=(x,y)->x, close=nothing)
 	t = []
 	if open != nothing && self.level > 0
 		push!(t,open(self))
@@ -608,4 +608,74 @@ function bibtex_len(string)
 		end
 	end
     return length
+end
+
+"""
+```julia
+function  bibtex_first_letter(string)
+```
+Return the first letter or special character of the string.
+```jldoctest
+julia> import BibTeXFormat: bibtex_first_letter
+
+julia> print(bibtex_first_letter("Andrew Blake"))
+A
+julia> print(bibtex_first_letter("{Andrew} Blake"))
+A
+julia> print(bibtex_first_letter("1Andrew"))
+A
+julia> print(bibtex_first_letter("{\TeX} markup"))
+{\TeX}
+julia> print(bibtex_first_letter(""))
+
+julia> print(bibtex_first_letter("123 123 123 {}"))
+
+julia> print(bibtex_first_letter("\LaTeX Project Team"))
+L
+```
+"""
+function  bibtex_first_letter(str)
+    for char in traverse(BibTeXString(str))
+		b = string(char)
+        if startswith(b,"\\") && b != "\\"
+            return "{$char}"
+        elseif isalpha(char)
+            return char
+		end
+	end
+    return ""
+end
+
+"""
+```julia
+function bibtex_abbreviate(string, delimiter=None, separator='-')
+```
+Abbreviate string.
+```jldoctest
+julia> import BibTeXFormat: bibtex_abbreviate
+
+julia> print(bibtex_abbreviate("Andrew Blake"))
+A
+julia> print(bibtex_abbreviate("Jean-Pierre"))
+J.-P
+julia> print(bibtex_abbreviate("Jean--Pierre"))
+J.-P
+```
+"""
+function bibtex_abbreviate(string, delimiter=nothing, separator='-')
+    function _bibtex_abbreviate()
+		local letters = []
+        for token in split_tex_string(string, separator)
+            letter = bibtex_first_letter(token)
+            if length(letter) != 0
+                push!(letters, letter)
+			end
+		end
+		return letters
+	end
+
+    if delimiter ==nothing
+        delimiter = ".-"
+	end
+    return Base.join(_bibtex_abbreviate(), delimiter)
 end

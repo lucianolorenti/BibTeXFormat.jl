@@ -144,7 +144,7 @@ end
 
 function _format_name(names, n, format)
     name = _split_names(names)[n]
-    return format_bibtex_name(name, format)
+    return format_name(name, format)
 end
 @builtin "format.name\$" function format_name(i)
     format = pop!(i)
@@ -195,7 +195,7 @@ end
     pop!(i)
 end
 @builtin "preamble\$" function preamble(i)
-    push!(i,i.bib_data.preamble)
+#    push!(i,i.bib_data.preamble)
 end
 @builtin "purify\$" function purify(i)
     s = pop!(i)

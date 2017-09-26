@@ -303,7 +303,18 @@ julia> get_part(knuth,"last")
 ```
 """
 function get_part(self::Person, ttype, abbr=false)
-    names = getfield(self,Symbol(ttype, "_names"))
+	local names = ""
+	try
+	    names = getfield(self,Symbol(ttype, "_names"))
+	catch e
+		try
+			names = getfield(BibTeXFormat,Symbol(ttype, "_names"))
+			names = names(self)
+		catch e1
+			rethrow(e1)
+		end
+	end
+
     if abbr
         names = [abbreviate(name) for name in names]
     end
@@ -350,4 +361,24 @@ function rich_lineage_names(self::Person)
 end
 function rich_fields(self::Person, field)
     return latex_parse(get_part(self,fiedl))
+end
+
+"""
+```julia
+function bibtex_first_names(self::Person)
+```
+A list of first and middle names together.
+(BibTeX treats all middle names as first.)
+
+```jldoctest
+julia> import BibTeXFormat: Person, bibtex_first_names
+
+julia> knuth = Person("Donald E. Knuth");
+
+julia> print(bibtex_first_names(knuth))
+String["Donald", "E."]
+```
+"""
+function bibtex_first_names(self::Person)
+        return vcat(self.first_names, self.middle_names)
 end

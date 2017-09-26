@@ -1,33 +1,31 @@
-
+import BibTeXFormat: Person, get_part, bibtex_first_names,
+                     bibtex_abbreviate
 struct NamePart
 	pre_text
 	post_text
 	tie
 	format_char::Char
 	abbreviate::Bool
+	delimiter
 end
 function NamePart(format_list)
 	pre_text, format_chars, delimiter, post_text = format_list
 	local tie = ""
 	local format_char = ""
 	local abbreviate = false
-    local post_test = ""
 	if length(format_chars)>0 && length(pre_text)>0 && length(post_text)<=0
 		post_text = pre_text
 		pre_text = ""
 	end
-
 	if endswith(post_text, "~~")
 		tie = "~~"
-	elseif endswith(post_test, "~")
+	elseif endswith(post_text, "~")
 		tie = "~"
 	else
 		tie = nothing
 	end
-
 	pre_text = pre_text
 	post_text = rstrip(post_text,'~')
-
 	if !(length(format_chars)>0)
 		format_char = ""
 		abbreviate = false
@@ -42,7 +40,7 @@ function NamePart(format_list)
 		end
 		format_char = format_chars[1]
 	end
-	return NamePart(pre_text, post_text, tie, format_char, abbreviate)
+	return NamePart(pre_text, post_text, tie, format_char, abbreviate, delimiter)
 end
 
 const format_name_types = Dict{Char, String}([
@@ -67,28 +65,25 @@ function format(self::NamePart, person)
     if self.format_char != nothing && length(names)==0
 		return ""
     end
-
 	if self.abbreviate
 		names = [bibtex_abbreviate(name, self.delimiter) for name in names]
     end
-	if self.delimiter == nothing  None
+	if self.delimiter == nothing
 		if self.abbreviate
-			names = bst_join(names, ".~", ".")
+			names = bst_join(names, ".~", ". ")
         else
 			names = bst_join(names)
         end
 	else
-		names = (self.delimiter, names)
+		names = join(names, self.delimiter)
     end
     formatted_part = string(self.pre_text, names, self.post_text)
-
     local discretionary = ""
 	if self.tie == "~"
 		discretionary = tie_or_space(formatted_part)
     elseif self.tie == "~~"
 		discretionary = "~"
     end
-
     return string(formatted_part, discretionary)
 end
 
@@ -101,7 +96,7 @@ const TEXT =  (r"[^{}]+", "text")
 TEXT[1].match_options |=  Base.PCRE.ANCHORED
 const NON_LETTERS = (r"[^{}\w]|\d+", "non-letter characters")
 NON_LETTERS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
-const FORMAT_CHARS = (r"[^\W\d_]+", "format chars", Base.PCRE.CASELESS | Base.PCRE.UTF)
+const FORMAT_CHARS = (r"[^\W\d_]+", "format chars")
 FORMAT_CHARS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
 end
 """
@@ -110,48 +105,40 @@ struct NameFormat
 ```
 BibTeX name format string.
 ```jldoctest
-julia> import BibTeXFormat.BST.NameFormat
+julia> import BibTeXFormat.BST: NameFormat, NamePart
 
 julia> f = NameFormat("{ff~}{vv~}{ll}{, jj}");
-julia> f.parts == [
-...     NamePart(['', 'ff', None, '']),
-...     NamePart(['', 'vv', None, '']),
-...     NamePart(['', 'll', None, '']),
-...     NamePart([', ', 'jj', None, ''])
-... ]
-True
-julia> f = NameFormat('{{ }ff~{ }}{vv~{- Test text here -}~}{ll}{, jj}')
-julia> f.parts == [
-...     NamePart(['{ }', 'ff', None, '~{ }']),
-...     NamePart(['', 'vv', None, '~{- Test text here -}']),
-...     NamePart(['', 'll', None, '']),
-...     NamePart([u', ', 'jj', None, ''])
-... ]
-True
-julia> f = NameFormat('abc def {f~} xyz {f}?')
-julia> f.parts == [
-...     Text('abc def '),
-...     NamePart(['', 'f', None, '']),
-...     Text(' xyz '),
-...     NamePart(['', 'f', None, '']),
-...     Text('?'),
-... ]
-True
-julia> f = NameFormat('{{abc}{def}ff~{xyz}{#@\$}}')
-julia> f.parts == [NamePart(['{abc}{def}', 'ff', None, '~{xyz}{#@\$}'])]
-True
-julia> f = NameFormat('{{abc}{def}ff{xyz}{#@\${}{sdf}}}')
-julia> f.parts == [NamePart(['{abc}{def}', 'ff', 'xyz', '{#@\${}{sdf}}'])]
-True
-julia> f = NameFormat('{f.~}')
-julia> f.parts == [NamePart(['', 'f', None, '.'])]
-True
-julia> f = NameFormat('{f~.}')
-julia> f.parts == [NamePart(['', 'f', None, '~.'])]
-True
-julia> f = NameFormat('{f{.}~}')
-julia> f.parts == [NamePart(['', 'f', '.', ''])]
-True
+
+julia> f.parts == [ NamePart(["", "ff", nothing, ""]),  NamePart(["", "vv", nothing, ""]),  NamePart(["", "ll", nothing, ""]),  NamePart([", ", "jj", nothing, ""]) ]
+true
+julia> f = NameFormat("{{ }ff~{ }}{vv~{- Test text here -}~}{ll}{, jj}");
+
+julia> f.parts == [NamePart(["{ }", "ff", nothing, "~{ }"]), NamePart(["", "vv", nothing, "~{- Test text here -}"]), NamePart(["", "ll", nothing, ""]),  NamePart([", ", "jj", nothing, ""]) ]
+true
+julia> f = NameFormat("abc def {f~} xyz {f}?");
+
+julia> f.parts == ["abc def ", NamePart(["", "f", nothing, ""]), " xyz ", NamePart(["", "f", nothing, ""]),  "?" ]
+true
+julia> f = NameFormat("{{abc}{def}ff~{xyz}{#@\$}}");
+
+julia> f.parts == [NamePart(["{abc}{def}", "ff", nothing, "~{xyz}{#@\$}"])]
+true
+julia> f = NameFormat("{{abc}{def}ff{xyz}{#@\${}{sdf}}}");
+
+julia> f.parts == [NamePart(["{abc}{def}", "ff", "xyz", "{#@\${}{sdf}}"])]
+true
+julia> f = NameFormat("{f.~}");
+
+julia> f.parts == [NamePart(["", "f", nothing, "."])]
+true
+julia> f = NameFormat("{f~.}");
+
+julia> f.parts == [NamePart(["", "f", nothing, "~."])]
+true
+julia> f = NameFormat("{f{.}~}");
+
+julia> f.parts == [NamePart(["", "f", ".", ""])]
+true
 ```
 """
 struct NameFormat
@@ -167,7 +154,7 @@ function format(self::NameFormat, name)
 end
 const enough_chars = 3
 
-function tie_or_space(word; tie='~', space = ' ')
+function tie_or_space(word, tie="~", space = " ")
     if bibtex_len(word) < enough_chars
         return tie
     else
@@ -175,28 +162,38 @@ function tie_or_space(word; tie='~', space = ' ')
     end
 end
 
-"""Join some words, inserting ties (~) when nessessary.
+"""
+```julia
+function bst_join(words, tie="~", space=" ")
+end
+Join some words, inserting ties (~) when nessessary.
     Ties are inserted:
     - after the first word, if it is short
     - before the last word
     Otherwise space is inserted.
     Should produce the same oubput as BibTeX.
+```jldoctest
+julia> import BibTeXFormat.BST: bst_join
 
-    julia> print(join(['a', 'long', 'long', 'road']))
-    a~long long~road
-    julia> print(join(['very', 'long', 'phrase']))
-    very long~phrase
+julia> print(bst_join(["a", "long", "long", "road"]))
+a~long long~road
+
+julia> print(bst_join(["very", "long", "phrase"]))
+very long~phrase
+
+julia> print(bst_join(["De", "La"]))
+De~La
+```
 """
-function bst_join(words, tie='~', space=' ')
+function bst_join(words, tie="~", space=" ")
     if length(words) <= 2
-        return Base.join(tie, words)
+        return Base.join(words, tie)
     else
-        return string(words[1], tie_or_space(words[1], tie, space),
-                      join(words[2:end-1], space), tie, words[end])
+        return string(words[1], tie_or_space(words[1], tie, space),              join(words[2:end-1], space), tie, words[end])
     end
 end
-function  format_name(name, format)
-    return format(NameFormat(format), name)
+function  format_name(name, fmt)
+    return format(NameFormat(fmt), name)
 end
 mutable struct NameFormatParser <: Scanner
 	text::String
@@ -214,7 +211,6 @@ function parse(s::NameFormatParser)
         try
             result = parse_toplevel(s)
             push!(results,result)
-            println(results)
         catch e
             if e==:EOF
                 break
@@ -227,7 +223,7 @@ end
 function parse_toplevel(self::NameFormatParser)
     token = required(self, [NamePatterns.TEXT, NamePatterns.LBRACE, NamePatterns.RBRACE], allow_eof=true)
     if token[2] == NamePatterns.TEXT
-        return Text(token[1])
+        return string(token[1])
     elseif token[2] == NamePatterns.LBRACE
         return NamePart(parse_name_part(self))
     elseif token[2] == NamePatterns.RBRACE
@@ -236,7 +232,8 @@ function parse_toplevel(self::NameFormatParser)
 end
 
 function parse_braced_string(self::NameFormatParser)
-    tokens = []
+    local tokens = []
+	local token = nothing
     while true
         try
             token = required(self, [NamePatterns.TEXT, NamePatterns.RBRACE, NamePatterns.LBRACE])
@@ -251,7 +248,7 @@ function parse_braced_string(self::NameFormatParser)
             break
         elseif token[2] == NamePatterns.LBRACE
             local v = Base.join(parse_braced_string(self), "")
-            push!(tokens, "{{$v}}")
+            push!(tokens, "{$v}")
         else
             throw(:ValueError, token)
         end
@@ -281,10 +278,9 @@ function parse_name_part(self::NameFormatParser)
             end
             rethrow(e)
         end
-
         if token[2] == NamePatterns.LBRACE
             local b  = Base.join(parse_braced_string(self), "")
-            push!(verbatim, "{{$b}}")
+            push!(verbatim, "{$b}")
         elseif token[2] == NamePatterns.FORMAT_CHARS
             check_format_chars(self, token[1])
             format_chars = token[1]
