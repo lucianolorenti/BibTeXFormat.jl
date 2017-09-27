@@ -82,13 +82,13 @@ function format(self::MarkdownBackend, url::HRef, text)
     end
 end
 
-function write_entry(self::MarkdownBackend, key, label, text)
+function write_entry(self::MarkdownBackend, output, key, label, text)
     # Support http://www.michelf.com/projects/php-markdown/extra/#def-list
     if self.php_extra
         write(output, "$label\n")
         write(output,":    $text\n\n")
-    else:
-        write("[$label] ")
-        write("$text   \n")
+    else
+        write(output,"[$label] ")
+        write(output,"$text   \n\n")
     end
 end

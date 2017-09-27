@@ -89,7 +89,8 @@ function format_entry(b::T, label, entry) where T<:BaseStyle
     local text    = ""
 	try
         get_template =  getfield(typeof(b).name.module, Symbol("get_$(entry["type"])_template"))
-        text = format_data(get_template(b,entry),context)
+
+        text = TemplateEngine.format_data(get_template(b,entry),context)
 	catch e
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
     	text = format_method(b,context)

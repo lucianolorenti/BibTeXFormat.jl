@@ -1,22 +1,26 @@
-#="""
-LaTeX output backend.
-```
-using LaTeXBackends.LaTeX
-latex = LaTeX.LaTeXBackend()
-render(Tag("em", ""),latex)
-<BLANKLINE>
-render(Tag("em", "Non-", "empty"),latex)
-\\emph{Non-empty}
-render(HRef("/", ""),latex)
-<BLANKLINE>
-render(HRef("/", "Non-", "empty"),latex)
-\\href{/}{Non-empty}
-render(HRef("http://example.org/", "http://example.org/"),latex)
-\\url{http://example.org/}
-```
-"""=#
 using Base.Test
 
+doc"""
+LaTeX output backend.
+```jldoctest
+julia> import BibTeXFormat: LaTeXBackend, render
+
+julia> import BibTeXFormat.RichTextElements: Tag, HRef
+
+julia> latex = LaTeXBackend();
+
+julia> print(render(Tag("em", ""),latex))
+
+julia> print(render(Tag("em", "Non-", "empty"),latex))
+\emph{Non-empty}
+julia> print(render(HRef("/", ""),latex))
+
+julia> print(render(HRef("/", "Non-", "empty"),latex))
+\href{/}{Non-empty}
+julia> print(render(HRef("http://example.org/", "http://example.org/"),latex))
+\url{http://example.org/}
+```
+"""
 struct LaTeXBackend <: BaseBackend
 	enconding::String
 	latex_enconding::String
@@ -70,10 +74,18 @@ function format(self::LaTeXBackend, href::HRef, text)
 	end
 end
 
-	"""
->>> from pybtex.richtext import Protected
->>> print(Protected("CTAN").render_as("latex"))
+"""
+```
+function format(self::LaTeXBackend, p::Protected, text)
+```
+```jldoctest
+julia> import BibTeXFormat.RichTextElements: Protected
+
+julia> import BibTeXFormat: render_as
+
+julia> print(render_as(Protected("CTAN"), "latex"))
 {CTAN}
+```
 """
 function format(self::LaTeXBackend, p::Protected, text)
 	return "{$text}"

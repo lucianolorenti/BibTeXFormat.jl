@@ -4,13 +4,13 @@
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://lucianolorenti.github.io/BibTeXFormat.jl/latest)
 
 ## Usage mode
-```julia
+```@example
 using BibTeX
 using BibTeXFormat
 
 bibliography = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
 formatted_entries = format_entries(AlphaStyle,bibliography)
-mdoutput    = write_to_string( MarkdownBackend(),formatted_entries)
+mdoutput    = Markdown.MD(write_to_string( MarkdownBackend(),formatted_entries))
 ```
 
 # Credits

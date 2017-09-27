@@ -6,19 +6,18 @@ export write_to_stream,
        LaTeXBackend,
        MarkdownBackend,
        TextBackend
-"""This is the base class for the backends. We encourage
-you to implement as many of the symbols and tags as
-possible when you create a new plugin.
+"""
+This is the base type for the backends. We encourage you to implement as many of the symbols and tags as possible when you create a new plugin.
 
-`symbols["ndash"]`    : Used to separate pages
-`symbols["newblock"]` : Used to separate entries in the bibliography
-`symbols["bst_script"]`      : A non-breakable space
+* `symbols["ndash"]`    : Used to separate pages
+* `symbols["newblock"]` : Used to separate entries in the bibliography
+* `symbols["bst_script"]`      : A non-breakable space
 
-`tags[""em']`          : emphasize text
-`tags["strong"]`      : emphasize text even more
-`tags["i"]`            : italicize text, not semantic
-`tags["b"]`           : embolden text, not semantic
-`tags["tt"]`          : typewrite text, not semantic
+* `tags[""em']`   : emphasize text
+* `tags["strong"]`: emphasize text even more
+* `tags["i"]`     : italicize text, not semantic
+* `tags["b"]`     : embolden text, not semantic
+* `tags["tt"]`    : typewrite text, not semantic
 """
 abstract type BaseBackend end
 import BibTeXFormat.RichTextElements: RichText, Protected, BaseText, MultiPartText, RichString, TextSymbol,Tag, HRef
@@ -50,16 +49,24 @@ function format(self::T, r::RichText, t) where T<:BaseBackend
     return convert(String,t)
 end
 
-"""Format a "protected" piece of text.
+"""
+```
+function format(self::T, t::Protected, text) where T<:BaseBackend
+```
+Format a "protected" piece of text.
 
 In LaTeX backend, it is formatted as a {braced group}.
 Most other backends would just output the text as-is.
 """
 function format(self::T, t::Protected, text) where T<:BaseBackend
-	return t.text
+    return text
 end
 
-"""Render a sequence of rendered Text objects.
+"""
+```
+function render_sequence(self::T, rendered_list) where T <:BaseBackend
+```
+Render a sequence of rendered Text objects.
 The default implementation simply concatenates
 the strings in rendered_list.
 Override this method for non-string backends.
@@ -85,7 +92,7 @@ function write_to_stream(self::BaseBackend, formatted_bibliography, stream=IOBuf
 
     write_prologue(self, stream)
     for (key, text, label ) in formatted_bibliography
-        write_entry(self,stream, key, label,  render(text,self))
+        write_entry(self, stream, key, label,  render(text,self))
 	end
 	write_epilogue(self,stream)
     return stream
@@ -105,21 +112,27 @@ function find_backend(t::String)
     end
 end
 
-"""
-Render this :py:class:`Text` into markup.
-This is a wrapper method that loads a formatting backend plugin
-and calls :py:meth:`Text.render`.
+doc"""
+```
+function render_as(self::T, backend_name) where T<:BaseText
+```
+Render `BaseText` into markup.
+This is a wrapper method that loads a formatting backend plugin and calls :py `render(:BaseText)`. `backend_name` is  the name of the output backend ( `"latex", `"html", `"markdown"`, `"text"`).
+```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag
 
->>> text = Text("Longcat is ", Tag("em", "looooooong"), "!")
->>> print(text.render_as("html"))
+julia> import BibTeXFormat: render_as
+
+julia> text = RichText("Longcat is ", Tag("em", "looooooong"), "!");
+
+julia> print(render_as(text, "html"))
 Longcat is <em>looooooong</em>!
->>> print(text.render_as("latex"))
+julia> print(render_as(text, "latex"))
 Longcat is \emph{looooooong}!
->>> print(text.render_as("text"))
+julia> print(render_as(text, "text"))
 Longcat is looooooong!
 
-:param backend_name: The name of the output backend (like ``"latex"`` or
-	``"html"``).
+```
 
 """
 

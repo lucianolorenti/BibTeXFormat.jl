@@ -1,4 +1,5 @@
 module RichTextElements
+export Tag, TextSymbol, RichText, unpack, capitalize,  ensure_text
 import Base.==
 import Base.getindex
 import Base.split

@@ -9,17 +9,26 @@ const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <dl>
 """
 
-"""
->>> from pybtex.richtext import Text, Tag, Symbol
->>> print(Tag('em', Text(u'Ð›.:', Symbol('nbsp'), u'<<Ð¥Ð¸Ð¼Ð¸Ñ>>')).render(HTMLBackend()))
-<em>Ð›.:&nbsp;&lt;&lt;Ð¥Ð¸Ð¼Ð¸Ñ&gt;&gt;</em>
+doc"""
+```
+struct HTMLBackend <: BaseBackend
+```
+```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag, TextSymbol
 
+julia> import BibTeXFormat: render, HTMLBackend
+
+julia> print(render(Tag("em", RichText("Ð›.:", TextSymbol("nbsp"), "<<Ð¥Ð¸Ð¼Ð¸Ñ>>")),HTMLBackend()))
+<em>Ð›.:&nbsp;&lt;&lt;Ð¥Ð¸Ð¼Ð¸Ñ&gt;&gt;</em>
+```
 """
 struct HTMLBackend <: BaseBackend
     encoding::String
+    prologue::String
+    epilogue::String
 end
-function HTMLBackend()
-    return HTMLBackend("utf-8")
+function HTMLBackend(encoding="utf-8")
+    return HTMLBackend(encoding, PROLOGUE, "</dl></body></html>\n")
 end
 
 default_suffix[HTMLBackend] = ".html"
@@ -49,16 +58,20 @@ function format(self::HTMLBackend, url::HRef, text)
     end
 end
 function write_prologue(self::HTMLBackend, output)
-    local encoding = nothing
-    if (self.encoding == "")
-        encoding = "UTF-8"
-    else
-        encoding  =self.encoding
+    if length(self.prologue)>0
+        local encoding = nothing
+        if (self.encoding == "")
+            encoding = "UTF-8"
+        else
+            encoding  =self.encoding
+        end
+        write(output,Formatting.format(self.prologue, encoding))
     end
-    write(output,Formatting.format(PROLOGUE, encoding))
 end
 function write_epilogue(self::HTMLBackend, output)
-    write(output,"</dl></body></html>\n")
+    if length(self.epilogue)> 0
+        write(output,self.epilogue)
+    end
 end
 function write_entry(self::HTMLBackend, output, key, label, text)
     write(output,"<dt>$label</dt>\n")

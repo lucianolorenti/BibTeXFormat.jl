@@ -1,5 +1,6 @@
-
-import BibTeXFormat.TemplateEngine: field, words, optional_field
+using BibTeXFormat.TemplateEngine
+import BibTeXFormat.TemplateEngine: join
+using BibTeXFormat.RichTextElements
 function dashify(text)
     dash_re = re.compile(r"-+")
     return join(Text(TextSymbol("ndash")),split(text,dash_re))
@@ -14,7 +15,7 @@ struct UNSRTStyle <: BaseStyle
 end
 
 function format_names(self::UNSRTStyle, role, as_sentence=true)
-	formatted_names = BibTeXFormat.names(role, sep=", ", sep2 = " and ", last_sep=", and ")
+	formatted_names = TemplateEngine.names(role, sep=", ", sep2 = " and ", last_sep=", and ")
 	if as_sentence
 		return sentence[formatted_names]
 	else

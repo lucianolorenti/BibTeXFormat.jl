@@ -1,4 +1,6 @@
 module TemplateEngine
+using BibTeXFormat
+export  field, words, optional_field, first_of, optional, join,   sentence, toplevel, names, tag, together, href
 import BibTeXFormat.RichTextElements: RichText, nbsp
 using BibTeXFormat.RichTextElements
 struct Node
@@ -184,9 +186,10 @@ Return the contents of the bibliography entry field.
     try
         local ff = nothing
         if raw
+
             ff = entry[name]
         else
-            ff = latex_parse(entry[name])
+            ff = BibTeXFormat.latex_parse(entry[name])
         end
         if apply_func != nothing
             ff = apply_func(ff)
@@ -209,7 +212,7 @@ Return formatted names.
         throw(FieldIsMissing(string("names:",role)))
     end
     local style = context["style"]
-    formatted_names = [format(style.config.name_style,person, style.config.abbreviate_names) for person in persons]
+    formatted_names = [BibTeXFormat.format(style.config.name_style,person, style.config.abbreviate_names) for person in persons]
     return format_data(join(;kwargs...)[formatted_names],context)
 end
 
