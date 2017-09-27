@@ -17,6 +17,70 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "index.html#Markdown-example-1",
+    "page": "Home",
+    "title": "Markdown example",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"),\n                                                     \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nmdoutput          = write_to_string( MarkdownBackend(),formatted_entries)\nmdoutput_parsed   = Markdown.parse(mdoutput)"
+},
+
+{
+    "location": "index.html#output-1",
+    "page": "Home",
+    "title": "output",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"),\n                                               \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nmdoutput    = write_to_string( MarkdownBackend(),formatted_entries)\nmdoutput_parsed = Markdown.parse(mdoutput)"
+},
+
+{
+    "location": "index.html#HTML-example-1",
+    "page": "Home",
+    "title": "HTML example",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"),\n                                                    \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nhtmlbackend       = HTMLBackend(\"uft-8\",\"\",\"\") # No prolog and epilog\nhtmloutput        = write_to_string( htmlbackend ,formatted_entries)"
+},
+
+{
+    "location": "index.html#output-2",
+    "page": "Home",
+    "title": "output",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"),\n                                                    \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nhtmlbackend       = HTMLBackend(\"uft-8\",\"\",\"\") # No prolog and epilog\nhtmloutput        = write_to_string( htmlbackend ,formatted_entries)\nnothing"
+},
+
+{
+    "location": "index.html#LaTeX-example-1",
+    "page": "Home",
+    "title": "LaTeX example",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"), \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nmdoutput          = write_to_string( MarkdownBackend(),formatted_entries)\nmdoutput_parsed   = Markdown.parse(mdoutput)"
+},
+
+{
+    "location": "index.html#Markdown-output-1",
+    "page": "Home",
+    "title": "Markdown output",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"), \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nlatexoutput    = write_to_string( LaTeXBackend(),formatted_entries)"
+},
+
+{
+    "location": "index.html#Plain-example-1",
+    "page": "Home",
+    "title": "Plain example",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"), \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nmdoutput          = write_to_string( MarkdownBackend(),formatted_entries)\nmdoutput_parsed   = Markdown.parse(mdoutput)"
+},
+
+{
+    "location": "index.html#Output-1",
+    "page": "Home",
+    "title": "Output",
+    "category": "section",
+    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"), \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nmdoutput    = write_to_string( MarkdownBackend(),formatted_entries)\nmdoutput_parsed = Markdown.parse(mdoutput)"
+},
+
+{
     "location": "style.html#",
     "page": "Style",
     "title": "Style",
@@ -205,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Style",
     "title": "BibTeXFormat.format",
     "category": "Function",
-    "text": "Format names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.\n\nfrom pybtex.database import Person name = Person(string=r\"Charles Louis Xavier Joseph de la Vall{'e}e Poussin\") lastfirst = NameStyle().format\n\nprint(lastfirst(name).format().render_as('latex'))\n\nde~la Vall{é}e~Poussin, Charles Louis Xavier~Josteph\n\nprint(lastfirst(name).format().render_as('html'))\n\nde&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph\n\nprint(lastfirst(name, abbr=True).format().render_as('latex'))\n\nde~la Vall{é}e~Poussin, C.~L. X.~J.\n\nprint(lastfirst(name, abbr=True).format().render_as('html'))\n\nde&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J.\n\nname = Person(first='First', last='Last', middle='Middle') print(lastfirst(name).format().render_as('latex'))\n\nLast, First~Middle\n\nprint(lastfirst(name, abbr=True).format().render_as('latex'))\n\nLast, F.~M.\n\n\n\n"
+    "text": "Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.\n\nfrom pybtex.database import Person name = Person(string=r\"Charles Louis Xavier Joseph de la Vall{'e}e Poussin\") plain = NameStyle().format\n\nprint(plain(name).format().render_as('latex'))\n\nCharles Louis Xavier~Joseph de~la Vall{é}e~Poussin\n\nprint(plain(name).format().render_as('html'))\n\nCharles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin\n\nprint(plain(name, abbr=True).format().render_as('latex'))\n\nC.~L. X.~J. de~la Vall{é}e~Poussin\n\nprint(plain(name, abbr=True).format().render_as('html'))\n\nC.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin\n\nname = Person(first='First', last='Last', middle='Middle') print(plain(name).format().render_as('latex'))\n\nFirst~Middle Last\n\nprint(plain(name, abbr=True).format().render_as('latex'))\n\nF.~M. Last\n\nprint(plain(Person('de Last, Jr., First Middle')).format().render_as('latex'))\n\nFirst~Middle de~Last, Jr.\n\n\n\n"
 },
 
 {
@@ -213,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Style",
     "title": "BibTeXFormat.format",
     "category": "Function",
-    "text": "Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.\n\nfrom pybtex.database import Person name = Person(string=r\"Charles Louis Xavier Joseph de la Vall{'e}e Poussin\") plain = NameStyle().format\n\nprint(plain(name).format().render_as('latex'))\n\nCharles Louis Xavier~Joseph de~la Vall{é}e~Poussin\n\nprint(plain(name).format().render_as('html'))\n\nCharles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin\n\nprint(plain(name, abbr=True).format().render_as('latex'))\n\nC.~L. X.~J. de~la Vall{é}e~Poussin\n\nprint(plain(name, abbr=True).format().render_as('html'))\n\nC.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin\n\nname = Person(first='First', last='Last', middle='Middle') print(plain(name).format().render_as('latex'))\n\nFirst~Middle Last\n\nprint(plain(name, abbr=True).format().render_as('latex'))\n\nF.~M. Last\n\nprint(plain(Person('de Last, Jr., First Middle')).format().render_as('latex'))\n\nFirst~Middle de~Last, Jr.\n\n\n\n"
+    "text": "Format names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.\n\nfrom pybtex.database import Person name = Person(string=r\"Charles Louis Xavier Joseph de la Vall{'e}e Poussin\") lastfirst = NameStyle().format\n\nprint(lastfirst(name).format().render_as('latex'))\n\nde~la Vall{é}e~Poussin, Charles Louis Xavier~Josteph\n\nprint(lastfirst(name).format().render_as('html'))\n\nde&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph\n\nprint(lastfirst(name, abbr=True).format().render_as('latex'))\n\nde~la Vall{é}e~Poussin, C.~L. X.~J.\n\nprint(lastfirst(name, abbr=True).format().render_as('html'))\n\nde&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J.\n\nname = Person(first='First', last='Last', middle='Middle') print(lastfirst(name).format().render_as('latex'))\n\nLast, First~Middle\n\nprint(lastfirst(name, abbr=True).format().render_as('latex'))\n\nLast, F.~M.\n\n\n\n"
 },
 
 {
@@ -253,7 +317,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Backends",
     "title": "BibTeXFormat.render_as",
     "category": "Method",
-    "text": "Render this :py:class:Text into markup. This is a wrapper method that loads a formatting backend plugin and calls :py:meth:Text.render.\n\ntext = Text(\"Longcat is \", Tag(\"em\", \"looooooong\"), \"!\") print(text.render_as(\"html\"))\n\nLongcat is <em>looooooong</em>!\n\nprint(text.render_as(\"latex\"))\n\nLongcat is mph{looooooong}!\n\nprint(text.render_as(\"text\"))\n\nLongcat is looooooong!\n\n:param backend_name: The name of the output backend (like latex or 	html).\n\n\n\n"
+    "text": "function render_as(self::T, backend_name) where T<:BaseText\n\nRender BaseText into markup. This is a wrapper method that loads a formatting backend plugin and calls :py render(:BaseText). backend_name is  the name of the output backend ( \"latex\",\"html\", \"markdown\", \"text\").\n\njulia> import BibTeXFormat.RichTextElements: RichText, Tag\n\njulia> import BibTeXFormat: render_as\n\njulia> text = RichText(\"Longcat is \", Tag(\"em\", \"looooooong\"), \"!\");\n\njulia> print(render_as(text, \"html\"))\nLongcat is <em>looooooong</em>!\njulia> print(render_as(text, \"latex\"))\nLongcat is \\emph{looooooong}!\njulia> print(render_as(text, \"text\"))\nLongcat is looooooong!\n\n\n\n\n"
 },
 
 {
@@ -261,7 +325,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Backends",
     "title": "BibTeXFormat.BaseBackend",
     "category": "Type",
-    "text": "This is the base class for the backends. We encourage you to implement as many of the symbols and tags as possible when you create a new plugin.\n\nsymbols[\"ndash\"]    : Used to separate pages symbols[\"newblock\"] : Used to separate entries in the bibliography symbols[\"bst_script\"]      : A non-breakable space\n\ntags[\"\"em']          : emphasize text tags[\"strong\"]      : emphasize text even more tags[\"i\"]            : italicize text, not semantic tags[\"b\"]           : embolden text, not semantic tags[\"tt\"]          : typewrite text, not semantic\n\n\n\n"
+    "text": "This is the base type for the backends. We encourage you to implement as many of the symbols and tags as possible when you create a new plugin.\n\nsymbols[\"ndash\"]    : Used to separate pages\nsymbols[\"newblock\"] : Used to separate entries in the bibliography\nsymbols[\"bst_script\"]      : A non-breakable space\ntags[\"\"em']   : emphasize text\ntags[\"strong\"]: emphasize text even more\ntags[\"i\"]     : italicize text, not semantic\ntags[\"b\"]     : embolden text, not semantic\ntags[\"tt\"]    : typewrite text, not semantic\n\n\n\n"
 },
 
 {
@@ -269,7 +333,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Backends",
     "title": "BibTeXFormat.format",
     "category": "Method",
-    "text": "Format a \"protected\" piece of text.\n\nIn LaTeX backend, it is formatted as a {braced group}. Most other backends would just output the text as-is.\n\n\n\n"
+    "text": "function format(self::T, t::Protected, text) where T<:BaseBackend\n\nFormat a \"protected\" piece of text.\n\nIn LaTeX backend, it is formatted as a {braced group}. Most other backends would just output the text as-is.\n\n\n\n"
 },
 
 {
@@ -285,7 +349,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Backends",
     "title": "BibTeXFormat.render_sequence",
     "category": "Method",
-    "text": "Render a sequence of rendered Text objects. The default implementation simply concatenates the strings in rendered_list. Override this method for non-string backends.\n\n\n\n"
+    "text": "function render_sequence(self::T, rendered_list) where T <:BaseBackend\n\nRender a sequence of rendered Text objects. The default implementation simply concatenates the strings in rendered_list. Override this method for non-string backends.\n\n\n\n"
 },
 
 {
@@ -301,7 +365,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Backends",
     "title": "BibTeXFormat.HTMLBackend",
     "category": "Type",
-    "text": "from pybtex.richtext import Text, Tag, Symbol print(Tag('em', Text(u'Ð›.:', Symbol('nbsp'), u'<<Ð¥Ð¸Ð¼Ð¸Ñ>>')).render(HTMLBackend()))\n\n<em>Ð›.:&nbsp;&lt;&lt;Ð¥Ð¸Ð¼Ð¸Ñ&gt;&gt;</em>\n\n\n\n"
+    "text": "struct HTMLBackend <: BaseBackend\n\njulia> import BibTeXFormat.RichTextElements: RichText, Tag, TextSymbol\n\njulia> import BibTeXFormat: render, HTMLBackend\n\njulia> print(render(Tag(\"em\", RichText(\"Ð›.:\", TextSymbol(\"nbsp\"), \"<<Ð¥Ð¸Ð¼Ð¸Ñ>>\")),HTMLBackend()))\n<em>Ð›.:&nbsp;&lt;&lt;Ð¥Ð¸Ð¼Ð¸Ñ&gt;&gt;</em>\n\n\n\n"
 },
 
 {
@@ -313,11 +377,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "backends.html#BibTeXFormat.LaTeXBackend",
+    "page": "Backends",
+    "title": "BibTeXFormat.LaTeXBackend",
+    "category": "Type",
+    "text": "LaTeX output backend.\n\njulia> import BibTeXFormat: LaTeXBackend, render\n\njulia> import BibTeXFormat.RichTextElements: Tag, HRef\n\njulia> latex = LaTeXBackend();\n\njulia> print(render(Tag(\"em\", \"\"),latex))\n\njulia> print(render(Tag(\"em\", \"Non-\", \"empty\"),latex))\n\\emph{Non-empty}\njulia> print(render(HRef(\"/\", \"\"),latex))\n\njulia> print(render(HRef(\"/\", \"Non-\", \"empty\"),latex))\n\\href{/}{Non-empty}\njulia> print(render(HRef(\"http://example.org/\", \"http://example.org/\"),latex))\n\\url{http://example.org/}\n\n\n\n"
+},
+
+{
     "location": "backends.html#BibTeXFormat.format-Tuple{BibTeXFormat.LaTeXBackend,BibTeXFormat.RichTextElements.Protected,Any}",
     "page": "Backends",
     "title": "BibTeXFormat.format",
     "category": "Method",
-    "text": "from pybtex.richtext import Protected print(Protected(\"CTAN\").render_as(\"latex\"))\n\n{CTAN}\n\n\n\n"
+    "text": "function format(self::LaTeXBackend, p::Protected, text)\n\njulia> import BibTeXFormat.RichTextElements: Protected\n\njulia> import BibTeXFormat: render_as\n\njulia> print(render_as(Protected(\"CTAN\"), \"latex\"))\n{CTAN}\n\n\n\n"
 },
 
 {
@@ -505,6 +577,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "richtextelements.html#BibTeXFormat.RichTextElements.Tag",
+    "page": "Rich Text Elements",
+    "title": "BibTeXFormat.RichTextElements.Tag",
+    "category": "Type",
+    "text": "A Tag represents something like an HTML tag or a LaTeX formatting command:\n\njulia> import BibTeXFormat: render_as\n\njulia> tag = Tag(\"em\", \"The TeXbook\");\n\njulia> render_as(tag, \"latex\")\n\"\\\\emph{The TeXbook}\"\n\njulia> render_as(tag, \"html\")\n\"<em>The TeXbook</em>\"\n\n\n\n\n"
+},
+
+{
+    "location": "richtextelements.html#BibTeXFormat.RichTextElements.capitalize-Tuple{BibTeXFormat.RichTextElements.BaseText}",
+    "page": "Rich Text Elements",
+    "title": "BibTeXFormat.RichTextElements.capitalize",
+    "category": "Method",
+    "text": "function capitalize(self::BaseText)\n\nCapitalize the first letter of the text and lowercasecase the rest.\n\njulia> capitalize(RichText(Tag(\"em\", \"LONG CAT\")))\nRichText(Tag(\"em\", \"Long cat\"))\n\n\n\n\n"
+},
+
+{
     "location": "richtextelements.html#BibTeXFormat.RichTextElements.HRef",
     "page": "Rich Text Elements",
     "title": "BibTeXFormat.RichTextElements.HRef",
@@ -534,14 +622,6 @@ var documenterSearchIndex = {"docs": [
     "title": "BibTeXFormat.RichTextElements.RichString",
     "category": "Method",
     "text": "All arguments must be plain unicode strings. Arguments are concatenated together.\n\njulia> print(convert(String,RichString(\"November\", \", \", \"December\", \".\")))\nNovember, December.\n\n\n\n"
-},
-
-{
-    "location": "richtextelements.html#BibTeXFormat.RichTextElements.Tag",
-    "page": "Rich Text Elements",
-    "title": "BibTeXFormat.RichTextElements.Tag",
-    "category": "Type",
-    "text": "A Tag represents something like an HTML tag or a LaTeX formatting command:\n\njulia> import BibTeXFormat: render_as\n\njulia> tag = Tag(\"em\", \"The TeXbook\");\n\njulia> render_as(tag, \"latex\")\n\"\\\\emph{The TeXbook}\"\n\njulia> render_as(tag, \"html\")\n\"<em>The TeXbook</em>\"\n\n\n\n\n"
 },
 
 {
@@ -710,14 +790,6 @@ var documenterSearchIndex = {"docs": [
     "title": "BibTeXFormat.RichTextElements.capfirst",
     "category": "Method",
     "text": "function capfirst(self::BaseText)\n\nCapitalize the first letter of the text.\n\njulia> capfirst(RichText(Tag(\"em\", \"long Cat\")))\nRichText(Tag(\"em\", \"Long Cat\"))\n\n\n\n\n"
-},
-
-{
-    "location": "richtextelements.html#BibTeXFormat.RichTextElements.capitalize-Tuple{BibTeXFormat.RichTextElements.BaseText}",
-    "page": "Rich Text Elements",
-    "title": "BibTeXFormat.RichTextElements.capitalize",
-    "category": "Method",
-    "text": "function capitalize(self::BaseText)\n\nCapitalize the first letter of the text and lowercasecase the rest.\n\njulia> capitalize(RichText(Tag(\"em\", \"LONG CAT\")))\nRichText(Tag(\"em\", \"Long cat\"))\n\n\n\n\n"
 },
 
 {
