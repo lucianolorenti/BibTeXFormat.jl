@@ -121,6 +121,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "style.html#BibTeXFormat.format_entry-Union{Tuple{T,Any,BibTeX.Citation}, Tuple{T}} where T<:BibTeXFormat.BaseStyle",
+    "page": "Style",
+    "title": "BibTeXFormat.format_entry",
+    "category": "Method",
+    "text": "function format_entry(b::T, label, entry::Citation) where T <: BaseStyle\n\n\n\n"
+},
+
+{
+    "location": "style.html#BibTeXFormat.format_entry-Union{Tuple{T,Any,Dict{String,Any}}, Tuple{T}} where T<:BibTeXFormat.BaseStyle",
+    "page": "Style",
+    "title": "BibTeXFormat.format_entry",
+    "category": "Method",
+    "text": "function format_entry(b::T, label, entry) where T <: BaseStyle\n\nFormat an entry with a given style b::T where T <: BaseStyle\n\n\n\n"
+},
+
+{
     "location": "style.html#BibTeXFormat.PlainAlphaStyle",
     "page": "Style",
     "title": "BibTeXFormat.PlainAlphaStyle",
@@ -153,19 +169,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "style.html#BibTeXFormat.format_entry-Union{Tuple{T,Any,Any}, Tuple{T}} where T<:BibTeXFormat.BaseStyle",
-    "page": "Style",
-    "title": "BibTeXFormat.format_entry",
-    "category": "Method",
-    "text": "function format_entry(b::T, label, entry) where T <: BaseStyle\n\nFormat an entry with a given style b::T where T <: BaseStyle\n\n\n\n"
-},
-
-{
     "location": "style.html#BibTeXFormat.get_crossreferenced_citations-Tuple{Any,Any}",
     "page": "Style",
     "title": "BibTeXFormat.get_crossreferenced_citations",
     "category": "Method",
     "text": "Get cititations not cited explicitly but referenced by other citations.\n\njulia> using BibTeX\n\njulia> import BibTeXFormat: get_crossreferenced_citations\n\njulia> data = Bibliography(\"\", Dict{String,Citation}(\"main_article\"=>Citation{:article}(Dict(\"crossref\"=>\"xrefd_article\")),\"xrefd_article\"=>Citation{:article}()));\n\njulia> print(get_crossreferenced_citations(data, [], min_crossrefs=1))\nAny[]\njulia> print(get_crossreferenced_citations(data, [\"main_article\"], min_crossrefs=1))\nAny[\"xrefd_article\"]\njulia> print(get_crossreferenced_citations(data,[\"Main_article\"], min_crossrefs=1))\nAny[\"xrefd_article\"]\njulia> print(get_crossreferenced_citations(data, [\"main_article\"], min_crossrefs=2))\nAny[]\njulia> print(get_crossreferenced_citations(data, [\"xrefd_arcicle\"], min_crossrefs=1))\nAny[]\n\n\n\n"
+},
+
+{
+    "location": "style.html#BibTeXFormat.transform-Tuple{BibTeX.Citation,Any}",
+    "page": "Style",
+    "title": "BibTeXFormat.transform",
+    "category": "Method",
+    "text": "function transform(e::Citation, label)\n\nAdd some information to a BibTeX.Citation.\n\n\n\n"
 },
 
 {
