@@ -1,0 +1,19 @@
+[Ben969]Robert S. Bennett. The intrinsic dimensionality of signal collections. IEEE Transactions on Information Theory, 1969.
+[DLR977]Arthur P Dempster, Nan M Laird, and Donald B Rubin. Maximum likelihood from incomplete data via the EM algorithm. Journal of the royal statistical society. Series B (methodological), 1977.
+[DJ976]Richard Dubes and Anil K Jain. Clustering techniques: the user's dilemma. Pattern Recognition, 1976.
+[ESBB998]Michael B Eisen, Paul T Spellman, Patrick O Brown, and David Botstein. Cluster analysis and display of genome-wide expression patterns. Proceedings of the National Academy of Sciences, 1998.
+[FS966]JJ Fortier and Ho Solomon. Clustering procedures. Multivariate analysis, 1966.
+[FR967]Herman P Friedman and Jerrold Rubin. On some invariant criteria for grouping data. Journal of the American Statistical Association, 1967.
+[FYBB993]LiMin Fu, Mark Yang, Raul Braylan, and Neal Benson. Real-time adaptive clustering of flow cytometric data. Pattern recognition, 1993.
+[FH975]K. Fukunaga and L. Hostetler. The estimation of the gradient of a density function, with applications in pattern recognition. Information Theory, IEEE Transactions on, Jan 1975.
+[FO971]Keinosuke Fukunaga and David R Olsen. An algorithm for finding intrinsic dimensionality of data. Computers, IEEE Transactions on, 1971.
+[GH977]A. D. Gordon and J. T. Henderson. An Algorithm for Euclidean Sum of Squares Classification. Biometrics, 1977.
+[GK978]K Chidananda Gowda and G Krishna. Agglomerative clustering using the concept of mutual nearest neighbourhood. Pattern Recognition, 1978.
+[HS976]Lawrence Hubert and James Schultz. Quadratic assignment as a general data analysis strategy. British journal of mathematical and statistical psychology, 1976.
+[JP973]Raymond A Jarvis and Edward A Patrick. Clustering using a similarity measure based on shared near neighbors. Computers, IEEE Transactions on, 1973.
+[Jen969]Robert E Jensen. A dynamic programming algorithm for cluster analysis. Operations Research, 1969.
+[Joh967]StephenC. Johnson. Hierarchical clustering schemes. Psychometrika, 1967.
+[LW967]Godfrey N Lance and William Thomas Williams. A general theory of classificatory sorting strategies II. Clustering systems. The computer journal, 1967.
+[MB988]Geoffrey J McLachlan and Kaye E Basford. Mixture models: Inference and applications to clustering. Applied Statistics, 1988.
+[Roh970]F James Rohlf. Adaptive hierarchical clustering schemes. Systematic Biology, 1970.
+[WardJr963]Joe H Ward Jr. Hierarchical grouping to optimize an objective function. Journal of the American statistical association, 1963.
