@@ -1,6 +1,7 @@
 export AlphaStyle,
        format_entries,
-       BST
+       BST,
+       format_entry
 include("templateengine.jl")
 include("names.jl")
 include("labels.jl")
@@ -28,6 +29,12 @@ end
 function citation_type(e::Dict{String,Any})
     return e["type"]
 end
+"""
+```
+function transform(e::Citation, label)
+```
+Add some information to a BibTeX.Citation.
+"""
 function transform(e::Citation, label)
     local e_n = Dict{String,Any}()
     local e_n["persons"] = Dict{String,Vector{Person}}()
@@ -75,6 +82,15 @@ function format_entries(b::T, entries) where T <: BaseStyle
 	end
     return formatted_entries
 end
+"""
+```
+function format_entry(b::T, label, entry::Citation) where T <: BaseStyle
+```
+"""
+function format_entry(b::T, label, entry::Citation) where T <: BaseStyle
+    local t_entry = transform(entry, label)
+    return format_entry(b, label, t_entry)
+end
 
 """
 ```
@@ -84,7 +100,7 @@ function format_entry(b::T, label, entry) where T <: BaseStyle
 Format an `entry` with a given style `b::T where T <: BaseStyle`
 
 """
-function format_entry(b::T, label, entry) where T<:BaseStyle
+function format_entry(b::T, label, entry::Dict{String,Any}) where T<:BaseStyle
 	local context = Dict{String,Any}("entry" => entry, "style"=>b)
     local text    = ""
 	try
