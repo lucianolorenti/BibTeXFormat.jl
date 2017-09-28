@@ -37,7 +37,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "HTML example",
     "category": "section",
-    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"),\n                                                    \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nhtmlbackend       = HTMLBackend(\"uft-8\",\"\",\"\") # No prolog and epilog\nhtmloutput        = write_to_string( htmlbackend ,formatted_entries)"
+    "text": "using BibTeX\nusing BibTeXFormat\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"),\n                                                    \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nhtmlbackend       = HTMLBackend(\"uft-8\") # No prolog and epilog\nwrite_to_file( htmlbackend ,formatted_entries, \"html_test.html\")\nnothing # hide"
 },
 
 {
@@ -45,7 +45,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "output",
     "category": "section",
-    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"),\n                                                    \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nhtmlbackend       = HTMLBackend(\"uft-8\",\"\",\"\") # No prolog and epilog\nhtmloutput        = write_to_string( htmlbackend ,formatted_entries)\nnothing"
+    "text": "Result"
 },
 
 {
@@ -53,7 +53,15 @@ var documenterSearchIndex = {"docs": [
     "page": "Home",
     "title": "LaTeX example",
     "category": "section",
-    "text": "using BibTeX\nusing BibTeXFormat\n\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"), \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nmdoutput          = write_to_string( MarkdownBackend(),formatted_entries)\nmdoutput_parsed   = Markdown.parse(mdoutput)"
+    "text": "using BibTeX\nusing BibTeXFormat\nbibliography      = Bibliography(readstring(joinpath(Pkg.dir(\"BibTeXFormat\"),\n                                                    \"test/Clustering.bib\")))\nformatted_entries = format_entries(AlphaStyle,bibliography)\nlatexbackend      = LaTeXBackend() # No prolog and epilog\nwrite_to_file( latexbackend ,formatted_entries, \"latex_test.aux\")\nnothing # hide"
+},
+
+{
+    "location": "index.html#output-3",
+    "page": "Home",
+    "title": "output",
+    "category": "section",
+    "text": "Result"
 },
 
 {
@@ -269,7 +277,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Style",
     "title": "BibTeXFormat.format",
     "category": "Function",
-    "text": "Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.\n\nfrom pybtex.database import Person name = Person(string=r\"Charles Louis Xavier Joseph de la Vall{'e}e Poussin\") plain = NameStyle().format\n\nprint(plain(name).format().render_as('latex'))\n\nCharles Louis Xavier~Joseph de~la Vall{é}e~Poussin\n\nprint(plain(name).format().render_as('html'))\n\nCharles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin\n\nprint(plain(name, abbr=True).format().render_as('latex'))\n\nC.~L. X.~J. de~la Vall{é}e~Poussin\n\nprint(plain(name, abbr=True).format().render_as('html'))\n\nC.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin\n\nname = Person(first='First', last='Last', middle='Middle') print(plain(name).format().render_as('latex'))\n\nFirst~Middle Last\n\nprint(plain(name, abbr=True).format().render_as('latex'))\n\nF.~M. Last\n\nprint(plain(Person('de Last, Jr., First Middle')).format().render_as('latex'))\n\nFirst~Middle de~Last, Jr.\n\n\n\n"
+    "text": "Format names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.\n\nfrom pybtex.database import Person name = Person(string=r\"Charles Louis Xavier Joseph de la Vall{'e}e Poussin\") lastfirst = NameStyle().format\n\nprint(lastfirst(name).format().render_as('latex'))\n\nde~la Vall{é}e~Poussin, Charles Louis Xavier~Josteph\n\nprint(lastfirst(name).format().render_as('html'))\n\nde&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph\n\nprint(lastfirst(name, abbr=True).format().render_as('latex'))\n\nde~la Vall{é}e~Poussin, C.~L. X.~J.\n\nprint(lastfirst(name, abbr=True).format().render_as('html'))\n\nde&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J.\n\nname = Person(first='First', last='Last', middle='Middle') print(lastfirst(name).format().render_as('latex'))\n\nLast, First~Middle\n\nprint(lastfirst(name, abbr=True).format().render_as('latex'))\n\nLast, F.~M.\n\n\n\n"
 },
 
 {
@@ -277,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Style",
     "title": "BibTeXFormat.format",
     "category": "Function",
-    "text": "Format names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.\n\nfrom pybtex.database import Person name = Person(string=r\"Charles Louis Xavier Joseph de la Vall{'e}e Poussin\") lastfirst = NameStyle().format\n\nprint(lastfirst(name).format().render_as('latex'))\n\nde~la Vall{é}e~Poussin, Charles Louis Xavier~Josteph\n\nprint(lastfirst(name).format().render_as('html'))\n\nde&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph\n\nprint(lastfirst(name, abbr=True).format().render_as('latex'))\n\nde~la Vall{é}e~Poussin, C.~L. X.~J.\n\nprint(lastfirst(name, abbr=True).format().render_as('html'))\n\nde&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J.\n\nname = Person(first='First', last='Last', middle='Middle') print(lastfirst(name).format().render_as('latex'))\n\nLast, First~Middle\n\nprint(lastfirst(name, abbr=True).format().render_as('latex'))\n\nLast, F.~M.\n\n\n\n"
+    "text": "Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.\n\nfrom pybtex.database import Person name = Person(string=r\"Charles Louis Xavier Joseph de la Vall{'e}e Poussin\") plain = NameStyle().format\n\nprint(plain(name).format().render_as('latex'))\n\nCharles Louis Xavier~Joseph de~la Vall{é}e~Poussin\n\nprint(plain(name).format().render_as('html'))\n\nCharles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin\n\nprint(plain(name, abbr=True).format().render_as('latex'))\n\nC.~L. X.~J. de~la Vall{é}e~Poussin\n\nprint(plain(name, abbr=True).format().render_as('html'))\n\nC.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin\n\nname = Person(first='First', last='Last', middle='Middle') print(plain(name).format().render_as('latex'))\n\nFirst~Middle Last\n\nprint(plain(name, abbr=True).format().render_as('latex'))\n\nF.~M. Last\n\nprint(plain(Person('de Last, Jr., First Middle')).format().render_as('latex'))\n\nFirst~Middle de~Last, Jr.\n\n\n\n"
 },
 
 {
