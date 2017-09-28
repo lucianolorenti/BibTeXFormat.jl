@@ -24,6 +24,7 @@ julia> print(render(HRef("http://example.org/", "http://example.org/"),latex))
 struct LaTeXBackend <: BaseBackend
 	enconding::String
 	latex_enconding::String
+    preamble::String
 end
 
 default_suffix[LaTeXBackend] = ".bbl"
@@ -41,7 +42,7 @@ tags[LaTeXBackend] = Dict{String,String}(
 )
 function LaTeXBackend(enconding=nothing)
 	local eenconding = "UTF-8"
-	return LaTeXBackend(eenconding, string("ulatex+",eenconding))
+	return LaTeXBackend(eenconding, string("ulatex+",eenconding),"")
 end
 function format(self::LaTeXBackend, str::String)
 
@@ -91,15 +92,15 @@ function format(self::LaTeXBackend, p::Protected, text)
 	return "{$text}"
 end
 
-function write_prologue(self::LaTeXBackend, formatted_bibliography)
-	if length(formatted_bibliography.preamble)>0
-		write(output,string(formatted_bibliography.preamble,"\n"))
+function write_prologue(self::LaTeXBackend, output, formatted_bibliography)
+	if length(self.preamble)>0
+		write(output,string(self.preamble,"\n"))
 	end
-	local longest_label = longest_label(formatted_bibliography)
-	write(output,"\\begin{thebibliography}{$longest_label}")
+	local l_label = get_longest_label(formatted_bibliography)
+	write(output,"\\begin{thebibliography}{$l_label}")
 end
 
-function write_epilogue(self::LaTeXBackend, output)
+function write_epilogue(self::LaTeXBackend, output, formatted_bibliography)
 	write(output,"\n\n\\end{thebibliography}\n")
 end
 

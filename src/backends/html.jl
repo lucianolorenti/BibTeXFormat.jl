@@ -1,4 +1,5 @@
 using HttpCommon
+import Formatting
 const PROLOGUE = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
 <html>
 <head><meta name="generator" content="Pybtex">

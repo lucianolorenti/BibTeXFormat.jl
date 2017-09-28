@@ -29,37 +29,32 @@ mdoutput_parsed = Markdown.parse(mdoutput)
 ```@example
 using BibTeX
 using BibTeXFormat
-
 bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"),
                                                     "test/Clustering.bib")))
 formatted_entries = format_entries(AlphaStyle,bibliography)
-htmlbackend       = HTMLBackend("uft-8","","") # No prolog and epilog
-htmloutput        = write_to_string( htmlbackend ,formatted_entries)
+htmlbackend       = HTMLBackend("uft-8") # No prolog and epilog
+write_to_file( htmlbackend ,formatted_entries, "html_test.html")
+nothing # hide
 ```
 ### output
-```@eval
-using BibTeX
-using BibTeXFormat
-
-bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"),
-                                                    "test/Clustering.bib")))
-formatted_entries = format_entries(AlphaStyle,bibliography)
-htmlbackend       = HTMLBackend("uft-8","","") # No prolog and epilog
-htmloutput        = write_to_string( htmlbackend ,formatted_entries)
-nothing
-```
+[Result](html_test.html)
 
 ## LaTeX example
 
-```julia
+```@example
 using BibTeX
 using BibTeXFormat
-
-bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
+bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"),
+                                                    "test/Clustering.bib")))
 formatted_entries = format_entries(AlphaStyle,bibliography)
-mdoutput          = write_to_string( MarkdownBackend(),formatted_entries)
-mdoutput_parsed   = Markdown.parse(mdoutput)
+latexbackend      = LaTeXBackend() # No prolog and epilog
+write_to_file( latexbackend ,formatted_entries, "latex_test.aux")
+nothing # hide
 ```
+
+### output
+[Result](latex_test.aux)
+
 ### Markdown output
 ```
 using BibTeX

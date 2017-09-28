@@ -89,7 +89,6 @@ function write_to_string(self, formatted_entries)
     return String(buff)
 end
 function write_to_stream(self::BaseBackend, formatted_bibliography, stream=IOBuffer())
-
     write_prologue(self, stream)
     for (key, text, label ) in formatted_bibliography
         write_entry(self, stream, key, label,  render(text,self))

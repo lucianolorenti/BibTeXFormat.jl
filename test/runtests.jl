@@ -22,7 +22,7 @@ Documenter.makedocs(
                  ]
                ],
     #strict = true,
-    linkcheck = true,
+    #linkcheck = true,
     #checkdocs = :exports,
     authors = "Luciano Lorenti",
     doctest=true
