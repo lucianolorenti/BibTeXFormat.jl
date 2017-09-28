@@ -29,9 +29,9 @@ const symbols = Dict{Type,Dict{String,String}}(
 const tags    = Dict{Type,Dict{String,String}}()
 const default_suffix = Dict{Type,String}()
 
-function write_prologue(self::BaseBackend, s)
+function write_prologue(self::BaseBackend, output, formatted_bibliography)
 end
-function write_epilogue(self::BaseBackend,s )
+function write_epilogue(self::BaseBackend, output, formatted_bibliography )
 end
 """
 ```
@@ -89,11 +89,11 @@ function write_to_string(self, formatted_entries)
     return String(buff)
 end
 function write_to_stream(self::BaseBackend, formatted_bibliography, stream=IOBuffer())
-    write_prologue(self, stream)
+    write_prologue(self, stream, formatted_bibliography)
     for (key, text, label ) in formatted_bibliography
         write_entry(self, stream, key, label,  render(text,self))
 	end
-	write_epilogue(self,stream)
+	write_epilogue(self,stream, formatted_bibliography)
     return stream
 end
     #include("Markdown.jl")

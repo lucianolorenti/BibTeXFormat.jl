@@ -55,34 +55,16 @@ nothing # hide
 ### output
 [Result](latex_test.aux)
 
-### Markdown output
-```
-using BibTeX
-using BibTeXFormat
+## Plain text example
 
-bibliography = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
-formatted_entries = format_entries(AlphaStyle,bibliography)
-latexoutput    = write_to_string( LaTeXBackend(),formatted_entries)
-```
-
-## Plain example
-
-```julia
+```@example
 using BibTeX
 using BibTeXFormat
 
 bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
 formatted_entries = format_entries(AlphaStyle,bibliography)
-mdoutput          = write_to_string( MarkdownBackend(),formatted_entries)
-mdoutput_parsed   = Markdown.parse(mdoutput)
+write_to_file( TextBackend(),formatted_entries, "text_test.txt")
 ```
-### Output
-```
-using BibTeX
-using BibTeXFormat
 
-bibliography = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
-formatted_entries = format_entries(AlphaStyle,bibliography)
-mdoutput    = write_to_string( MarkdownBackend(),formatted_entries)
-mdoutput_parsed = Markdown.parse(mdoutput)
-```
+### output
+[Result](text_test.txt)

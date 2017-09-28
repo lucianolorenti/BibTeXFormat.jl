@@ -58,7 +58,7 @@ function format(self::HTMLBackend, url::HRef, text)
         return ""
     end
 end
-function write_prologue(self::HTMLBackend, output)
+function write_prologue(self::HTMLBackend, output, formatted_bibliography)
     if length(self.prologue)>0
         local encoding = nothing
         if (self.encoding == "")
@@ -69,7 +69,7 @@ function write_prologue(self::HTMLBackend, output)
         write(output,Formatting.format(self.prologue, encoding))
     end
 end
-function write_epilogue(self::HTMLBackend, output)
+function write_epilogue(self::HTMLBackend, output, formatted_bibliography)
     if length(self.epilogue)> 0
         write(output,self.epilogue)
     end

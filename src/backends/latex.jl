@@ -93,9 +93,10 @@ function format(self::LaTeXBackend, p::Protected, text)
 end
 
 function write_prologue(self::LaTeXBackend, output, formatted_bibliography)
-	if length(self.preamble)>0
-		write(output,string(self.preamble,"\n"))
-	end
+    # FIXME: handle bibtex preamble
+    #if length(formatted_bibliography.preamble)>0
+	#	write(output,string(formatted_bibliography.preamble,"\n"))
+	#end
 	local l_label = get_longest_label(formatted_bibliography)
 	write(output,"\\begin{thebibliography}{$l_label}")
 end

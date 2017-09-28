@@ -1,7 +1,7 @@
 import BibTeXFormat: citation_type, abbreviate
 import Base.convert
 function  get_longest_label(formatted_entries)
-    labels = [length(entry.label) for entry in formatted_entries]
+    labels = [length(label) for (label,entry) in formatted_entries]
     return maximum(labels)
 end
 
