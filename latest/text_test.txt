@@ -14,6 +14,7 @@
 [Jen969]Robert E Jensen. A dynamic programming algorithm for cluster analysis. Operations Research, 1969.
 [Joh967]StephenC. Johnson. Hierarchical clustering schemes. Psychometrika, 1967.
 [LW967]Godfrey N Lance and William Thomas Williams. A general theory of classificatory sorting strategies II. Clustering systems. The computer journal, 1967.
+[Maw004]Jean Mawhin. Les fondements de la mécanique en amont et en aval de poincaré. réactions belges à l’expérience du pendule de foucault. Philosophiques, 2004.
 [MB988]Geoffrey J McLachlan and Kaye E Basford. Mixture models: Inference and applications to clustering. Applied Statistics, 1988.
 [Roh970]F James Rohlf. Adaptive hierarchical clustering schemes. Systematic Biology, 1970.
 [WardJr963]Joe H Ward Jr. Hierarchical grouping to optimize an objective function. Journal of the American statistical association, 1963.
