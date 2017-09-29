@@ -32,7 +32,7 @@ function iter_string_parts(str)
 		if (String(strtoken)=="{")
 			level = level +1
 			if e<i
-				append!(parts[end], RichString(Base.join(tokens[e:i-1],"")))
+            append!(parts[end], RichString(BibTeX.simplify_latex(Base.join(tokens[e:i-1],""))))
 			end
 			e=i+1
 			protected = Protected("")
@@ -41,7 +41,7 @@ function iter_string_parts(str)
 		elseif (String(strtoken)=="}")
 			level = level -1
 			if e<i
-				append!(parts[end], RichString(Base.join(tokens[e:i-1],"")))
+            append!(parts[end], RichString(BibTeX.simplify_latex(Base.join(tokens[e:i-1],""))))
 			end
 			pop!(parts)
 			e=i+1

@@ -125,7 +125,7 @@ function add_period(self::BaseText, period=".")
 end
 function  abbreviate_word(word)
 	if isalpha(word)
-		return add_period(word[0])
+		return add_period(word[1])
 	else
 		return word
 	end
@@ -693,7 +693,7 @@ Return True if all characters in the string are alphabetic and there is
 at least one character, False otherwise.
 """
 function isalpha(self::RichString)
-    return isalpha(self.value)
+    return all(isalpha, self.value)
 end
 function lowercase(self::RichString)
     return String(lowercase(self.value))

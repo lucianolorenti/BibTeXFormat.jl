@@ -360,5 +360,5 @@ function rich_lineage_names(self::Person)
     return [latex_parse(name) for name in self.lineage_names]
 end
 function rich_fields(self::Person, field)
-    return latex_parse(get_part(self,fiedl))
+    return latex_parse(get_part(self,field))
 end
