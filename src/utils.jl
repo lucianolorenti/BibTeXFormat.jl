@@ -1,4 +1,3 @@
-
 """
 
 Split a list of names, separated by ' and '.

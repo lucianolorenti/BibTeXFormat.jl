@@ -15,6 +15,8 @@ import Base.append!
 import Base.show
 import Base.startswith
 import Base.write
+
+import BibTeXFormat: delimiter_re
 abstract type BaseText end
 import BibTeXFormat: whitespace_re, render_as
 function typeinfo(v::T) where T<:BaseText
@@ -128,10 +130,9 @@ function  abbreviate_word(word)
 		return word
 	end
 end
-
 function abbreviate(self::BaseText)
-	parts = split(self,textutils.delimiter_re)
-	return join( [abbreviate_word(part) for part in parts], " ")
+	parts = split(self, delimiter_re)
+    return join(RichText(" "),[abbreviate_word(part) for part in parts])
 end
 
 """
@@ -341,13 +342,13 @@ function getindex(a::T, start::Integer, eend, step::Integer) where T<:MultiPartT
 		error("Not Implemented")
 	end
 	if start < 1
-		start = length(self) + start
+		start = length(a) + start
 	end
 	if eend  == nothing
 		eend = start
 	end
 	if eend < 1
-		eend = length(self) + eend
+		eend = length(a) + eend
 	end
     return slice_beginning(slice_end(a,length(a) - start+1),eend - start+1)
 end
