@@ -237,7 +237,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Style",
     "title": "BibTeXFormat.BST.strip_comment",
     "category": "Method",
-    "text": "Strip the commented part of the line.\" ´´´jldoctest julia> print(strip_comment(\"a normal line\")) a normal line julia> print(strip_comment(\"%\"))\n\njulia> print(strip_comment(\"%comment\"))\n\njulia> print(strip_comment(\"trailing%\")) trailing julia> print(strip_comment(\"a normal line% and a comment\")) a normal line julia> print(strip_comment(\"\"100% compatibility\" is a myth\")) \"100% compatibility\" is a myth julia> print(strip_comment(\"\"100% compatibility\" is a myth% or not?\")) \"100% compatibility\" is a myth ´´´\n\n\n\n"
+    "text": "Strip the commented part of the line.\"\n\njulia> print(strip_comment(\"a normal line\"))\na normal line\njulia> print(strip_comment(\"%\"))\n\njulia> print(strip_comment(\"%comment\"))\n\njulia> print(strip_comment(\"trailing%\"))\ntrailing\njulia> print(strip_comment(\"a normal line% and a comment\"))\na normal line\njulia> print(strip_comment(\"\"100% compatibility\" is a myth\"))\n\"100% compatibility\" is a myth\njulia> print(strip_comment(\"\"100% compatibility\" is a myth% or not?\"))\n\"100% compatibility\" is a myth\n\n\n\n"
 },
 
 {
@@ -333,7 +333,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Backends",
     "title": "BibTeXFormat.render_as",
     "category": "Method",
-    "text": "function render_as(self::T, backend_name) where T<:BaseText\n\nRender BaseText into markup. This is a wrapper method that loads a formatting backend plugin and calls :py render(:BaseText). backend_name is  the name of the output backend ( \"latex\",\"html\", \"markdown\", \"text\").\n\njulia> import BibTeXFormat.RichTextElements: RichText, Tag\n\njulia> import BibTeXFormat: render_as\n\njulia> text = RichText(\"Longcat is \", Tag(\"em\", \"looooooong\"), \"!\");\n\njulia> print(render_as(text, \"html\"))\nLongcat is <em>looooooong</em>!\njulia> print(render_as(text, \"latex\"))\nLongcat is \\emph{looooooong}!\njulia> print(render_as(text, \"text\"))\nLongcat is looooooong!\n\n\n\n\n"
+    "text": "function render_as(self::T, backend_name) where T<:BaseText\n\nRender BaseText into markup. This is a wrapper method that loads a formatting backend plugin and calls render(:BaseText). backend_name is  the name of the output backend ( \"latex\",\"html\", \"markdown\", \"text\").\n\njulia> import BibTeXFormat.RichTextElements: RichText, Tag\n\njulia> import BibTeXFormat: render_as\n\njulia> text = RichText(\"Longcat is \", Tag(\"em\", \"looooooong\"), \"!\");\n\njulia> print(render_as(text, \"html\"))\nLongcat is <em>looooooong</em>!\njulia> print(render_as(text, \"latex\"))\nLongcat is \\emph{looooooong}!\njulia> print(render_as(text, \"text\"))\nLongcat is looooooong!\n\n\n\n\n"
 },
 
 {
