@@ -18,14 +18,14 @@ import BibTeXFormat.TemplateEngine: @node
 end
 
 struct LastFirstNameStyle <: BaseNameStyle end
-
+#test in runtest.jl
 doc"""
 ```
 function format(self::LastFirstNameStyle, person, abbr=false)
 ```
 Format names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.
 
-```jldoctest
+```julia
 julia> import BibTeXFormat: Person, render_as, LastFirstNameStyle, format
 
 julia> import BibTeXFormat.TemplateEngine
@@ -35,16 +35,16 @@ julia> name = Person("Charles Louis Xavier Joseph de la Vall{\\'e}e Poussin");
 julia> lastfirst = LastFirstNameStyle();
 
 julia> render_as(TemplateEngine.format(format(lastfirst,name)),"latex")
-"de~la Vall{é}e~Poussin, Charles Louis Xavier~Joseph"
+"de~la Vall{e\u0301}e~Poussin, Charles Louis Xavier~Joseph"
 
 julia> render_as(TemplateEngine.format(format(lastfirst,name)),"html")
-"de&nbsp;la Vall<span class="bibtex-protected">é</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph"
+"de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph"
 
 julia> render_as(TemplateEngine.format(format(lastfirst,name, true)),"latex")
-"de~la Vall{é}e~Poussin, C.~L. X.~J."
+"de~la Vall{e\u0301}e~Poussin, C.~L. X.~J."
 
-julia> print(render_as(TemplateEngine.format(format(lastfirst,name, true)),"html"))
-de&nbsp;la Vall<span class="bibtex-protected">é</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J.
+julia> render_as(TemplateEngine.format(format(lastfirst,name, true)),"html")
+"de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J."
 
 julia> name = Person(first="First", last="Last", middle="Middle");
 
@@ -66,12 +66,11 @@ function format(self::LastFirstNameStyle, person, abbr=false)
 end
 
 struct PlainNameStyle <: BaseNameStyle end
-
+#test in runtest.jl
 doc"""
 Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.
 
 ```julia
-
 julia> import BibTeXFormat: Person, render_as, PlainNameStyle, format
 
 julia> import BibTeXFormat.TemplateEngine
@@ -81,16 +80,16 @@ julia> name = Person("Charles Louis Xavier Joseph de la Vall{\'e}e Poussin");
 julia> plain = PlainNameStyle();
 
 julia> render_as(TemplateEngine.format(format(plain, name)),"latex")
-"Charles Louis Xavier~Joseph de~la Vall{é}e~Poussin"
+"Charles Louis Xavier~Joseph de~la Vall{e\u0301}e~Poussin"
 
 julia> render_as(TemplatEngine.format(format(plain, name),"html"))
-"Charles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class="bibtex-protected">é</span>e&nbsp;Poussin"
+"Charles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin"
 
 julia> render_as(TemplateEngine.format(format(plain,name, true)), "latex")
-"C.~L. X.~J. de~la Vall{é}e~Poussin"
+"C.~L. X.~J. de~la Vall{e\u0301}e~Poussin"
 
 julia> render_as(TemplateEngine.format(format(plain, name, true)),"html")
-"C.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class="bibtex-protected">é</span>e&nbsp;Poussin"
+"C.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin"
 
 julia> name = Person(first="First", last="Last", middle="Middle");
 

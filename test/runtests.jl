@@ -274,3 +274,36 @@ end
 
     end
 end
+
+@testset "BST" begin
+    @testset "NameStyle LastFirstName" begin
+        import BibTeXFormat: Person, render_as, LastFirstNameStyle
+        import BibTeXFormat.TemplateEngine
+        name = Person("Charles Louis Xavier Joseph de la Vall{\\'e}e Poussin");
+        lastfirst = LastFirstNameStyle();
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"latex") == "de~la Vall{e\u0301}e~Poussin, Charles Louis Xavier~Joseph"
+
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"html") == "de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph"
+
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name, true)),"latex") == "de~la Vall{e\u0301}e~Poussin, C.~L. X.~J."
+
+        @test  render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name, true)),"html") == "de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J."
+        name = Person(first="First", last="Last", middle="Middle");
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"latex") == "Last, First~Middle"
+        @test  render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name, true)),"latex") == "Last, F.~M."
+    end
+    @testset "NameStyle Plain" begin
+        import BibTeXFormat: Person, render_as, PlainNameStyle
+        import BibTeXFormat.TemplateEngine
+        name = Person("Charles Louis Xavier Joseph de la Vall{\\'e}e Poussin");
+        plain = PlainNameStyle();
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(plain, name)),"latex") == "Charles Louis Xavier~Joseph de~la Vall{e\u0301}e~Poussin"
+        @test  render_as(TemplateEngine.format(BibTeXFormat.format(plain, name)),"html") == "Charles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin"
+        @test  render_as(TemplateEngine.format(BibTeXFormat.format(plain,name, true)), "latex") == "C.~L. X.~J. de~la Vall{e\u0301}e~Poussin"
+        @test  render_as(TemplateEngine.format(BibTeXFormat.format(plain, name, true)),"html") == "C.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin"
+        name = Person(first="First", last="Last", middle="Middle");
+        @test  render_as(TemplateEngine.format(BibTeXFormat.format(plain, name)),"latex") == "First~Middle Last"
+        @test  render_as(TemplateEngine.format(BibTeXFormat.format(plain,name, true)),"latex") == "F.~M. Last"
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(plain,Person("de Last, Jr., First Middle"))),"latex") == "First~Middle de~Last, Jr."
+    end
+end
