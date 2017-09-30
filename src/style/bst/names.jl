@@ -173,7 +173,7 @@ end
 """
 ```julia
 function bst_join(words, tie="~", space=" ")
-end
+```
 Join some words, inserting ties (~) when nessessary.
     Ties are inserted:
     - after the first word, if it is short
