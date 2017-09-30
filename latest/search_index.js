@@ -269,7 +269,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Style",
     "title": "BibTeXFormat.BST.bst_join",
     "category": "Function",
-    "text": "function bst_join(words, tie=\"~\", space=\" \")\nend\nJoin some words, inserting ties (~) when nessessary.\n    Ties are inserted:\n    - after the first word, if it is short\n    - before the last word\n    Otherwise space is inserted.\n    Should produce the same oubput as BibTeX.\n\njldoctest julia> import BibTeXFormat.BST: bst_join\n\njulia> print(bst_join([\"a\", \"long\", \"long\", \"road\"])) a~long long~road\n\njulia> print(bst_join([\"very\", \"long\", \"phrase\"])) very long~phrase\n\njulia> print(bst_join([\"De\", \"La\"])) De~La ```\n\n\n\n"
+    "text": "function bst_join(words, tie=\"~\", space=\" \")\n\nJoin some words, inserting ties (~) when nessessary.     Ties are inserted:     - after the first word, if it is short     - before the last word     Otherwise space is inserted.     Should produce the same oubput as BibTeX.\n\njulia> import BibTeXFormat.BST: bst_join\n\njulia> print(bst_join([\"a\", \"long\", \"long\", \"road\"]))\na~long long~road\n\njulia> print(bst_join([\"very\", \"long\", \"phrase\"]))\nvery long~phrase\n\njulia> print(bst_join([\"De\", \"La\"]))\nDe~La\n\n\n\n"
 },
 
 {
