@@ -207,7 +207,7 @@ end
 quote_or_comment = r"[%\"]"
 
 """Strip the commented part of the line."
-´´´jldoctest
+```julia
 julia> print(strip_comment("a normal line"))
 a normal line
 julia> print(strip_comment("%"))
@@ -222,7 +222,7 @@ julia> print(strip_comment("\"100% compatibility\" is a myth"))
 "100% compatibility" is a myth
 julia> print(strip_comment("\"100% compatibility\" is a myth% or not?"))
 "100% compatibility" is a myth
-´´´
+```
 """
 function strip_comment(line)
     local pos = 1

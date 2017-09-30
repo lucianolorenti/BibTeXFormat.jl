@@ -306,4 +306,14 @@ end
         @test  render_as(TemplateEngine.format(BibTeXFormat.format(plain,name, true)),"latex") == "F.~M. Last"
         @test render_as(TemplateEngine.format(BibTeXFormat.format(plain,Person("de Last, Jr., First Middle"))),"latex") == "First~Middle de~Last, Jr."
     end
+    @testset "strip_comment" begin
+        import BibTeXFormat.BST: strip_comment
+        @test strip_comment("a normal line") == "a normal line"
+        @test strip_comment("%") == ""
+        @test strip_comment("%comment") == ""
+        @test strip_comment("trailing%") == "trailing"
+        @test strip_comment("a normal line% and a comment") == "a normal line"
+        @test strip_comment("\"100% compatibility\" is a myth") == "\"100% compatibility\" is a myth"
+        @test strip_comment("\"100% compatibility\" is a myth% or not?") == "\"100% compatibility\" is a myth"
+    end
 end

@@ -116,7 +116,7 @@ doc"""
 function render_as(self::T, backend_name) where T<:BaseText
 ```
 Render `BaseText` into markup.
-This is a wrapper method that loads a formatting backend plugin and calls :py `render(:BaseText)`. `backend_name` is  the name of the output backend ( `"latex", `"html", `"markdown"`, `"text"`).
+This is a wrapper method that loads a formatting backend plugin and calls `render(:BaseText)`. `backend_name` is  the name of the output backend ( `"latex", `"html", `"markdown"`, `"text"`).
 ```jldoctest
 julia> import BibTeXFormat.RichTextElements: RichText, Tag
 
