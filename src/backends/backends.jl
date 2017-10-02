@@ -77,21 +77,49 @@ end
 
 function write_entry()
 end
-
+"""
+```
+function  write_to_file(self, formatted_entries, filename)
+```
+"""
 function  write_to_file(self, formatted_entries, filename)
     file = open(filename, "w")
     write_to_stream(self, formatted_entries, file)
     close(file)
 end
+"""
+```
+function write_to_string(self, formatted_entries)
+```
+"""
 function write_to_string(self, formatted_entries)
     local buff = IOBuffer()
     write_to_stream(self, formatted_entries, buff)
     return String(buff)
 end
-function write_to_stream(self::BaseBackend, formatted_bibliography, stream=IOBuffer())
+"""
+```
+function write_to_stream(self::BaseBackend, formatted_bibliography_item:Tuple, stream=IOBuffer())
+```
+Given a `formatted_bibliography_item`, the function generates the output according
+to `self::BaseBackend` specificed.
+"""
+function write_to_stream(self::BaseBackend, formatted_bibliography_item::Tuple, stream=IOBuffer())
+    (key, text, label ) = formatted_bibliography_item
+    write_entry(self, stream, key, label,  render(text,self))
+end
+"""
+```
+function write_to_stream(self::BaseBackend, formatted_bibliography::Array, stream=IOBuffer())
+```
+Given a list of formatted bibliography, `formatted_bibliography`, the function generates the output according
+to `self::BaseBackend` specificed.
+The output includes the prologue and the epilogue.
+"""
+function write_to_stream(self::BaseBackend, formatted_bibliography::Array, stream=IOBuffer())
     write_prologue(self, stream, formatted_bibliography)
-    for (key, text, label ) in formatted_bibliography
-        write_entry(self, stream, key, label,  render(text,self))
+    for item in formatted_bibliography
+        write_to_stream(self, item, stream)
 	end
 	write_epilogue(self,stream, formatted_bibliography)
     return stream

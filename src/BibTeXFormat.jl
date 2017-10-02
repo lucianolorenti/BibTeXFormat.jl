@@ -1,3 +1,4 @@
+__precompile__()
 module BibTeXFormat
 
 export BaseStyle,

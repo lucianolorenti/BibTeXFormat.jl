@@ -4,4 +4,9 @@
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://lucianolorenti.github.io/BibTeXFormat.jl/latest)
 [![codecov](https://codecov.io/gh/lucianolorenti/BibTeXFormat.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/lucianolorenti/BibTeXFormat.jl)
 
+##  Instalation
+```julia
+   julia> Pkg.clone("https://github.com/lucianolorenti/BibTeXFormat.jl.git")
+```
+
 
