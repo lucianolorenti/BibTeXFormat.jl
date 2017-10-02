@@ -285,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Style",
     "title": "BibTeXFormat.format",
     "category": "Function",
-    "text": "function format(self::LastFirstNameStyle, person, abbr=false)\n\nFormat names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.\n\njulia> import BibTeXFormat: Person, render_as, LastFirstNameStyle, format\n\njulia> import BibTeXFormat.TemplateEngine\n\njulia> name = Person(\"Charles Louis Xavier Joseph de la Vall{\\\\'e}e Poussin\");\n\njulia> lastfirst = LastFirstNameStyle();\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name)),\"latex\")\n\"de~la Vall{e\\u0301}e~Poussin, Charles Louis Xavier~Joseph\"\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name)),\"html\")\n\"de&nbsp;la Vall<span class=\"bibtex-protected\">e\\u0301</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph\"\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name, true)),\"latex\")\n\"de~la Vall{e\\u0301}e~Poussin, C.~L. X.~J.\"\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name, true)),\"html\")\n\"de&nbsp;la Vall<span class=\"bibtex-protected\">e\\u0301</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J.\"\n\njulia> name = Person(first=\"First\", last=\"Last\", middle=\"Middle\");\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name)),\"latex\")\n\"Last, First~Middle\"\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name, true)),\"latex\")\n\"Last, F.~M.\"\n\n\n\n\n"
+    "text": "Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.\n\njulia> import BibTeXFormat: Person, render_as, PlainNameStyle, format\n\njulia> import BibTeXFormat.TemplateEngine\n\njulia> name = Person(\"Charles Louis Xavier Joseph de la Vall{\\'e}e Poussin\");\n\njulia> plain = PlainNameStyle();\n\njulia> render_as(TemplateEngine.format(format(plain, name)),\"latex\")\n\"Charles Louis Xavier~Joseph de~la Vall{e\\u0301}e~Poussin\"\n\njulia> render_as(TemplatEngine.format(format(plain, name),\"html\"))\n\"Charles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class=\"bibtex-protected\">e\\u0301</span>e&nbsp;Poussin\"\n\njulia> render_as(TemplateEngine.format(format(plain,name, true)), \"latex\")\n\"C.~L. X.~J. de~la Vall{e\\u0301}e~Poussin\"\n\njulia> render_as(TemplateEngine.format(format(plain, name, true)),\"html\")\n\"C.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class=\"bibtex-protected\">e\\u0301</span>e&nbsp;Poussin\"\n\njulia> name = Person(first=\"First\", last=\"Last\", middle=\"Middle\");\n\njulia> render_as(TemplateEngine.format(format(plain, name)),\"latex\")\n\"First~Middle Last\"\n\njulia> render_as(TemplateEngine.format(format(plain,name, true)),\"latex\")\n\"F.~M. Last\"\n\njulia> render_as(TemplateEngine.format(format(plain,Person(\"de Last, Jr., First Middle\"))),\"latex\")\n\"First~Middle de~Last, Jr.\"\n\n\n\n\n"
 },
 
 {
@@ -293,7 +293,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Style",
     "title": "BibTeXFormat.format",
     "category": "Function",
-    "text": "Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.\n\njulia> import BibTeXFormat: Person, render_as, PlainNameStyle, format\n\njulia> import BibTeXFormat.TemplateEngine\n\njulia> name = Person(\"Charles Louis Xavier Joseph de la Vall{\\'e}e Poussin\");\n\njulia> plain = PlainNameStyle();\n\njulia> render_as(TemplateEngine.format(format(plain, name)),\"latex\")\n\"Charles Louis Xavier~Joseph de~la Vall{e\\u0301}e~Poussin\"\n\njulia> render_as(TemplatEngine.format(format(plain, name),\"html\"))\n\"Charles Louis Xavier&nbsp;Joseph de&nbsp;la Vall<span class=\"bibtex-protected\">e\\u0301</span>e&nbsp;Poussin\"\n\njulia> render_as(TemplateEngine.format(format(plain,name, true)), \"latex\")\n\"C.~L. X.~J. de~la Vall{e\\u0301}e~Poussin\"\n\njulia> render_as(TemplateEngine.format(format(plain, name, true)),\"html\")\n\"C.&nbsp;L. X.&nbsp;J. de&nbsp;la Vall<span class=\"bibtex-protected\">e\\u0301</span>e&nbsp;Poussin\"\n\njulia> name = Person(first=\"First\", last=\"Last\", middle=\"Middle\");\n\njulia> render_as(TemplateEngine.format(format(plain, name)),\"latex\")\n\"First~Middle Last\"\n\njulia> render_as(TemplateEngine.format(format(plain,name, true)),\"latex\")\n\"F.~M. Last\"\n\njulia> render_as(TemplateEngine.format(format(plain,Person(\"de Last, Jr., First Middle\"))),\"latex\")\n\"First~Middle de~Last, Jr.\"\n\n\n\n\n"
+    "text": "function format(self::LastFirstNameStyle, person, abbr=false)\n\nFormat names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.\n\njulia> import BibTeXFormat: Person, render_as, LastFirstNameStyle, format\n\njulia> import BibTeXFormat.TemplateEngine\n\njulia> name = Person(\"Charles Louis Xavier Joseph de la Vall{\\\\'e}e Poussin\");\n\njulia> lastfirst = LastFirstNameStyle();\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name)),\"latex\")\n\"de~la Vall{e\\u0301}e~Poussin, Charles Louis Xavier~Joseph\"\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name)),\"html\")\n\"de&nbsp;la Vall<span class=\"bibtex-protected\">e\\u0301</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph\"\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name, true)),\"latex\")\n\"de~la Vall{e\\u0301}e~Poussin, C.~L. X.~J.\"\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name, true)),\"html\")\n\"de&nbsp;la Vall<span class=\"bibtex-protected\">e\\u0301</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J.\"\n\njulia> name = Person(first=\"First\", last=\"Last\", middle=\"Middle\");\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name)),\"latex\")\n\"Last, First~Middle\"\n\njulia> render_as(TemplateEngine.format(format(lastfirst,name, true)),\"latex\")\n\"Last, F.~M.\"\n\n\n\n\n"
 },
 
 {
@@ -334,6 +334,38 @@ var documenterSearchIndex = {"docs": [
     "title": "BibTeXFormat.render_as",
     "category": "Method",
     "text": "function render_as(self::T, backend_name) where T<:BaseText\n\nRender BaseText into markup. This is a wrapper method that loads a formatting backend plugin and calls render(:BaseText). backend_name is  the name of the output backend ( \"latex\",\"html\", \"markdown\", \"text\").\n\njulia> import BibTeXFormat.RichTextElements: RichText, Tag\n\njulia> import BibTeXFormat: render_as\n\njulia> text = RichText(\"Longcat is \", Tag(\"em\", \"looooooong\"), \"!\");\n\njulia> print(render_as(text, \"html\"))\nLongcat is <em>looooooong</em>!\njulia> print(render_as(text, \"latex\"))\nLongcat is \\emph{looooooong}!\njulia> print(render_as(text, \"text\"))\nLongcat is looooooong!\n\n\n\n\n"
+},
+
+{
+    "location": "backends.html#BibTeXFormat.write_to_file-Tuple{Any,Any,Any}",
+    "page": "Backends",
+    "title": "BibTeXFormat.write_to_file",
+    "category": "Method",
+    "text": "function  write_to_file(self, formatted_entries, filename)\n\n\n\n"
+},
+
+{
+    "location": "backends.html#BibTeXFormat.write_to_stream",
+    "page": "Backends",
+    "title": "BibTeXFormat.write_to_stream",
+    "category": "Function",
+    "text": "function write_to_stream(self::BaseBackend, formatted_bibliography_item:Tuple, stream=IOBuffer())\n\nGiven a formatted_bibliography_item, the function generates the output according to self::BaseBackend specificed.\n\n\n\n"
+},
+
+{
+    "location": "backends.html#BibTeXFormat.write_to_stream",
+    "page": "Backends",
+    "title": "BibTeXFormat.write_to_stream",
+    "category": "Function",
+    "text": "function write_to_stream(self::BaseBackend, formatted_bibliography::Array, stream=IOBuffer())\n\nGiven a list of formatted bibliography, formatted_bibliography, the function generates the output according to self::BaseBackend specificed. The output includes the prologue and the epilogue.\n\n\n\n"
+},
+
+{
+    "location": "backends.html#BibTeXFormat.write_to_string-Tuple{Any,Any}",
+    "page": "Backends",
+    "title": "BibTeXFormat.write_to_string",
+    "category": "Method",
+    "text": "function write_to_string(self, formatted_entries)\n\n\n\n"
 },
 
 {
