@@ -15,7 +15,7 @@ import Base.append!
 import Base.show
 import Base.startswith
 import Base.write
-
+import Base.isempty
 import BibTeXFormat: delimiter_re
 abstract type BaseText end
 import BibTeXFormat: whitespace_re, render_as
@@ -31,6 +31,9 @@ function ensure_text(value::String)
 end
 function ensure_text(value::T) where T<:BaseText
     return value
+end
+function isempty(value::T) where T<:BaseText
+    return length(value) == 0
 end
 """
 ```julia

@@ -108,6 +108,8 @@ function format_entry(b::T, label, entry::Dict{String,Any}) where T<:BaseStyle
 
         text = TemplateEngine.format_data(get_template(b,entry),context)
 	catch e
+        warn(e)
+        println(catch_stacktrace())
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
     	text = format_method(b,context)
 	end

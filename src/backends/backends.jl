@@ -94,6 +94,7 @@ function write_to_string(self, formatted_entries)
 """
 function write_to_string(self, formatted_entries)
     local buff = IOBuffer()
+    println(typeof(formatted_entries))
     write_to_stream(self, formatted_entries, buff)
     return String(buff)
 end
