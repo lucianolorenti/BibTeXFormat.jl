@@ -75,6 +75,6 @@ function write_epilogue(self::HTMLBackend, output, formatted_bibliography)
     end
 end
 function write_entry(self::HTMLBackend, output, key, label, text)
-    write(output,"<dt>$label</dt>\n")
+    write(output,"<dt> <a name=\"$key\">$label</a></dt>\n")
 	write(output,"<dd>$text</dd>\n")
 end

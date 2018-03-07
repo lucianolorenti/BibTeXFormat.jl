@@ -94,10 +94,21 @@ function write_to_string(self, formatted_entries)
 """
 function write_to_string(self, formatted_entries)
     local buff = IOBuffer()
-    println(typeof(formatted_entries))
     write_to_stream(self, formatted_entries, buff)
     return String(buff)
 end
+
+"""
+```
+function write_to_string(self, formatted_entries, citations::Vector{String})
+```
+"""
+function write_to_string(self, formatted_entries, citations::Vector{String})
+    local buff = IOBuffer()
+    write_to_stream(self, formatted_entries, citations, buff)
+    return String(buff)
+end
+
 """
 ```
 function write_to_stream(self::BaseBackend, formatted_bibliography_item:Tuple, stream=IOBuffer())
@@ -123,6 +134,29 @@ function write_to_stream(self::BaseBackend, formatted_bibliography::Array, strea
         write_to_stream(self, item, stream)
 	end
 	write_epilogue(self,stream, formatted_bibliography)
+    return stream
+end
+
+"""
+```
+function write_to_stream(self::BaseBackend, formatted_bibliography::Array, stream=IOBuffer(), citations::Vector{String})
+```
+Given a list of formatted bibliography, `formatted_bibliography`, the function generates the output according
+to `self::BaseBackend` specificed.
+The output includes the prologue and the epilogue.
+"""
+function write_to_stream(self::BaseBackend, formatted_bibliography::Array,citations::Vector{String},  stream=IOBuffer() )
+    write_prologue(self, stream, formatted_bibliography)
+    for key in citations
+        local item_idx = findfirst(x->x[1]==key, formatted_bibliography)
+        if (item_idx != 0)
+            local item = formatted_bibliography[item_idx]
+            write_to_stream(self, item, stream)
+        else
+            warn("Reference $(key) not found")
+        end
+    end
+    write_epilogue(self,stream, formatted_bibliography)
     return stream
 end
     #include("Markdown.jl")

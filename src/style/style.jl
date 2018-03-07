@@ -1,7 +1,9 @@
 export AlphaStyle,
        format_entries,
        BST,
-       format_entry
+       format_entry,
+       UNSRTAlphaStyle,
+       PlainAlphaStyle
 include("templateengine.jl")
 include("names.jl")
 include("labels.jl")
@@ -275,3 +277,4 @@ PlainAlphaStyle
 const PlainAlphaStyle = UNSRTStyle(Config())
 
 include("bst/bst.jl")
+
