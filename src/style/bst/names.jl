@@ -13,7 +13,7 @@ function NamePart(format_list)
 	local tie = ""
 	local format_char = ""
 	local abbreviate = false
-	if length(format_chars)>0 && length(pre_text)>0 && length(post_text)<=0
+	if length(format_chars)<=0 && length(pre_text)>0 && length(post_text)<=0
 		post_text = pre_text
 		pre_text = ""
 	end
