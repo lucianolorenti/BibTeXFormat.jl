@@ -349,7 +349,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Backends",
     "title": "BibTeXFormat.write_to_stream",
     "category": "function",
-    "text": "function write_to_stream(self::BaseBackend, formatted_bibliography::Array, stream=IOBuffer(), citations::Vector{String})\n\nGiven a list of formatted bibliography, formatted_bibliography, the function generates the output according to self::BaseBackend specificed. The output includes the prologue and the epilogue.\n\n\n\n"
+    "text": "function write_to_stream(self::BaseBackend, formatted_bibliography_item:Tuple, stream=IOBuffer())\n\nGiven a formatted_bibliography_item, the function generates the output according to self::BaseBackend specificed.\n\n\n\n"
 },
 
 {
@@ -357,7 +357,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Backends",
     "title": "BibTeXFormat.write_to_stream",
     "category": "function",
-    "text": "function write_to_stream(self::BaseBackend, formatted_bibliography_item:Tuple, stream=IOBuffer())\n\nGiven a formatted_bibliography_item, the function generates the output according to self::BaseBackend specificed.\n\n\n\n"
+    "text": "function write_to_stream(self::BaseBackend, formatted_bibliography::Array, stream=IOBuffer(), citations::Vector{String})\n\nGiven a list of formatted bibliography, formatted_bibliography, the function generates the output according to self::BaseBackend specificed. The output includes the prologue and the epilogue.\n\n\n\n"
 },
 
 {
