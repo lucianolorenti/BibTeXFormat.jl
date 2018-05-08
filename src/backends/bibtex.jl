@@ -27,7 +27,7 @@ end
 
 struct Writer 
 end
-"""
+doc"""
 ```julia
 function quote(self::Writer, s)
 ```
@@ -35,7 +35,7 @@ function quote(self::Writer, s)
 julia> w = Writer()
 julia> println(quote(w,"The World"))
 "The World"
-julia> println(quote(w,"The \emph{World}"))
+julia> println(quote(w,"The \\emph{World}"))
 "The \emph{World}"
 julia> println(quote(w,"The \"World\""))
 {The "World"}
@@ -55,7 +55,7 @@ function bibtex_quote(self::Writer, s)
             return "{$s}"
         end
     end
-"""
+doc"""
 ```julia
 function check_braces(self::Writer, s)
 ```
@@ -85,67 +85,77 @@ String has unmatched braces: {{test}
 """
 function check_braces(self::Writer, s)
     tokens = scan_bibtex_string(s)
-    if tokens
-        end_brace_level = tokens[-1][1]
+    if length(tokens)>0
+        end_brace_level = tokens[end][2]
         if end_brace_level != 0
-            throw("String has unmatched braces: ${s}")
+            throw("String has unmatched braces: $s")
         end
     end
 end
 
+"""
+```
+   function _encode(self::Writer, text)
+```
+Encode text as LaTeX.
+
+>>> w = Writer(encoding='ASCII')
+>>> print(w._encode(u'1970â€“1971.'))
+1970--1971.
+
+>>> w = Writer(encoding='UTF-8')
+>>> print(w._encode(u'1970â€“1971.'))
+1970â€“1971.
+
+>>> w = Writer(encoding='UTF-8')
+>>> print(w._encode(u'100% noir'))
+100\% noir
+"""
     function _encode(self::Writer, text)
-        r"""Encode text as LaTeX.
-
-        >>> w = Writer(encoding='ASCII')
-        >>> print(w._encode(u'1970â€“1971.'))
-        1970--1971.
-
-        >>> w = Writer(encoding='UTF-8')
-        >>> print(w._encode(u'1970â€“1971.'))
-        1970â€“1971.
-
-        >>> w = Writer(encoding='UTF-8')
-        >>> print(w._encode(u'100% noir'))
-        100\% noir
-        """
 
         return codecs.encode(text, 'ulatex+{}'.format(self.encoding))
-end
+    end
+    
+"""
+```julia
 function _encode_with_comments(self, text)
-        r"""Encode text as LaTeX, preserve comments.
+```
+Encode text as LaTeX, preserve comments.
 
-        >>> w = Writer(encoding='ASCII')
-        >>> print(w._encode_with_comments(u'1970â€“1971.  %% â€  RIP â€ '))
-        1970--1971.  %% \dag\ RIP \dag
+julia> w = Writer(encoding='ASCII')
+julia> print(w._encode_with_comments(u'1970â€“1971.  %% â€  RIP â€ '))
+1970--1971.  %% \dag\ RIP \dag
 
-        >>> w = Writer(encoding='UTF-8')
-        >>> print(w._encode_with_comments(u'1970â€“1971.  %% â€  RIP â€ '))
-        1970â€“1971.  %% â€  RIP â€ 
-        """
+julia> w = Writer(encoding='UTF-8')
+julia> print(w._encode_with_comments(u'1970â€“1971.  %% â€  RIP â€ '))
+1970â€“1971.  %% â€  RIP â€ 
+"""
+function _encode_with_comments(self, text)
         return u'%'.join(self._encode(part) for part in text.split(u'%'))
 end
-function _write_field(self, stream, type, value)
-        stream.write(u',\n    %s = %s' % (type, self.quote(self._encode(value))))
+function _write_field(self, stream, ttype, value)
+    local quoted = bibtex_quote(self, _encode(self, value))
+    write(stream, ",\n    $ttype = $quoted")
 end
 function _format_name(self, stream, person)
-        function join(l)
-    return ' '.join([name for name in l if name])
+    function join(l)
+        return join([name for name in l if name], ' ')
     end
-        first = person.get_part_as_text('first')
-        middle = person.get_part_as_text('middle')
-        prelast = person.get_part_as_text('prelast')
-        last = person.get_part_as_text('last')
-        lineage = person.get_part_as_text('lineage')
-        s = ''
-        if last:
-            s += join([prelast, last])
+    local first   = get_part_as_text(person, "first")
+    local middle  = get_part_as_text(person, "middle")
+    local prelast = get_part_as_text(person, "prelast")
+    local last    = get_part_as_text(person, "last")
+    local lineage = get_part_as_text(person, "lineage")
+    local s = ""
+        if length(last)>0
+            s = string(s,join([prelast, last]))
         end
-        if lineage:
-            s += ', %s' % lineage
+        if length(lineage)>0
+            s = string(s,", $lineage")
         end
-        if first or middle:
-            s += ', '
-            s += join([first, middle])
+        if length(first)>0 ||  length(middle)>0
+            s = string(s,", " )
+            s = string(s,join([first, middle]))
         end
     return s
 end   
@@ -157,32 +167,29 @@ function    _write_persons(self, stream, persons, role)
             self._write_field(stream, role, names)
         end
     end
-function    _write_preamble(self, stream, preamble)
+function    _write_preamble(self::Writer, stream::IOStream, preamble)
         if preamble:
             stream.write(u'@preamble{%s}\n\n' % self.quote(self._encode_with_comments(preamble)))
         end
     end
 
-function    write_stream(self, bib_data, stream)
-
-        self._write_preamble(stream, bib_data.preamble)
-
-        first = True
-        for key, entry in bib_data.entries.items():
-            if not first:
-                stream.write(u'\n')
-            end
-            first = False
-
-            stream.write(u'@%s' % entry.original_type)
-            stream.write(u'{%s' % key)
-#            for role in ('author', 'editor'):
-            for role, persons in entry.persons.items():
-                         self._write_persons(stream, persons, role)
-                      end
-            for type, value in entry.fields.items():
-                         self._write_field(stream, type, value)
-                         end
-                         stream.write(u'\n}\n')
+function write_stream(self::Writer, bib_data, stream::IOStream)
+    _write_preamble(self, stream, bib_data.preamble)
+    first = true
+    for (key, entry) in values(bib_data.entries)
+        if !first
+            write(stream, "\n")
         end
-    end
+        first = false
+        write(stream,"@$(entry.original_type)")
+        write(stream, "{$key")
+        for role, persons in values(entry.persons)
+            _write_persons(self, stream, persons, role)
+        end
+        for ttype, value in values(entry.fields)
+            _write_field(self, stream, ttype, value)                
+        end        
+        write(stream,"\n}\n")
+    end    
+end
+    
