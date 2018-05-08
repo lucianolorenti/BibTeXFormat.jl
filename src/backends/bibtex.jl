@@ -1,3 +1,4 @@
+import BibTeXFormat: scan_bibtex_string
 struct BaseWriter
 end
 function write_file(bib_data, filename)
@@ -24,32 +25,34 @@ function to_bytes(self, bib_data)
     return result.encode(self.encoding) if self.unicode_io else result
 end
 
-struct Writer <: BaseWriter
+struct Writer 
 end
 """
 ```julia
 function quote(self::Writer, s)
 ```
-
-        >>> w = Writer()
-        >>> print(w.quote('The World'))
-        "The World"
-        >>> print(w.quote(r'The \emph{World}'))
-        "The \emph{World}"
-        >>> print(w.quote(r'The "World"'))
-        {The "World"}
-        >>> try:
-        ...     print(w.quote(r'The {World'))
-        ... except BibTeXError as error:
-        ...     print(error)
-        String has unmatched braces: The {World
+```jldoctest
+julia> w = Writer()
+julia> println(quote(w,"The World"))
+"The World"
+julia> println(quote(w,"The \emph{World}"))
+"The \emph{World}"
+julia> println(quote(w,"The \"World\""))
+{The "World"}
+julia> try
+          println(quote(w,"The {World"))
+       catch e
+          println(error)
+        end
+String has unmatched braces: The {World
+```
         """
-function quote(self::Writer, s)
+function bibtex_quote(self::Writer, s)
         check_braces(self, s)
         if !('"' in s)
-            return "\"${s}\""
-        else:
-            return '\{${s}\}'
+            return "\"$s\""
+        else
+            return "{$s}"
         end
     end
 """
@@ -59,23 +62,24 @@ function check_braces(self::Writer, s)
 
         Raise an exception if the given string has unmatched braces.
 
-        >>> w = Writer()
-        >>> w.check_braces('Cat eats carrots.')
-        >>> w.check_braces('Cat eats {carrots}.')
-        >>> w.check_braces('Cat eats {carrots{}}.')
-        >>> w.check_braces('')
-        >>> w.check_braces('end}')
-        >>> try:
-        ...     w.check_braces('{')
-        ... except BibTeXError as error:
-        ...     print(error)
-        String has unmatched braces: {
-        >>> w.check_braces('{test}}')
-        >>> try:
-        ...     w.check_braces('{{test}')
-        ... except BibTeXError as error:
-        ...     print(error)
-        String has unmatched braces: {{test}
+julia> w = Writer()
+julia> w.check_braces('Cat eats carrots.')
+julia> w.check_braces('Cat eats {carrots}.')
+julia> w.check_braces('Cat eats {carrots{}}.')
+julia> w.check_braces('')
+julia> w.check_braces('end}')
+julia> try
+     w.check_braces('{')
+ catch e
+     println(error)
+end
+String has unmatched braces: {
+julia> w.check_braces('{test}}')
+julia> try:
+     w.check_braces('{{test}')
+ catch e
+     println(error)
+String has unmatched braces: {{test}
 """
 function check_braces(self::Writer, s)
     tokens = scan_bibtex_string(s)
