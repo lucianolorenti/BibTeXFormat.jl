@@ -59,27 +59,29 @@ function bibtex_quote(self::Writer, s)
 ```julia
 function check_braces(self::Writer, s)
 ```
+Raise an exception if the given string has unmatched braces.
 
-        Raise an exception if the given string has unmatched braces.
-
+```jldoctest
 julia> w = Writer()
-julia> w.check_braces('Cat eats carrots.')
-julia> w.check_braces('Cat eats {carrots}.')
-julia> w.check_braces('Cat eats {carrots{}}.')
-julia> w.check_braces('')
-julia> w.check_braces('end}')
+julia> check_braces(w, "Cat eats carrots.")
+julia> check_braces(w, "Cat eats {carrots}.")
+julia> check_braces(w, "Cat eats {carrots{}}.")
+julia> check_braces(w, "")
+julia> check_braces(w, "end}")
 julia> try
-     w.check_braces('{')
+     check_braces(w, "{")
  catch e
      println(error)
 end
 String has unmatched braces: {
-julia> w.check_braces('{test}}')
-julia> try:
-     w.check_braces('{{test}')
+julia> check_braces(w, "{test}}")
+julia> try
+     w.check_braces("{{test}")
  catch e
      println(error)
+end
 String has unmatched braces: {{test}
+```
 """
 function check_braces(self::Writer, s)
     tokens = scan_bibtex_string(s)
@@ -148,20 +150,20 @@ function _format_name(self, stream, person)
     return s
 end   
 
-function    def _write_persons(self, stream, persons, role)
+function    _write_persons(self, stream, persons, role)
         # persons = getattr(entry, role + 's')
         if persons:
             names = u' and '.join(self._format_name(stream, person) for person in persons)
             self._write_field(stream, role, names)
         end
     end
-function    def _write_preamble(self, stream, preamble)
+function    _write_preamble(self, stream, preamble)
         if preamble:
             stream.write(u'@preamble{%s}\n\n' % self.quote(self._encode_with_comments(preamble)))
         end
     end
 
-function    def write_stream(self, bib_data, stream)
+function    write_stream(self, bib_data, stream)
 
         self._write_preamble(stream, bib_data.preamble)
 
