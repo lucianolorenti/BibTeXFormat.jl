@@ -1,7 +1,7 @@
 import BibTeXFormat: scan_bibtex_string
 struct BaseWriter
 end
-function write_file(bib_data, filename)
+#=function write_file(bib_data, filename)
         open_file = pybtex.io.open_unicode if self.unicode_io else pybtex.io.open_raw
         mode = 'w' if self.unicode_io else 'wb'
         with open_file(filename, mode, encoding=self.encoding) as stream:
@@ -24,9 +24,13 @@ function to_bytes(self, bib_data)
      result = self._to_string_or_bytes(bib_data)
     return result.encode(self.encoding) if self.unicode_io else result
 end
-
-struct Writer 
+=#
+struct Writer
+        encoding::String
 end
+    function Writer()
+        return Writer("UTF-8")
+    end
 doc"""
 ```julia
 function quote(self::Writer, s)
@@ -98,22 +102,22 @@ end
    function _encode(self::Writer, text)
 ```
 Encode text as LaTeX.
-
->>> w = Writer(encoding='ASCII')
->>> print(w._encode(u'1970â€“1971.'))
+```jldoctest
+juia> w = Writer("ASCII")
+julia> print(_encode(w,"1970–1971"))
 1970--1971.
 
->>> w = Writer(encoding='UTF-8')
->>> print(w._encode(u'1970â€“1971.'))
+julia> w = Writer("UTF-8")
+julia> print(_encode(w,"1970â€“1971."))
 1970â€“1971.
 
->>> w = Writer(encoding='UTF-8')
->>> print(w._encode(u'100% noir'))
+julia> w = Writer("UTF-8")
+julia> print(_encode(w, "100% noir"))
 100\% noir
+```
 """
     function _encode(self::Writer, text)
-
-        return codecs.encode(text, 'ulatex+{}'.format(self.encoding))
+        return encode(text, "UTF-8")
     end
     
 """
