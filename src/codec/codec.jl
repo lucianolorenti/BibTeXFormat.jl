@@ -1,4 +1,5 @@
-"""
+using StringLiterals
+#="""
     LaTeX Codec
     ~~~~~~~~~~~
 
@@ -32,7 +33,7 @@
     .. autoclass:: LatexUnicodeTable
         :members:
 """
-
+=#
 # Copyright (c) 2003, 2008 David Eppstein
 # Copyright (c) 2011-2014 Matthias C. M. Troffaes
 #
@@ -58,7 +59,10 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 
 
-"""Tabulates a translation between LaTeX and unicode."""
+"""
+Tabulates a translation between LaTeX and unicode.
+
+"""
 struct LatexUnicodeTable
     lexer
     unicode_map
@@ -69,6 +73,63 @@ end
 function LatexUnicodeTable(lexer)
     return LatexUnicodeTable(lexer, Dict(), 0, Dict())
 end
+doc"""
+```
+function register!(self::LatexUnicodeTable, unicode_text::String, latex_text::String; encode::Boolean =false, decode::Boolean=false, mode::String="")
+```
+Register a correspondence between *unicode_text* and *latex_text*.
+# Arguments
+- unicode_text::String A unicode character.
+- latex_text::Strng Its corresponding LaTeX translation.
+- mode::String LaTeX mode in which the translation applies    (``'text'`` or ``'math'``).
+- decode::Boolean  Whether this translation applies to decoding  (default: true).
+- encode::Boolean Whether this translation applies to encoding  (default: true)
+"""
+function register!(self::LatexUnicodeTable, ustr::String, rep::String; encode::Bool =false, decode::Bool=false, mode::String="")
+    if mode == "math"
+        # also register text version
+        register!(self, unicode_text, string("\$",  latex_text, "\$"), mode="text",
+                        package=package, decode=decode, encode=encode)
+        register!(self, unicode_text,
+                        string("\\(",latex_text , "\\)"), mode="text",
+                        package=package, decode=decode, encode=encode)
+        # XXX for the time being, we do not perform in-math substitutions
+        return
+    end
+    if !(self.lexer.binary_mode)
+        latex_text = latex_text.decode("ascii")
+    end
+    if package != nothing
+        # TODO implement packages
+    end
+    # tokenize, and register unicode translation
+    reset!(self.lexer)
+    self.lexer.state = 'M'
+    tokens = get_tokens(self.lexer, latex_text, final=true)
+    if decode
+        if haskey(self.unicode_map, tokens)
+            self.max_length = max(self.max_length, length(tokens))
+            self.unicode_map[tokens] = unicode_text
+       end
+        # also register token variant with brackets, if appropriate
+        # for instance, "\'{e}" for "\'e", "\c{c}" for "\c c", etc.
+        # note: we do not remove brackets (they sometimes matter,
+        # e.g. bibtex uses them to prevent lower case transformation)
+        if (length(tokens) == 2) &&  (startswith(tokens[1].name, "control")) &&
+                (tokens[2].name == "chars")
+            local alt_tokens = (tokens[1], self.lexer.curlylefttoken, tokens[2],
+                            self.lexer.curlyrighttoken)
+            if haskey(self.unicode_map, alt_tokens)
+                self.max_length = max(self.max_length, length(alt_tokens))
+                self.unicode_map[alt_tokens] = string("{",unicode_text, "}")
+            end
+        end
+    end
+    if encode && !haskey(self.latex_map, unicode_text)
+        assert(length(unicode_text) == 1)
+        self.latex_map[unicode_text] = (latex_text, tokens)
+    end
+end
 """
 ```julia
 function register_all!(self::LatexUnicodeTable)
@@ -76,538 +137,479 @@ function register_all!(self::LatexUnicodeTable)
 Register all symbols and their LaTeX equivalents     (called by constructor).
 """
 function register_all!(self::LatexUnicodeTable)
-end 
-
         # TODO complete this list
         # register special symbols
-        self.register(u'\n\n', b' \\par', encode=False)
-        self.register(u'\n\n', b'\\par', encode=False)
-        self.register(u' ', b'\\ ', encode=False)
-        self.register(u'%', b'\\%')
-        self.register(u'\N{EN DASH}', b'--')
-        self.register(u'\N{EN DASH}', b'\\textendash')
-        self.register(u'\N{EM DASH}', b'---')
-        self.register(u'\N{EM DASH}', b'\\textemdash')
-        self.register(u'\N{LEFT SINGLE QUOTATION MARK}', b'`', decode=False)
-        self.register(u'\N{RIGHT SINGLE QUOTATION MARK}', b"'", decode=False)
-        self.register(u'\N{LEFT DOUBLE QUOTATION MARK}', b'``')
-        self.register(u'\N{RIGHT DOUBLE QUOTATION MARK}', b"''")
-        self.register(u'\N{DOUBLE LOW-9 QUOTATION MARK}', b'\\glqq')
-        self.register(u'\N{DAGGER}', b'\\dag')
-        self.register(u'\N{DOUBLE DAGGER}', b'\\ddag')
+        register!(self,"\n\n", " \\par", encode=False)
+        register!(self,"\n\n", "\\par", encode=false)
+        register!(self," ", "\\ ", encode=false)
+        register!(self,"%", "\\%")
+        register!(self,s"\N{EN DASH}", "--")
+        register!(self,s"\N{EN DASH}", "\\textendash")
+        register!(self,s"\N{EM DASH}", "---")
+        register!(self,s"\N{EM DASH}", "\\textemdash")
+        register!(self,s"\N{LEFT SINGLE QUOTATION MARK}", "`", decode=false)
+        register!(self,s"\N{RIGHT SINGLE QUOTATION MARK}", "\"", decode=false)
+        register!(self,s"\N{LEFT DOUBLE QUOTATION MARK}", "``")
+        register!(self,s"\N{RIGHT DOUBLE QUOTATION MARK}", "\"\"")
+        register!(self,s"\N{DOUBLE LOW-9 QUOTATION MARK}", "\\glqq")
+        register!(self,s"\N{DAGGER}", "\\dag")
+        register!(self,s"\N{DOUBLE DAGGER}", "\\ddag")
 
-        self.register(u'\\', b'\\textbackslash', encode=False)
-        self.register(u'\\', b'\\backslash', mode='math', encode=False)
+        register!(self,"\\", "\\textbackslash", encode=false)
+        register!(self,"\\", "\\backslash", mode="math", encode=false)
 
-        self.register(u'\N{TILDE OPERATOR}', b'\\sim', mode='math')
-        self.register(u'\N{MODIFIER LETTER LOW TILDE}',
-                      b'\\texttildelow', package='textcomp')
-        self.register(u'\N{SMALL TILDE}', b'\\~{}')
-        self.register(u'~', b'\\textasciitilde')
+        register!(self,s"\N{TILDE OPERATOR}", "\\sim", mode="math")
+        register!(self,s"\N{MODIFIER LETTER LOW TILDE}",
+                      "\\texttildelow", package="textcomp")
+        register!(self,s"\N{SMALL TILDE}", "\\~{}")
+        register!(self,s"~", "\\textasciitilde")
 
-        self.register(u'\N{BULLET}', b'\\bullet', mode='math')
-        self.register(u'\N{BULLET}', b'\\textbullet', package='textcomp')
+        register!(self,s"\N{BULLET}", "\\bullet", mode="math")
+        register!(self,s"\N{BULLET}", "\\textbullet", package="textcomp")
 
-        self.register(u'\N{NUMBER SIGN}', b'\\#')
-        self.register(u'\N{LOW LINE}', b'\\_')
-        self.register(u'\N{AMPERSAND}', b'\\&')
-        self.register(u'\N{NO-BREAK SPACE}', b'~')
-        self.register(u'\N{INVERTED EXCLAMATION MARK}', b'!`')
-        self.register(u'\N{CENT SIGN}', b'\\not{c}')
+        register!(self,s"\N{NUMBER SIGN}", "\\#")
+        register!(self,s"\N{LOW LINE}", "\\_")
+        register!(self,s"\N{AMPERSAND}", "\\&")
+        register!(self,s"\N{NO-BREAK SPACE}", "~")
+        register!(self,s"\N{INVERTED EXCLAMATION MARK}", "!`")
+        register!(self,s"\N{CENT SIGN}", "\\not{c}")
 
-        self.register(u'\N{POUND SIGN}', b'\\pounds')
-        self.register(u'\N{POUND SIGN}', b'\\textsterling', package='textcomp')
+        register!(self,s"\N{POUND SIGN}", "\\pounds")
+        register!(self,s"\N{POUND SIGN}", "\\textsterling", package="textcomp")
 
-        self.register(u'\N{SECTION SIGN}', b'\\S')
-        self.register(u'\N{DIAERESIS}', b'\\"{}')
-        self.register(u'\N{NOT SIGN}', b'\\neg')
-        self.register(u'\N{HYPHEN}', b'-', decode=False)
-        self.register(u'\N{SOFT HYPHEN}', b'\\-')
-        self.register(u'\N{MACRON}', b'\\={}')
+        register!(self,s"\N{SECTION SIGN}", "\\S")
+        register!(self,s"\N{DIAERESIS}", "\\\"{}")
+        register!(self,s"\N{NOT SIGN}", "\\neg")
+        register!(self,s"\N{HYPHEN}", "-", decode=false)
+        register!(self,s"\N{SOFT HYPHEN}", "\\-")
+        register!(self,s"\N{MACRON}", "\\={}")
 
-        self.register(u'\N{DEGREE SIGN}', b'^\\circ', mode='math')
-        self.register(u'\N{DEGREE SIGN}', b'\\textdegree', package='textcomp')
+        register!(self,s"\N{DEGREE SIGN}", "^\\circ", mode="math")
+        register!(self,s"\N{DEGREE SIGN}", "\\textdegree", package="textcomp")
 
-        self.register(u'\N{PLUS-MINUS SIGN}', b'\\pm', mode='math')
-        self.register(u'\N{PLUS-MINUS SIGN}', b'\\textpm', package='textcomp')
+        register!(self,s"\N{PLUS-MINUS SIGN}", "\\pm", mode="math")
+        register!(self,s"\N{PLUS-MINUS SIGN}", "\\textpm", package="textcomp")
 
-        self.register(u'\N{SUPERSCRIPT TWO}', b'^2', mode='math')
-        self.register(
-            u'\N{SUPERSCRIPT TWO}',
-            b'\\texttwosuperior',
-            package='textcomp')
+        register!(self,s"\N{SUPERSCRIPT TWO}", "^2", mode="math")
+        register!(self,
+            s"\N{SUPERSCRIPT TWO}",
+            "\\texttwosuperior",
+            package="textcomp")
 
-        self.register(u'\N{SUPERSCRIPT THREE}', b'^3', mode='math')
-        self.register(
-            u'\N{SUPERSCRIPT THREE}',
-            b'\\textthreesuperior',
-            package='textcomp')
+        register!(self,s"\N{SUPERSCRIPT THREE}", "^3", mode="math")
+        register!(self,
+            s"\N{SUPERSCRIPT THREE}",
+            "\\textthreesuperior",
+            package="textcomp")
 
-        self.register(u'\N{ACUTE ACCENT}', b"\\'{}")
+        register!(self,s"\N{ACUTE ACCENT}", "\\\"{}")
 
-        self.register(u'\N{MICRO SIGN}', b'\\mu', mode='math')
-        self.register(u'\N{MICRO SIGN}', b'\\micro', package='gensymb')
+        register!(self,s"\N{MICRO SIGN}", "\\ms", mode="math")
+        register!(self,s"\N{MICRO SIGN}", "\\micro", package="gensym")
 
-        self.register(u'\N{PILCROW SIGN}', b'\\P')
+        register!(self,s"\N{PILCROW SIGN}", "\\P")
 
-        self.register(u'\N{MIDDLE DOT}', b'\\cdot', mode='math')
-        self.register(
-            u'\N{MIDDLE DOT}',
-            b'\\textperiodcentered',
-            package='textcomp')
+        register!(self,s"\N{MIDDLE DOT}", "\\cdot", mode="math")
+        register!(self,
+            s"\N{MIDDLE DOT}",
+            "\\textperiodcentered",
+            package="textcomp")
 
-        self.register(u'\N{CEDILLA}', b'\\c{}')
+        register!(self,s"\N{CEDILLA}", "\\c{}")
 
-        self.register(u'\N{SUPERSCRIPT ONE}', b'^1', mode='math')
-        self.register(
-            u'\N{SUPERSCRIPT ONE}',
-            b'\\textonesuperior',
-            package='textcomp')
+        register!(self,s"\N{SUPERSCRIPT ONE}", "^1", mode="math")
+        register!(self,
+            s"\N{SUPERSCRIPT ONE}",
+            "\\textonesuperior",
+            package="textcomp")
 
-        self.register(u'\N{INVERTED QUESTION MARK}', b'?`')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH GRAVE}', b'\\`A')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH CIRCUMFLEX}', b'\\^A')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH TILDE}', b'\\~A')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH DIAERESIS}', b'\\"A')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH RING ABOVE}', b'\\AA')
-        self.register(u'\N{LATIN CAPITAL LETTER AE}', b'\\AE')
-        self.register(u'\N{LATIN CAPITAL LETTER C WITH CEDILLA}', b'\\c C')
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH GRAVE}', b'\\`E')
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH ACUTE}', b"\\'E")
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH CIRCUMFLEX}', b'\\^E')
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH DIAERESIS}', b'\\"E')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH GRAVE}', b'\\`I')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH CIRCUMFLEX}', b'\\^I')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH DIAERESIS}', b'\\"I')
-        self.register(u'\N{LATIN CAPITAL LETTER N WITH TILDE}', b'\\~N')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH GRAVE}', b'\\`O')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH ACUTE}', b"\\'O")
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH CIRCUMFLEX}', b'\\^O')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH TILDE}', b'\\~O')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH DIAERESIS}', b'\\"O')
-        self.register(u'\N{MULTIPLICATION SIGN}', b'\\times', mode='math')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH STROKE}', b'\\O')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH GRAVE}', b'\\`U')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH ACUTE}', b"\\'U")
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH CIRCUMFLEX}', b'\\^U')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH DIAERESIS}', b'\\"U')
-        self.register(u'\N{LATIN CAPITAL LETTER Y WITH ACUTE}', b"\\'Y")
-        self.register(u'\N{LATIN SMALL LETTER SHARP S}', b'\\ss')
-        self.register(u'\N{LATIN SMALL LETTER A WITH GRAVE}', b'\\`a')
-        self.register(u'\N{LATIN SMALL LETTER A WITH ACUTE}', b"\\'a")
-        self.register(u'\N{LATIN SMALL LETTER A WITH CIRCUMFLEX}', b'\\^a')
-        self.register(u'\N{LATIN SMALL LETTER A WITH TILDE}', b'\\~a')
-        self.register(u'\N{LATIN SMALL LETTER A WITH DIAERESIS}', b'\\"a')
-        self.register(u'\N{LATIN SMALL LETTER A WITH RING ABOVE}', b'\\aa')
-        self.register(u'\N{LATIN SMALL LETTER AE}', b'\\ae')
-        self.register(u'\N{LATIN SMALL LETTER C WITH CEDILLA}', b'\\c c')
-        self.register(u'\N{LATIN SMALL LETTER E WITH GRAVE}', b'\\`e')
-        self.register(u'\N{LATIN SMALL LETTER E WITH ACUTE}', b"\\'e")
-        self.register(u'\N{LATIN SMALL LETTER E WITH CIRCUMFLEX}', b'\\^e')
-        self.register(u'\N{LATIN SMALL LETTER E WITH DIAERESIS}', b'\\"e')
-        self.register(u'\N{LATIN SMALL LETTER I WITH GRAVE}', b'\\`\\i')
-        self.register(u'\N{LATIN SMALL LETTER I WITH GRAVE}', b'\\`i')
-        self.register(u'\N{LATIN SMALL LETTER I WITH ACUTE}', b"\\'\\i")
-        self.register(u'\N{LATIN SMALL LETTER I WITH ACUTE}', b"\\'i")
-        self.register(u'\N{LATIN SMALL LETTER I WITH CIRCUMFLEX}', b'\\^\\i')
-        self.register(u'\N{LATIN SMALL LETTER I WITH CIRCUMFLEX}', b'\\^i')
-        self.register(u'\N{LATIN SMALL LETTER I WITH DIAERESIS}', b'\\"\\i')
-        self.register(u'\N{LATIN SMALL LETTER I WITH DIAERESIS}', b'\\"i')
-        self.register(u'\N{LATIN SMALL LETTER N WITH TILDE}', b'\\~n')
-        self.register(u'\N{LATIN SMALL LETTER O WITH GRAVE}', b'\\`o')
-        self.register(u'\N{LATIN SMALL LETTER O WITH ACUTE}', b"\\'o")
-        self.register(u'\N{LATIN SMALL LETTER O WITH CIRCUMFLEX}', b'\\^o')
-        self.register(u'\N{LATIN SMALL LETTER O WITH TILDE}', b'\\~o')
-        self.register(u'\N{LATIN SMALL LETTER O WITH DIAERESIS}', b'\\"o')
-        self.register(u'\N{DIVISION SIGN}', b'\\div', mode='math')
-        self.register(u'\N{LATIN SMALL LETTER O WITH STROKE}', b'\\o')
-        self.register(u'\N{LATIN SMALL LETTER U WITH GRAVE}', b'\\`u')
-        self.register(u'\N{LATIN SMALL LETTER U WITH ACUTE}', b"\\'u")
-        self.register(u'\N{LATIN SMALL LETTER U WITH CIRCUMFLEX}', b'\\^u')
-        self.register(u'\N{LATIN SMALL LETTER U WITH DIAERESIS}', b'\\"u')
-        self.register(u'\N{LATIN SMALL LETTER Y WITH ACUTE}', b"\\'y")
-        self.register(u'\N{LATIN SMALL LETTER Y WITH DIAERESIS}', b'\\"y')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH MACRON}', b'\\=A')
-        self.register(u'\N{LATIN SMALL LETTER A WITH MACRON}', b'\\=a')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH BREVE}', b'\\u A')
-        self.register(u'\N{LATIN SMALL LETTER A WITH BREVE}', b'\\u a')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH OGONEK}', b'\\k A')
-        self.register(u'\N{LATIN SMALL LETTER A WITH OGONEK}', b'\\k a')
-        self.register(u'\N{LATIN CAPITAL LETTER C WITH ACUTE}', b"\\'C")
-        self.register(u'\N{LATIN SMALL LETTER C WITH ACUTE}', b"\\'c")
-        self.register(u'\N{LATIN CAPITAL LETTER C WITH CIRCUMFLEX}', b'\\^C')
-        self.register(u'\N{LATIN SMALL LETTER C WITH CIRCUMFLEX}', b'\\^c')
-        self.register(u'\N{LATIN CAPITAL LETTER C WITH DOT ABOVE}', b'\\.C')
-        self.register(u'\N{LATIN SMALL LETTER C WITH DOT ABOVE}', b'\\.c')
-        self.register(u'\N{LATIN CAPITAL LETTER C WITH CARON}', b'\\v C')
-        self.register(u'\N{LATIN SMALL LETTER C WITH CARON}', b'\\v c')
-        self.register(u'\N{LATIN CAPITAL LETTER D WITH CARON}', b'\\v D')
-        self.register(u'\N{LATIN SMALL LETTER D WITH CARON}', b'\\v d')
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH MACRON}', b'\\=E')
-        self.register(u'\N{LATIN SMALL LETTER E WITH MACRON}', b'\\=e')
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH BREVE}', b'\\u E')
-        self.register(u'\N{LATIN SMALL LETTER E WITH BREVE}', b'\\u e')
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH DOT ABOVE}', b'\\.E')
-        self.register(u'\N{LATIN SMALL LETTER E WITH DOT ABOVE}', b'\\.e')
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH OGONEK}', b'\\k E')
-        self.register(u'\N{LATIN SMALL LETTER E WITH OGONEK}', b'\\k e')
-        self.register(u'\N{LATIN CAPITAL LETTER E WITH CARON}', b'\\v E')
-        self.register(u'\N{LATIN SMALL LETTER E WITH CARON}', b'\\v e')
-        self.register(u'\N{LATIN CAPITAL LETTER G WITH CIRCUMFLEX}', b'\\^G')
-        self.register(u'\N{LATIN SMALL LETTER G WITH CIRCUMFLEX}', b'\\^g')
-        self.register(u'\N{LATIN CAPITAL LETTER G WITH BREVE}', b'\\u G')
-        self.register(u'\N{LATIN SMALL LETTER G WITH BREVE}', b'\\u g')
-        self.register(u'\N{LATIN CAPITAL LETTER G WITH DOT ABOVE}', b'\\.G')
-        self.register(u'\N{LATIN SMALL LETTER G WITH DOT ABOVE}', b'\\.g')
-        self.register(u'\N{LATIN CAPITAL LETTER G WITH CEDILLA}', b'\\c G')
-        self.register(u'\N{LATIN SMALL LETTER G WITH CEDILLA}', b'\\c g')
-        self.register(u'\N{LATIN CAPITAL LETTER H WITH CIRCUMFLEX}', b'\\^H')
-        self.register(u'\N{LATIN SMALL LETTER H WITH CIRCUMFLEX}', b'\\^h')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH TILDE}', b'\\~I')
-        self.register(u'\N{LATIN SMALL LETTER I WITH TILDE}', b'\\~\\i')
-        self.register(u'\N{LATIN SMALL LETTER I WITH TILDE}', b'\\~i')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH MACRON}', b'\\=I')
-        self.register(u'\N{LATIN SMALL LETTER I WITH MACRON}', b'\\=\\i')
-        self.register(u'\N{LATIN SMALL LETTER I WITH MACRON}', b'\\=i')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH BREVE}', b'\\u I')
-        self.register(u'\N{LATIN SMALL LETTER I WITH BREVE}', b'\\u\\i')
-        self.register(u'\N{LATIN SMALL LETTER I WITH BREVE}', b'\\u i')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH OGONEK}', b'\\k I')
-        self.register(u'\N{LATIN SMALL LETTER I WITH OGONEK}', b'\\k i')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH DOT ABOVE}', b'\\.I')
-        self.register(u'\N{LATIN SMALL LETTER DOTLESS I}', b'\\i')
-        self.register(u'\N{LATIN CAPITAL LIGATURE IJ}', b'IJ', decode=False)
-        self.register(u'\N{LATIN SMALL LIGATURE IJ}', b'ij', decode=False)
-        self.register(u'\N{LATIN CAPITAL LETTER J WITH CIRCUMFLEX}', b'\\^J')
-        self.register(u'\N{LATIN SMALL LETTER J WITH CIRCUMFLEX}', b'\\^\\j')
-        self.register(u'\N{LATIN SMALL LETTER J WITH CIRCUMFLEX}', b'\\^j')
-        self.register(u'\N{LATIN CAPITAL LETTER K WITH CEDILLA}', b'\\c K')
-        self.register(u'\N{LATIN SMALL LETTER K WITH CEDILLA}', b'\\c k')
-        self.register(u'\N{LATIN CAPITAL LETTER L WITH ACUTE}', b"\\'L")
-        self.register(u'\N{LATIN SMALL LETTER L WITH ACUTE}', b"\\'l")
-        self.register(u'\N{LATIN CAPITAL LETTER L WITH CEDILLA}', b'\\c L')
-        self.register(u'\N{LATIN SMALL LETTER L WITH CEDILLA}', b'\\c l')
-        self.register(u'\N{LATIN CAPITAL LETTER L WITH CARON}', b'\\v L')
-        self.register(u'\N{LATIN SMALL LETTER L WITH CARON}', b'\\v l')
-        self.register(u'\N{LATIN CAPITAL LETTER L WITH STROKE}', b'\\L')
-        self.register(u'\N{LATIN SMALL LETTER L WITH STROKE}', b'\\l')
-        self.register(u'\N{LATIN CAPITAL LETTER N WITH ACUTE}', b"\\'N")
-        self.register(u'\N{LATIN SMALL LETTER N WITH ACUTE}', b"\\'n")
-        self.register(u'\N{LATIN CAPITAL LETTER N WITH CEDILLA}', b'\\c N')
-        self.register(u'\N{LATIN SMALL LETTER N WITH CEDILLA}', b'\\c n')
-        self.register(u'\N{LATIN CAPITAL LETTER N WITH CARON}', b'\\v N')
-        self.register(u'\N{LATIN SMALL LETTER N WITH CARON}', b'\\v n')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH MACRON}', b'\\=O')
-        self.register(u'\N{LATIN SMALL LETTER O WITH MACRON}', b'\\=o')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH BREVE}', b'\\u O')
-        self.register(u'\N{LATIN SMALL LETTER O WITH BREVE}', b'\\u o')
-        self.register(
-            u'\N{LATIN CAPITAL LETTER O WITH DOUBLE ACUTE}',
-            b'\\H O')
-        self.register(u'\N{LATIN SMALL LETTER O WITH DOUBLE ACUTE}', b'\\H o')
-        self.register(u'\N{LATIN CAPITAL LIGATURE OE}', b'\\OE')
-        self.register(u'\N{LATIN SMALL LIGATURE OE}', b'\\oe')
-        self.register(u'\N{LATIN CAPITAL LETTER R WITH ACUTE}', b"\\'R")
-        self.register(u'\N{LATIN SMALL LETTER R WITH ACUTE}', b"\\'r")
-        self.register(u'\N{LATIN CAPITAL LETTER R WITH CEDILLA}', b'\\c R')
-        self.register(u'\N{LATIN SMALL LETTER R WITH CEDILLA}', b'\\c r')
-        self.register(u'\N{LATIN CAPITAL LETTER R WITH CARON}', b'\\v R')
-        self.register(u'\N{LATIN SMALL LETTER R WITH CARON}', b'\\v r')
-        self.register(u'\N{LATIN CAPITAL LETTER S WITH ACUTE}', b"\\'S")
-        self.register(u'\N{LATIN SMALL LETTER S WITH ACUTE}', b"\\'s")
-        self.register(u'\N{LATIN CAPITAL LETTER S WITH CIRCUMFLEX}', b'\\^S')
-        self.register(u'\N{LATIN SMALL LETTER S WITH CIRCUMFLEX}', b'\\^s')
-        self.register(u'\N{LATIN CAPITAL LETTER S WITH CEDILLA}', b'\\c S')
-        self.register(u'\N{LATIN SMALL LETTER S WITH CEDILLA}', b'\\c s')
-        self.register(u'\N{LATIN CAPITAL LETTER S WITH CARON}', b'\\v S')
-        self.register(u'\N{LATIN SMALL LETTER S WITH CARON}', b'\\v s')
-        self.register(u'\N{LATIN CAPITAL LETTER T WITH CEDILLA}', b'\\c T')
-        self.register(u'\N{LATIN SMALL LETTER T WITH CEDILLA}', b'\\c t')
-        self.register(u'\N{LATIN CAPITAL LETTER T WITH CARON}', b'\\v T')
-        self.register(u'\N{LATIN SMALL LETTER T WITH CARON}', b'\\v t')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH TILDE}', b'\\~U')
-        self.register(u'\N{LATIN SMALL LETTER U WITH TILDE}', b'\\~u')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH MACRON}', b'\\=U')
-        self.register(u'\N{LATIN SMALL LETTER U WITH MACRON}', b'\\=u')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH BREVE}', b'\\u U')
-        self.register(u'\N{LATIN SMALL LETTER U WITH BREVE}', b'\\u u')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH RING ABOVE}', b'\\r U')
-        self.register(u'\N{LATIN SMALL LETTER U WITH RING ABOVE}', b'\\r u')
-        self.register(
-            u'\N{LATIN CAPITAL LETTER U WITH DOUBLE ACUTE}',
-            b'\\H U')
-        self.register(u'\N{LATIN SMALL LETTER U WITH DOUBLE ACUTE}', b'\\H u')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH OGONEK}', b'\\k U')
-        self.register(u'\N{LATIN SMALL LETTER U WITH OGONEK}', b'\\k u')
-        self.register(u'\N{LATIN CAPITAL LETTER W WITH CIRCUMFLEX}', b'\\^W')
-        self.register(u'\N{LATIN SMALL LETTER W WITH CIRCUMFLEX}', b'\\^w')
-        self.register(u'\N{LATIN CAPITAL LETTER Y WITH CIRCUMFLEX}', b'\\^Y')
-        self.register(u'\N{LATIN SMALL LETTER Y WITH CIRCUMFLEX}', b'\\^y')
-        self.register(u'\N{LATIN CAPITAL LETTER Y WITH DIAERESIS}', b'\\"Y')
-        self.register(u'\N{LATIN CAPITAL LETTER Z WITH ACUTE}', b"\\'Z")
-        self.register(u'\N{LATIN SMALL LETTER Z WITH ACUTE}', b"\\'z")
-        self.register(u'\N{LATIN CAPITAL LETTER Z WITH DOT ABOVE}', b'\\.Z')
-        self.register(u'\N{LATIN SMALL LETTER Z WITH DOT ABOVE}', b'\\.z')
-        self.register(u'\N{LATIN CAPITAL LETTER Z WITH CARON}', b'\\v Z')
-        self.register(u'\N{LATIN SMALL LETTER Z WITH CARON}', b'\\v z')
-        self.register(u'\N{LATIN CAPITAL LETTER DZ WITH CARON}', b'D\\v Z')
-        self.register(
-            u'\N{LATIN CAPITAL LETTER D WITH SMALL LETTER Z WITH CARON}',
-            b'D\\v z')
-        self.register(u'\N{LATIN SMALL LETTER DZ WITH CARON}', b'd\\v z')
-        self.register(u'\N{LATIN CAPITAL LETTER LJ}', b'LJ', decode=False)
-        self.register(
-            u'\N{LATIN CAPITAL LETTER L WITH SMALL LETTER J}',
-            b'Lj',
-            decode=False)
-        self.register(u'\N{LATIN SMALL LETTER LJ}', b'lj', decode=False)
-        self.register(u'\N{LATIN CAPITAL LETTER NJ}', b'NJ', decode=False)
-        self.register(
-            u'\N{LATIN CAPITAL LETTER N WITH SMALL LETTER J}',
-            b'Nj',
-            decode=False)
-        self.register(u'\N{LATIN SMALL LETTER NJ}', b'nj', decode=False)
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH CARON}', b'\\v A')
-        self.register(u'\N{LATIN SMALL LETTER A WITH CARON}', b'\\v a')
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH CARON}', b'\\v I')
-        self.register(u'\N{LATIN SMALL LETTER I WITH CARON}', b'\\v\\i')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH CARON}', b'\\v O')
-        self.register(u'\N{LATIN SMALL LETTER O WITH CARON}', b'\\v o')
-        self.register(u'\N{LATIN CAPITAL LETTER U WITH CARON}', b'\\v U')
-        self.register(u'\N{LATIN SMALL LETTER U WITH CARON}', b'\\v u')
-        self.register(u'\N{LATIN CAPITAL LETTER G WITH CARON}', b'\\v G')
-        self.register(u'\N{LATIN SMALL LETTER G WITH CARON}', b'\\v g')
-        self.register(u'\N{LATIN CAPITAL LETTER K WITH CARON}', b'\\v K')
-        self.register(u'\N{LATIN SMALL LETTER K WITH CARON}', b'\\v k')
-        self.register(u'\N{LATIN CAPITAL LETTER O WITH OGONEK}', b'\\k O')
-        self.register(u'\N{LATIN SMALL LETTER O WITH OGONEK}', b'\\k o')
-        self.register(u'\N{LATIN SMALL LETTER J WITH CARON}', b'\\v\\j')
-        self.register(u'\N{LATIN CAPITAL LETTER DZ}', b'DZ', decode=False)
-        self.register(
-            u'\N{LATIN CAPITAL LETTER D WITH SMALL LETTER Z}',
-            b'Dz',
-            decode=False)
-        self.register(u'\N{LATIN SMALL LETTER DZ}', b'dz', decode=False)
-        self.register(u'\N{LATIN CAPITAL LETTER G WITH ACUTE}', b"\\'G")
-        self.register(u'\N{LATIN SMALL LETTER G WITH ACUTE}', b"\\'g")
-        self.register(u'\N{LATIN CAPITAL LETTER AE WITH ACUTE}', b"\\'\\AE")
-        self.register(u'\N{LATIN SMALL LETTER AE WITH ACUTE}', b"\\'\\ae")
-        self.register(
-            u'\N{LATIN CAPITAL LETTER O WITH STROKE AND ACUTE}',
-            b"\\'\\O")
-        self.register(
-            u'\N{LATIN SMALL LETTER O WITH STROKE AND ACUTE}',
-            b"\\'\\o")
-        self.register(u'\N{PARTIAL DIFFERENTIAL}', b'\\partial', mode='math')
-        self.register(u'\N{N-ARY PRODUCT}', b'\\prod', mode='math')
-        self.register(u'\N{N-ARY SUMMATION}', b'\\sum', mode='math')
-        self.register(u'\N{SQUARE ROOT}', b'\\surd', mode='math')
-        self.register(u'\N{INFINITY}', b'\\infty', mode='math')
-        self.register(u'\N{INTEGRAL}', b'\\int', mode='math')
-        self.register(u'\N{INTERSECTION}', b'\\cap', mode='math')
-        self.register(u'\N{UNION}', b'\\cup', mode='math')
-        self.register(u'\N{RIGHTWARDS ARROW}', b'\\rightarrow', mode='math')
-        self.register(
-            u'\N{RIGHTWARDS DOUBLE ARROW}',
-            b'\\Rightarrow',
-            mode='math')
-        self.register(u'\N{LEFTWARDS ARROW}', b'\\leftarrow', mode='math')
-        self.register(
-            u'\N{LEFTWARDS DOUBLE ARROW}',
-            b'\\Leftarrow',
-            mode='math')
-        self.register(u'\N{LOGICAL OR}', b'\\vee', mode='math')
-        self.register(u'\N{LOGICAL AND}', b'\\wedge', mode='math')
-        self.register(u'\N{ALMOST EQUAL TO}', b'\\approx', mode='math')
-        self.register(u'\N{NOT EQUAL TO}', b'\\neq', mode='math')
-        self.register(u'\N{LESS-THAN OR EQUAL TO}', b'\\leq', mode='math')
-        self.register(u'\N{GREATER-THAN OR EQUAL TO}', b'\\geq', mode='math')
-        self.register(u'\N{MODIFIER LETTER CIRCUMFLEX ACCENT}', b'\\^{}')
-        self.register(u'\N{CARON}', b'\\v{}')
-        self.register(u'\N{BREVE}', b'\\u{}')
-        self.register(u'\N{DOT ABOVE}', b'\\.{}')
-        self.register(u'\N{RING ABOVE}', b'\\r{}')
-        self.register(u'\N{OGONEK}', b'\\k{}')
-        self.register(u'\N{DOUBLE ACUTE ACCENT}', b'\\H{}')
-        self.register(u'\N{LATIN SMALL LIGATURE FI}', b'fi', decode=False)
-        self.register(u'\N{LATIN SMALL LIGATURE FL}', b'fl', decode=False)
-        self.register(u'\N{LATIN SMALL LIGATURE FF}', b'ff', decode=False)
+        register!(self,s"\N{INVERTED QUESTION MARK}", "?`")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH GRAVE}", "\\`A")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH CIRCUMFLEX}", "\\^A")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH TILDE}", "\\~A")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH DIAERESIS}", "\\\"A")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH RING ABOVE}", "\\AA")
+        register!(self,s"\N{LATIN CAPITAL LETTER AE}", "\\AE")
+        register!(self,s"\N{LATIN CAPITAL LETTER C WITH CEDILLA}", "\\c C")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH GRAVE}", "\\`E")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH ACUTE}", "\\\"E")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH CIRCUMFLEX}", "\\^E")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH DIAERESIS}", "\\\"E")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH GRAVE}", "\\`I")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH CIRCUMFLEX}", "\\^I")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH DIAERESIS}", "\\\"I")
+        register!(self,s"\N{LATIN CAPITAL LETTER N WITH TILDE}", "\\~N")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH GRAVE}", "\\`O")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH ACUTE}", "\\\"O")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH CIRCUMFLEX}", "\\^O")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH TILDE}", "\\~O")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH DIAERESIS}", "\\\"O")
+        register!(self,s"\N{MULTIPLICATION SIGN}", "\\times", mode="math")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH STROKE}", "\\O")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH GRAVE}", "\\`S")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH ACUTE}", "\\\"S")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH CIRCUMFLEX}", "\\^S")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH DIAERESIS}", "\\\"S")
+        register!(self,s"\N{LATIN CAPITAL LETTER Y WITH ACUTE}", "\\\"Y")
+        register!(self,s"\N{LATIN SMALL LETTER SHARP S}", "\\ss")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH GRAVE}", "\\`a")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH ACUTE}", "\\\"a")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH CIRCUMFLEX}", "\\^a")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH TILDE}", "\\~a")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH DIAERESIS}", "\\\"a")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH RING ABOVE}", "\\aa")
+        register!(self,s"\N{LATIN SMALL LETTER AE}", "\\ae")
+        register!(self,s"\N{LATIN SMALL LETTER C WITH CEDILLA}", "\\c c")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH GRAVE}", "\\`e")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH ACUTE}", "\\\"e")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH CIRCUMFLEX}", "\\^e")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH DIAERESIS}", "\\\"e")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH GRAVE}", "\\`\\i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH GRAVE}", "\\`i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH ACUTE}", "\\\"\\i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH ACUTE}", "\\\"i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH CIRCUMFLEX}", "\\^\\i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH CIRCUMFLEX}", "\\^i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH DIAERESIS}", "\\\"\\i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH DIAERESIS}", "\\\"i")
+        register!(self,s"\N{LATIN SMALL LETTER N WITH TILDE}", "\\~n")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH GRAVE}", "\\`o")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH ACUTE}", "\\\"o")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH CIRCUMFLEX}", "\\^o")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH TILDE}", "\\~o")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH DIAERESIS}", "\\\"o")
+        register!(self,s"\N{DIVISION SIGN}", "\\div", mode="math")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH STROKE}", "\\o")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH GRAVE}", "\\`s")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH ACUTE}", "\\\"s")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH CIRCUMFLEX}", "\\^s")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH DIAERESIS}", "\\\"s")
+        register!(self,s"\N{LATIN SMALL LETTER Y WITH ACUTE}", "\\\"y")
+        register!(self,s"\N{LATIN SMALL LETTER Y WITH DIAERESIS}", "\\\"y")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH MACRON}", "\\=A")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH MACRON}", "\\=a")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH BREVE}", "\\u A")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH BREVE}", "\\u a")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH OGONEK}", "\\k A")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH OGONEK}", "\\k a")
+        register!(self,s"\N{LATIN CAPITAL LETTER C WITH ACUTE}", "\\\"C")
+        register!(self,s"\N{LATIN SMALL LETTER C WITH ACUTE}", "\\\"c")
+        register!(self,s"\N{LATIN CAPITAL LETTER C WITH CIRCUMFLEX}", "\\^C")
+        register!(self,s"\N{LATIN SMALL LETTER C WITH CIRCUMFLEX}", "\\^c")
+        register!(self,s"\N{LATIN CAPITAL LETTER C WITH DOT ABOVE}", "\\.C")
+        register!(self,s"\N{LATIN SMALL LETTER C WITH DOT ABOVE}", "\\.c")
+        register!(self,s"\N{LATIN CAPITAL LETTER C WITH CARON}", "\\v C")
+        register!(self,s"\N{LATIN SMALL LETTER C WITH CARON}", "\\v c")
+        register!(self,s"\N{LATIN CAPITAL LETTER D WITH CARON}", "\\v D")
+        register!(self,s"\N{LATIN SMALL LETTER D WITH CARON}", "\\v d")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH MACRON}", "\\=E")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH MACRON}", "\\=e")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH BREVE}", "\\u E")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH BREVE}", "\\u e")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH DOT ABOVE}", "\\.E")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH DOT ABOVE}", "\\.e")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH OGONEK}", "\\k E")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH OGONEK}", "\\k e")
+        register!(self,s"\N{LATIN CAPITAL LETTER E WITH CARON}", "\\v E")
+        register!(self,s"\N{LATIN SMALL LETTER E WITH CARON}", "\\v e")
+        register!(self,s"\N{LATIN CAPITAL LETTER G WITH CIRCUMFLEX}", "\\^G")
+        register!(self,s"\N{LATIN SMALL LETTER G WITH CIRCUMFLEX}", "\\^g")
+        register!(self,s"\N{LATIN CAPITAL LETTER G WITH BREVE}", "\\u G")
+        register!(self,s"\N{LATIN SMALL LETTER G WITH BREVE}", "\\u g")
+        register!(self,s"\N{LATIN CAPITAL LETTER G WITH DOT ABOVE}", "\\.G")
+        register!(self,s"\N{LATIN SMALL LETTER G WITH DOT ABOVE}", "\\.g")
+        register!(self,s"\N{LATIN CAPITAL LETTER G WITH CEDILLA}", "\\c G")
+        register!(self,s"\N{LATIN SMALL LETTER G WITH CEDILLA}", "\\c g")
+        register!(self,s"\N{LATIN CAPITAL LETTER H WITH CIRCUMFLEX}", "\\^H")
+        register!(self,s"\N{LATIN SMALL LETTER H WITH CIRCUMFLEX}", "\\^h")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH TILDE}", "\\~I")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH TILDE}", "\\~\\i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH TILDE}", "\\~i")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH MACRON}", "\\=I")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH MACRON}", "\\=\\i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH MACRON}", "\\=i")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH BREVE}", "\\u I")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH BREVE}", "\\u\\i")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH BREVE}", "\\u i")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH OGONEK}", "\\k I")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH OGONEK}", "\\k i")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH DOT ABOVE}", "\\.I")
+        register!(self,s"\N{LATIN SMALL LETTER DOTLESS I}", "\\i")
+        register!(self,s"\N{LATIN CAPITAL LIGATURE IJ}", "IJ", decode=false)
+        register!(self,s"\N{LATIN SMALL LIGATURE IJ}", "ij", decode=false)
+        register!(self,s"\N{LATIN CAPITAL LETTER J WITH CIRCUMFLEX}", "\\^J")
+        register!(self,s"\N{LATIN SMALL LETTER J WITH CIRCUMFLEX}", "\\^\\j")
+        register!(self,s"\N{LATIN SMALL LETTER J WITH CIRCUMFLEX}", "\\^j")
+        register!(self,s"\N{LATIN CAPITAL LETTER K WITH CEDILLA}", "\\c K")
+        register!(self,s"\N{LATIN SMALL LETTER K WITH CEDILLA}", "\\c k")
+        register!(self,s"\N{LATIN CAPITAL LETTER L WITH ACUTE}", "\\\"L")
+        register!(self,s"\N{LATIN SMALL LETTER L WITH ACUTE}", "\\\"l")
+        register!(self,s"\N{LATIN CAPITAL LETTER L WITH CEDILLA}", "\\c L")
+        register!(self,s"\N{LATIN SMALL LETTER L WITH CEDILLA}", "\\c l")
+        register!(self,s"\N{LATIN CAPITAL LETTER L WITH CARON}", "\\v L")
+        register!(self,s"\N{LATIN SMALL LETTER L WITH CARON}", "\\v l")
+        register!(self,s"\N{LATIN CAPITAL LETTER L WITH STROKE}", "\\L")
+        register!(self,s"\N{LATIN SMALL LETTER L WITH STROKE}", "\\l")
+        register!(self,s"\N{LATIN CAPITAL LETTER N WITH ACUTE}", "\\\"N")
+        register!(self,s"\N{LATIN SMALL LETTER N WITH ACUTE}", "\\\"n")
+        register!(self,s"\N{LATIN CAPITAL LETTER N WITH CEDILLA}", "\\c N")
+        register!(self,s"\N{LATIN SMALL LETTER N WITH CEDILLA}", "\\c n")
+        register!(self,s"\N{LATIN CAPITAL LETTER N WITH CARON}", "\\v N")
+        register!(self,s"\N{LATIN SMALL LETTER N WITH CARON}", "\\v n")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH MACRON}", "\\=O")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH MACRON}", "\\=o")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH BREVE}", "\\u O")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH BREVE}", "\\u o")
+        register!(self,
+            s"\N{LATIN CAPITAL LETTER O WITH DOUBLE ACUTE}",
+            "\\H O")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH DOUBLE ACUTE}", "\\H o")
+        register!(self,s"\N{LATIN CAPITAL LIGATURE OE}", "\\OE")
+        register!(self,s"\N{LATIN SMALL LIGATURE OE}", "\\oe")
+        register!(self,s"\N{LATIN CAPITAL LETTER R WITH ACUTE}", "\\\"R")
+        register!(self,s"\N{LATIN SMALL LETTER R WITH ACUTE}", "\\\"r")
+        register!(self,s"\N{LATIN CAPITAL LETTER R WITH CEDILLA}", "\\c R")
+        register!(self,s"\N{LATIN SMALL LETTER R WITH CEDILLA}", "\\c r")
+        register!(self,s"\N{LATIN CAPITAL LETTER R WITH CARON}", "\\v R")
+        register!(self,s"\N{LATIN SMALL LETTER R WITH CARON}", "\\v r")
+        register!(self,s"\N{LATIN CAPITAL LETTER S WITH ACUTE}", "\\\"S")
+        register!(self,s"\N{LATIN SMALL LETTER S WITH ACUTE}", "\\\"s")
+        register!(self,s"\N{LATIN CAPITAL LETTER S WITH CIRCUMFLEX}", "\\^S")
+        register!(self,s"\N{LATIN SMALL LETTER S WITH CIRCUMFLEX}", "\\^s")
+        register!(self,s"\N{LATIN CAPITAL LETTER S WITH CEDILLA}", "\\c S")
+        register!(self,s"\N{LATIN SMALL LETTER S WITH CEDILLA}", "\\c s")
+        register!(self,s"\N{LATIN CAPITAL LETTER S WITH CARON}", "\\v S")
+        register!(self,s"\N{LATIN SMALL LETTER S WITH CARON}", "\\v s")
+        register!(self,s"\N{LATIN CAPITAL LETTER T WITH CEDILLA}", "\\c T")
+        register!(self,s"\N{LATIN SMALL LETTER T WITH CEDILLA}", "\\c t")
+        register!(self,s"\N{LATIN CAPITAL LETTER T WITH CARON}", "\\v T")
+        register!(self,s"\N{LATIN SMALL LETTER T WITH CARON}", "\\v t")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH TILDE}", "\\~S")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH TILDE}", "\\~s")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH MACRON}", "\\=S")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH MACRON}", "\\=s")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH BREVE}", "\\u S")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH BREVE}", "\\u s")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH RING ABOVE}", "\\r S")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH RING ABOVE}", "\\r s")
+        register!(self,
+            s"\N{LATIN CAPITAL LETTER U WITH DOUBLE ACUTE}",
+            "\\H S")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH DOUBLE ACUTE}", "\\H s")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH OGONEK}", "\\k S")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH OGONEK}", "\\k s")
+        register!(self,s"\N{LATIN CAPITAL LETTER W WITH CIRCUMFLEX}", "\\^W")
+        register!(self,s"\N{LATIN SMALL LETTER W WITH CIRCUMFLEX}", "\\^w")
+        register!(self,s"\N{LATIN CAPITAL LETTER Y WITH CIRCUMFLEX}", "\\^Y")
+        register!(self,s"\N{LATIN SMALL LETTER Y WITH CIRCUMFLEX}", "\\^y")
+        register!(self,s"\N{LATIN CAPITAL LETTER Y WITH DIAERESIS}", "\\\"Y")
+        register!(self,s"\N{LATIN CAPITAL LETTER Z WITH ACUTE}", "\\\"Z")
+        register!(self,s"\N{LATIN SMALL LETTER Z WITH ACUTE}", "\\\"z")
+        register!(self,s"\N{LATIN CAPITAL LETTER Z WITH DOT ABOVE}", "\\.Z")
+        register!(self,s"\N{LATIN SMALL LETTER Z WITH DOT ABOVE}", "\\.z")
+        register!(self,s"\N{LATIN CAPITAL LETTER Z WITH CARON}", "\\v Z")
+        register!(self,s"\N{LATIN SMALL LETTER Z WITH CARON}", "\\v z")
+        register!(self,s"\N{LATIN CAPITAL LETTER DZ WITH CARON}", "D\\v Z")
+        register!(self,
+            s"\N{LATIN CAPITAL LETTER D WITH SMALL LETTER Z WITH CARON}",
+            "D\\v z")
+        register!(self,s"\N{LATIN SMALL LETTER DZ WITH CARON}", "d\\v z")
+        register!(self,s"\N{LATIN CAPITAL LETTER LJ}", "LJ", decode=false)
+        register!(self,
+            s"\N{LATIN CAPITAL LETTER L WITH SMALL LETTER J}",
+            "Lj",
+            decode=false)
+        register!(self,s"\N{LATIN SMALL LETTER LJ}", "lj", decode=false)
+        register!(self,s"\N{LATIN CAPITAL LETTER NJ}", "NJ", decode=false)
+        register!(self,
+            s"\N{LATIN CAPITAL LETTER N WITH SMALL LETTER J}",
+            "Nj",
+            decode=false)
+        register!(self,s"\N{LATIN SMALL LETTER NJ}", "nj", decode=false)
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH CARON}", "\\v A")
+        register!(self,s"\N{LATIN SMALL LETTER A WITH CARON}", "\\v a")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH CARON}", "\\v I")
+        register!(self,s"\N{LATIN SMALL LETTER I WITH CARON}", "\\v\\i")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH CARON}", "\\v O")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH CARON}", "\\v o")
+        register!(self,s"\N{LATIN CAPITAL LETTER U WITH CARON}", "\\v S")
+        register!(self,s"\N{LATIN SMALL LETTER U WITH CARON}", "\\v s")
+        register!(self,s"\N{LATIN CAPITAL LETTER G WITH CARON}", "\\v G")
+        register!(self,s"\N{LATIN SMALL LETTER G WITH CARON}", "\\v g")
+        register!(self,s"\N{LATIN CAPITAL LETTER K WITH CARON}", "\\v K")
+        register!(self,s"\N{LATIN SMALL LETTER K WITH CARON}", "\\v k")
+        register!(self,s"\N{LATIN CAPITAL LETTER O WITH OGONEK}", "\\k O")
+        register!(self,s"\N{LATIN SMALL LETTER O WITH OGONEK}", "\\k o")
+        register!(self,s"\N{LATIN SMALL LETTER J WITH CARON}", "\\v\\j")
+        register!(self,s"\N{LATIN CAPITAL LETTER DZ}", "DZ", decode=false)
+        register!(self,
+            s"\N{LATIN CAPITAL LETTER D WITH SMALL LETTER Z}",
+            "Dz",
+            decode=false)
+        register!(self,s"\N{LATIN SMALL LETTER DZ}", "dz", decode=false)
+        register!(self,s"\N{LATIN CAPITAL LETTER G WITH ACUTE}", "\\\"G")
+        register!(self,s"\N{LATIN SMALL LETTER G WITH ACUTE}", "\\\"g")
+        register!(self,s"\N{LATIN CAPITAL LETTER AE WITH ACUTE}", "\\\"\\AE")
+        register!(self,s"\N{LATIN SMALL LETTER AE WITH ACUTE}", "\\\"\\ae")
+        register!(self,
+            s"\N{LATIN CAPITAL LETTER O WITH STROKE AND ACUTE}",
+            "\\\"\\O")
+        register!(self,
+            s"\N{LATIN SMALL LETTER O WITH STROKE AND ACUTE}",
+            "\\\"\\o")
+        register!(self,s"\N{PARTIAL DIFFERENTIAL}", "\\partial", mode="math")
+        register!(self,s"\N{N-ARY PRODUCT}", "\\prod", mode="math")
+        register!(self,s"\N{N-ARY SUMMATION}", "\\sum", mode="math")
+        register!(self,s"\N{SQUARE ROOT}", "\\surd", mode="math")
+        register!(self,s"\N{INFINITY}", "\\infty", mode="math")
+        register!(self,s"\N{INTEGRAL}", "\\int", mode="math")
+        register!(self,s"\N{INTERSECTION}", "\\cap", mode="math")
+        register!(self,s"\N{UNION}", "\\cup", mode="math")
+        register!(self,s"\N{RIGHTWARDS ARROW}", "\\rightarrow", mode="math")
+        register!(self,
+            s"\N{RIGHTWARDS DOUBLE ARROW}",
+            "\\Rightarrow",
+            mode="math")
+        register!(self,s"\N{LEFTWARDS ARROW}", "\\leftarrow", mode="math")
+        register!(self,
+            s"\N{LEFTWARDS DOUBLE ARROW}",
+            "\\Leftarrow",
+            mode="math")
+        register!(self,s"\N{LOGICAL OR}", "\\vee", mode="math")
+        register!(self,s"\N{LOGICAL AND}", "\\wedge", mode="math")
+        register!(self,s"\N{ALMOST EQUAL TO}", "\\approx", mode="math")
+        register!(self,s"\N{NOT EQUAL TO}", "\\neq", mode="math")
+        register!(self,s"\N{LESS-THAN OR EQUAL TO}", "\\leq", mode="math")
+        register!(self,s"\N{GREATER-THAN OR EQUAL TO}", "\\geq", mode="math")
+        register!(self,s"\N{MODIFIER LETTER CIRCUMFLEX ACCENT}", "\\^{}")
+        register!(self,s"\N{CARON}", "\\v{}")
+        register!(self,s"\N{BREVE}", "\\u{}")
+        register!(self,s"\N{DOT ABOVE}", "\\.{}")
+        register!(self,s"\N{RING ABOVE}", "\\r{}")
+        register!(self,s"\N{OGONEK}", "\\k{}")
+        register!(self,s"\N{DOUBLE ACUTE ACCENT}", "\\H{}")
+        register!(self,s"\N{LATIN SMALL LIGATURE FI}", "fi", decode=false)
+        register!(self,s"\N{LATIN SMALL LIGATURE FL}", "fl", decode=false)
+        register!(self,s"\N{LATIN SMALL LIGATURE FF}", "ff", decode=false)
 
-        self.register(u'\N{GREEK SMALL LETTER ALPHA}', b'\\alpha', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER BETA}', b'\\beta', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER GAMMA}', b'\\gamma', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER DELTA}', b'\\delta', mode='math')
-        self.register(
-            u'\N{GREEK SMALL LETTER EPSILON}',
-            b'\\epsilon',
-            mode='math')
-        self.register(u'\N{GREEK SMALL LETTER ZETA}', b'\\zeta', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER ETA}', b'\\eta', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER THETA}', b'\\theta', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER IOTA}', b'\\iota', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER KAPPA}', b'\\kappa', mode='math')
-        self.register(
-            u'\N{GREEK SMALL LETTER LAMDA}',
-            b'\\lambda',
-            mode='math')  # LAMDA not LAMBDA
-        self.register(u'\N{GREEK SMALL LETTER MU}', b'\\mu', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER NU}', b'\\nu', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER XI}', b'\\xi', mode='math')
-        self.register(
-            u'\N{GREEK SMALL LETTER OMICRON}',
-            b'\\omicron',
-            mode='math')
-        self.register(u'\N{GREEK SMALL LETTER PI}', b'\\pi', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER RHO}', b'\\rho', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER SIGMA}', b'\\sigma', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER TAU}', b'\\tau', mode='math')
-        self.register(
-            u'\N{GREEK SMALL LETTER UPSILON}',
-            b'\\upsilon',
-            mode='math')
-        self.register(u'\N{GREEK SMALL LETTER PHI}', b'\\phi', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER CHI}', b'\\chi', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER PSI}', b'\\psi', mode='math')
-        self.register(u'\N{GREEK SMALL LETTER OMEGA}', b'\\omega', mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER ALPHA}',
-            b'\\Alpha',
-            mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER BETA}', b'\\Beta', mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER GAMMA}',
-            b'\\Gamma',
-            mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER DELTA}',
-            b'\\Delta',
-            mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER EPSILON}',
-            b'\\Epsilon',
-            mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER ZETA}', b'\\Zeta', mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER ETA}', b'\\Eta', mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER THETA}',
-            b'\\Theta',
-            mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER IOTA}', b'\\Iota', mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER KAPPA}',
-            b'\\Kappa',
-            mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER LAMDA}',
-            b'\\Lambda',
-            mode='math')  # LAMDA not LAMBDA
-        self.register(u'\N{GREEK CAPITAL LETTER MU}', b'\\Mu', mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER NU}', b'\\Nu', mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER XI}', b'\\Xi', mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER OMICRON}',
-            b'\\Omicron',
-            mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER PI}', b'\\Pi', mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER RHO}', b'\\Rho', mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER SIGMA}',
-            b'\\Sigma',
-            mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER TAU}', b'\\Tau', mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER UPSILON}',
-            b'\\Upsilon',
-            mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER PHI}', b'\\Phi', mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER CHI}', b'\\Chi', mode='math')
-        self.register(u'\N{GREEK CAPITAL LETTER PSI}', b'\\Psi', mode='math')
-        self.register(
-            u'\N{GREEK CAPITAL LETTER OMEGA}',
-            b'\\Omega',
-            mode='math')
-        self.register(u'\N{COPYRIGHT SIGN}', b'\\copyright')
-        self.register(u'\N{COPYRIGHT SIGN}', b'\\textcopyright')
-        self.register(u'\N{LATIN CAPITAL LETTER A WITH ACUTE}', b"\\'A")
-        self.register(u'\N{LATIN CAPITAL LETTER I WITH ACUTE}', b"\\'I")
-        self.register(u'\N{HORIZONTAL ELLIPSIS}', b'\\ldots')
-        self.register(u'\N{TRADE MARK SIGN}', b'^{TM}', mode='math')
-        self.register(
-            u'\N{TRADE MARK SIGN}',
-            b'\\texttrademark',
-            package='textcomp')
+        register!(self,s"\N{GREEK SMALL LETTER ALPHA}", "\\alpha", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER BETA}", "\\beta", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER GAMMA}", "\\gamma", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER DELTA}", "\\delta", mode="math")
+        register!(self,
+            s"\N{GREEK SMALL LETTER EPSILON}",
+            "\\epsilon",
+            mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER ZETA}", "\\zeta", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER ETA}", "\\eta", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER THETA}", "\\theta", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER IOTA}", "\\iota", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER KAPPA}", "\\kappa", mode="math")
+        register!(self,
+            s"\N{GREEK SMALL LETTER LAMDA}",
+            "\\lambda",
+            mode="math")  # LAMDA not LAMBDA
+        register!(self,s"\N{GREEK SMALL LETTER MU}", "\\ms", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER NU}", "\\ns", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER XI}", "\\xi", mode="math")
+        register!(self,
+            s"\N{GREEK SMALL LETTER OMICRON}",
+            "\\omicron",
+            mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER PI}", "\\pi", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER RHO}", "\\rho", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER SIGMA}", "\\sigma", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER TAU}", "\\tas", mode="math")
+        register!(self,
+            s"\N{GREEK SMALL LETTER UPSILON}",
+            "\\upsilon",
+            mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER PHI}", "\\phi", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER CHI}", "\\chi", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER PSI}", "\\psi", mode="math")
+        register!(self,s"\N{GREEK SMALL LETTER OMEGA}", "\\omega", mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER ALPHA}",
+            "\\Alpha",
+            mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER BETA}", "\\Beta", mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER GAMMA}",
+            "\\Gamma",
+            mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER DELTA}",
+            "\\Delta",
+            mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER EPSILON}",
+            "\\Epsilon",
+            mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER ZETA}", "\\Zeta", mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER ETA}", "\\Eta", mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER THETA}",
+            "\\Theta",
+            mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER IOTA}", "\\Iota", mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER KAPPA}",
+            "\\Kappa",
+            mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER LAMDA}",
+            "\\Lambda",
+            mode="math")  # LAMDA not LAMBDA
+        register!(self,s"\N{GREEK CAPITAL LETTER MU}", "\\Ms", mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER NU}", "\\Ns", mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER XI}", "\\Xi", mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER OMICRON}",
+            "\\Omicron",
+            mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER PI}", "\\Pi", mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER RHO}", "\\Rho", mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER SIGMA}",
+            "\\Sigma",
+            mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER TAU}", "\\Tas", mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER UPSILON}",
+            "\\Upsilon",
+            mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER PHI}", "\\Phi", mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER CHI}", "\\Chi", mode="math")
+        register!(self,s"\N{GREEK CAPITAL LETTER PSI}", "\\Psi", mode="math")
+        register!(self,
+            s"\N{GREEK CAPITAL LETTER OMEGA}",
+            "\\Omega",
+            mode="math")
+        register!(self,s"\N{COPYRIGHT SIGN}", "\\copyright")
+        register!(self,s"\N{COPYRIGHT SIGN}", "\\textcopyright")
+        register!(self,s"\N{LATIN CAPITAL LETTER A WITH ACUTE}", "\\\"A")
+        register!(self,s"\N{LATIN CAPITAL LETTER I WITH ACUTE}", "\\\"I")
+        register!(self,s"\N{HORIZONTAL ELLIPSIS}", "\\ldots")
+        register!(self,s"\N{TRADE MARK SIGN}", "^{TM}", mode="math")
+        register!(self,
+            s"\N{TRADE MARK SIGN}",
+            "\\texttrademark",
+            package="textcomp")
         # \=O and \=o will be translated into Ō and ō before we can
         # match the full latex string... so decoding disabled for now
-        self.register(u'Ǭ', br'\textogonekcentered{\=O}', decode=False)
-        self.register(u'ǭ', br'\textogonekcentered{\=o}', decode=False)
-        self.register(u'ℕ', br'\mathbb{N}', mode='math')
-        self.register(u'ℕ', br'\mathbb N', mode='math', decode=False)
-        self.register(u'ℤ', br'\mathbb{Z}', mode='math')
-        self.register(u'ℤ', br'\mathbb Z', mode='math', decode=False)
-        self.register(u'ℚ', br'\mathbb{Q}', mode='math')
-        self.register(u'ℚ', br'\mathbb Q', mode='math', decode=False)
-        self.register(u'ℝ', br'\mathbb{R}', mode='math')
-        self.register(u'ℝ', br'\mathbb R', mode='math', decode=False)
-        self.register(u'ℂ', br'\mathbb{C}', mode='math')
-        self.register(u'ℂ', br'\mathbb C', mode='math', decode=False)
+        register!(self,"Ǭ", "\\textogonekcentered{\=O}", decode=false)
+        register!(self,"ǭ", "\\textogonekcentered{\=o}", decode=false)
+        register!(self,"ℕ","\\mathbb{N}", mode="math")
+        register!(self,"ℕ", "\\mathbb N", mode="math", decode=false)
+        register!(self,"ℤ", "\\mathbb{Z}", mode="math")
+        register!(self,"ℤ", "\\mathbb Z", mode="math", decode=false)
+        register!(self,"ℚ","\\mathbb{Q}", mode="math")
+        register!(self,"ℚ", "\\mathbb Q", mode="math", decode=false)
+        register!(self,"ℝ", "\\mathbb{R}", mode="math")
+        register!(self,"ℝ", "\\mathbb R", mode="math", decode=false)
+        register!(self,"ℂ", "\\mathbb{C}", mode="math")
+        register!(self,"ℂ", "\\mathbb C", mode="math", decode=false)
 end
-function register(self, unicode_text, latex_text, mode='text', package=None,
-                 decode=True, encode=True)
-        """Register a correspondence between *unicode_text* and *latex_text*.
-
-        :param str unicode_text: A unicode character.
-        :param bytes latex_text: Its corresponding LaTeX translation.
-        :param str mode: LaTeX mode in which the translation applies
-            (``'text'`` or ``'math'``).
-        :param str package: LaTeX package requirements (currently ignored).
-        :param bool decode: Whether this translation applies to decoding
-            (default: ``True``).
-        :param bool encode: Whether this translation applies to encoding
-            (default: ``True``).
-        """
-        if mode == 'math':
-            # also register text version
-            self.register(unicode_text, b'$' + latex_text + b'$', mode='text',
-                          package=package, decode=decode, encode=encode)
-            self.register(unicode_text,
-                          br'\(' + latex_text + br'\)', mode='text',
-                          package=package, decode=decode, encode=encode)
-            # XXX for the time being, we do not perform in-math substitutions
-            return
-        if not self.lexer.binary_mode:
-            latex_text = latex_text.decode("ascii")
-        if package is not None:
-            # TODO implement packages
-            pass
-        # tokenize, and register unicode translation
-        self.lexer.reset()
-        self.lexer.state = 'M'
-        tokens = tuple(self.lexer.get_tokens(latex_text, final=True))
-        if decode:
-            if tokens not in self.unicode_map:
-                self.max_length = max(self.max_length, len(tokens))
-                self.unicode_map[tokens] = unicode_text
-            # also register token variant with brackets, if appropriate
-            # for instance, "\'{e}" for "\'e", "\c{c}" for "\c c", etc.
-            # note: we do not remove brackets (they sometimes matter,
-            # e.g. bibtex uses them to prevent lower case transformation)
-            if (len(tokens) == 2 and
-                tokens[0].name.startswith('control') and
-                    tokens[1].name == 'chars'):
-                alt_tokens = (tokens[0], self.lexer.curlylefttoken, tokens[1],
-                              self.lexer.curlyrighttoken)
-                if alt_tokens not in self.unicode_map:
-                    self.max_length = max(self.max_length, len(alt_tokens))
-                    self.unicode_map[alt_tokens] = u"{" + unicode_text + u"}"
-        if encode and unicode_text not in self.latex_map:
-            assert len(unicode_text) == 1
-            self.latex_map[unicode_text] = (latex_text, tokens)
-
-end
-
-_LATEX_UNICODE_TABLE = LatexUnicodeTable(lexer.LatexIncrementalDecoder())
-_ULATEX_UNICODE_TABLE = LatexUnicodeTable(
-    lexer.UnicodeLatexIncrementalDecoder())
 
 # incremental encoder does not need a buffer
 # but decoder does
@@ -622,17 +624,17 @@ class LatexIncrementalEncoder(lexer.LatexIncrementalEncoder):
     table = _LATEX_UNICODE_TABLE
     """Translation table."""
 
-    def __init__(self, errors='strict'):
+    def __init__(self, errors="strict"):
         super(LatexIncrementalEncoder, self).__init__(errors=errors)
         self.reset()
 
     def reset(self):
         super(LatexIncrementalEncoder, self).reset()
-        self.state = 'M'
+        self.state = "M"
 
     def get_space_bytes(self, bytes_):
         """Inserts space bytes in space eating mode."""
-        if self.state == 'S':
+        if self.state == "S":
             # in space eating mode
             # control space needed?
             if bytes_.startswith(self.spacechar):
@@ -654,46 +656,46 @@ class LatexIncrementalEncoder(lexer.LatexIncrementalEncoder):
                 pass
         # next, try input encoding
         try:
-            bytes_ = c.encode(self.inputenc, 'strict')
+            bytes_ = c.encode(self.inputenc, "strict")
         except UnicodeEncodeError:
             pass
         else:
             if self.binary_mode:
-                return bytes_, (lexer.Token(name='chars', text=bytes_),)
+                return bytes_, (lexer.Token(name="chars", text=bytes_),)
             else:
-                return c, (lexer.Token(name='chars', text=c),)
+                return c, (lexer.Token(name="chars", text=c),)
         # next, try latex equivalents of common unicode characters
         try:
             return self.table.latex_map[c]
         except KeyError:
             # translation failed
-            if self.errors == 'strict':
+            if self.errors == "strict":
                 raise UnicodeEncodeError(
                     "latex",  # codec
                     c,  # problematic input
                     0, 1,  # location of problematic character
-                    "don't know how to translate {0} into latex"
+                    "don"t know how to translate {0} into latex"
                     .format(repr(c)))
-            elif self.errors == 'ignore':
+            elif self.errors == "ignore":
                 return self.emptychar, (self.emptytoken,)
-            elif self.errors == 'replace':
+            elif self.errors == "replace":
                 # use the \\char command
                 # this assumes
                 # \usepackage[T1]{fontenc}
                 # \usepackage[utf8]{inputenc}
                 if self.binary_mode:
-                    bytes_ = b'{\\char' + str(ord(c)).encode("ascii") + b'}'
+                    bytes_ = "{\\char" + str(ord(c)).encode("ascii") + "}"
                 else:
-                    bytes_ = u'{\\char' + str(ord(c)) + u'}'
-                return bytes_, (lexer.Token(name='chars', text=bytes_),)
-            elif self.errors == 'keep' and not self.binary_mode:
-                return c,  (lexer.Token(name='chars', text=c),)
+                    bytes_ = s"{\\char" + str(ord(c)) + s"}"
+                return bytes_, (lexer.Token(name="chars", text=bytes_),)
+            elif self.errors == "keep" and not self.binary_mode:
+                return c,  (lexer.Token(name="chars", text=c),)
             else:
                 raise ValueError(
                     "latex codec does not support {0} errors"
                     .format(self.errors))
 
-    def get_latex_bytes(self, unicode_, final=False):
+    def get_latex_bytes(self, unicode_, final=false):
         if not isinstance(unicode_, string_types):
             raise TypeError(
                 "expected unicode for encode input, but got {0} instead"
@@ -703,11 +705,11 @@ class LatexIncrementalEncoder(lexer.LatexIncrementalEncoder):
             bytes_, tokens = self._get_latex_bytes_tokens_from_char(c)
             space, bytes_ = self.get_space_bytes(bytes_)
             # update state
-            if tokens[-1].name == 'control_word':
-                # we're eating spaces
-                self.state = 'S'
+            if tokens[-1].name == "control_word":
+                # we"re eating spaces
+                self.state = "S"
             else:
-                self.state = 'M'
+                self.state = "M"
             if space:
                 yield space
             yield bytes_
@@ -720,7 +722,7 @@ class LatexIncrementalDecoder(lexer.LatexIncrementalDecoder):
     table = _LATEX_UNICODE_TABLE
     """Translation table."""
 
-    def __init__(self, errors='strict'):
+    def __init__(self, errors="strict"):
         lexer.LatexIncrementalDecoder.__init__(self, errors=errors)
 
     def reset(self):
@@ -735,7 +737,7 @@ class LatexIncrementalDecoder(lexer.LatexIncrementalDecoder):
     def setstate(self, state):
         raise NotImplementedError
 
-    def get_unicode_tokens(self, bytes_, final=False):
+    def get_unicode_tokens(self, bytes_, final=false):
         for token in self.get_tokens(bytes_, final=final):
             # at this point, token_buffer does not match anything
             self.token_buffer.append(token)
@@ -772,19 +774,19 @@ class LatexCodec(codecs.Codec):
     IncrementalEncoder = None
     IncrementalDecoder = None
 
-    def encode(self, unicode_, errors='strict'):
+    def encode(self, unicode_, errors="strict"):
         """Convert unicode string to LaTeX bytes."""
         encoder = self.IncrementalEncoder(errors=errors)
         return (
-            encoder.encode(unicode_, final=True),
+            encoder.encode(unicode_, final=true),
             len(unicode_),
         )
 
-    def decode(self, bytes_, errors='strict'):
+    def decode(self, bytes_, errors="strict"):
         """Convert LaTeX bytes to unicode string."""
         decoder = self.IncrementalDecoder(errors=errors)
         return (
-            decoder.decode(bytes_, final=True),
+            decoder.decode(bytes_, final=true),
             len(bytes_),
         )
 
@@ -797,7 +799,7 @@ def find_latex(encoding):
     or to ``latex+<encoding>``
     where ``<encoding>`` describes another encoding.
     """
-    encoding, _, inputenc_ = encoding.partition(u"+")
+    encoding, _, inputenc_ = encoding.partition(s"+")
     if not inputenc_:
         inputenc_ = "ascii"
     if encoding == "latex":
