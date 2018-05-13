@@ -71,7 +71,8 @@ struct LatexUnicodeTable
     
 end
 function LatexUnicodeTable(lexer)
-    return LatexUnicodeTable(lexer, Dict(), 0, Dict())
+    local lu = LatexUnicodeTable(lexer, Dict(), 0, Dict())
+    register_all!(lu)
 end
 doc"""
 ```
