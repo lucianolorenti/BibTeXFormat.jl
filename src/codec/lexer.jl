@@ -379,35 +379,25 @@ function decode(self, bytes_, final=false)
         end
     end
 
-strcut LatexIncrementalEncoder
-end
-@add_metaclass(MetaLatexCoder)
-class LatexIncrementalEncoder(codecs.IncrementalEncoder):
-
     """
     Simple incremental encoder for LaTeX. Transforms unicode into    :class:`bytes`.
 
     To customize decoding, subclass and override
     :meth:`get_latex_bytes`.
     """
-
-    inputenc = "ascii"
-    """Input encoding. **Must** extend ascii."""
-
-    binary_mode = True
-    """Whether this encoder processes binary data (bytes) or text data
-    (unicode).
-    """
-
-    def __init__(self, errors='strict'):
-        """Initialize the codec."""
-        self.errors = errors
-        self.reset()
-
-    def reset(self):
-        """Reset state."""
-        # buffer for storing last (possibly incomplete) token
-        self.buffer = u""
+struct LatexIncrementalEncoder
+    inputenc::String
+    binary_mode::Bool
+    errors::String
+end
+function LatexIncrementalEncoder(errors::String="strict")
+    local lie= LatexIncrementalEncoder("ascii", true, errors)
+    reset!(lie)
+    return lie
+end
+function reset!(self::LatexIncrementalEncoder)
+    self.buffer = ""
+end
 
     def getstate(self):
         """Get state."""
