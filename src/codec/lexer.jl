@@ -1,3 +1,4 @@
+export Token
 #This module contains all classes for lexing LaTeX code, as well as
 #    general purpose base classes for incremental LaTeX decoders and
 #    encoders, which could be useful in case you are writing your own
