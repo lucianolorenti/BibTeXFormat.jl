@@ -59,13 +59,13 @@ function MetaRegexpLexer()
     return MetaRegexpLexer(mlc, regexp)
 end
 
-"""Abstract base class for regexp based lexers."""
+"""
+Abstract base class for regexp based lexers.
+"""
 struct RegexpLexer
-
-    """Tuple containing all token regular expressions."""
     tokens::Vector
-    erros
-    raw_buffer
+    erros::Any
+    raw_buffer::String
 end
 function RegexpLexer(;errors::String="strict")
     local rl =  RegexpLexer([], errors,"")
@@ -73,6 +73,7 @@ function RegexpLexer(;errors::String="strict")
 end
 function reset!(self::RegexpLexer)
     self.raw_buffer = self.emptytoken
+    self.
 end
 function getstate(self::RegexpLexer)
     return (self.raw_buffer.text, 0)
@@ -82,6 +83,8 @@ end
 Set state. The *state* must correspond to the return value    of a previous :meth:`getstate` call.
 """
 function setstate(self::RegexpLexer, state)
+    self.raw_buffer = "a";
+
     self.raw_buffer = Token('unknown', state[1])
 end
 
@@ -221,6 +224,7 @@ Yield tokens while maintaining a state. Also skip whitespace after control words
 Replaces newlines by spaces and \\par commands depending on    the context.
 """
 function get_tokens(self::LatexIncrementalLexer, bytes_ final::Bool=false)
+
         # current position relative to the start of bytes_ in the sequence
         # of bytes that have been decoded
         pos = -length(self.raw_buffer.text)

@@ -71,7 +71,7 @@ struct LatexUnicodeTable
     
 end
 function LatexUnicodeTable(lexer)
-    local lu = LatexUnicodeTable(lexer, Dict(), 0, Dict())
+    lu = LatexUnicodeTable(lexer, Dict(), 0, Dict())
     register_all!(lu)
 end
 doc"""
@@ -118,7 +118,7 @@ function register!(self::LatexUnicodeTable, ustr::String, rep::String; encode::B
         # e.g. bibtex uses them to prevent lower case transformation)
         if (length(tokens) == 2) &&  (startswith(tokens[1].name, "control")) &&
                 (tokens[2].name == "chars")
-            local alt_tokens = (tokens[1], self.lexer.curlylefttoken, tokens[2],
+            alt_tokens = (tokens[1], self.lexer.curlylefttoken, tokens[2],
                             self.lexer.curlyrighttoken)
             if haskey(self.unicode_map, alt_tokens)
                 self.max_length = max(self.max_length, length(alt_tokens))
@@ -614,164 +614,169 @@ end
 
 # incremental encoder does not need a buffer
 # but decoder does
+"""
+Translating incremental encoder for latex. Maintains a state to  determine whether control spaces etc. need to be inserted.
+"""
+struct LatexIncrementalEncoder
+    state::String
+    spacechar::Char              
+    emptychar::Char          
+end
+function LatexIncrementalEncoder()
+    l = LatexIncrementalEncoder(' ')
+    reset!(l)
+    return l
+end
 
+function reset!(self::LatexIncrementalEncoder)
+    self.state = "M"
+end                  
 
-class LatexIncrementalEncoder(lexer.LatexIncrementalEncoder):
-
-    """Translating incremental encoder for latex. Maintains a state to
-    determine whether control spaces etc. need to be inserted.
-    """
-
-    table = _LATEX_UNICODE_TABLE
-    """Translation table."""
-
-    def __init__(self, errors="strict"):
-        super(LatexIncrementalEncoder, self).__init__(errors=errors)
-        self.reset()
-
-    def reset(self):
-        super(LatexIncrementalEncoder, self).reset()
-        self.state = "M"
-
-    def get_space_bytes(self, bytes_):
-        """Inserts space bytes in space eating mode."""
-        if self.state == "S":
-            # in space eating mode
-            # control space needed?
-            if bytes_.startswith(self.spacechar):
-                # replace by control space
-                return self.controlspacechar, bytes_[1:]
-            else:
-                # insert space (it is eaten, but needed for separation)
-                return self.spacechar, bytes_
-        else:
-            return self.emptychar, bytes_
-
-    def _get_latex_bytes_tokens_from_char(self, c):
-        # if ascii, try latex equivalents
-        # (this covers \, #, &, and other special LaTeX characters)
-        if ord(c) < 128:
-            try:
-                return self.table.latex_map[c]
-            except KeyError:
-                pass
-        # next, try input encoding
-        try:
-            bytes_ = c.encode(self.inputenc, "strict")
-        except UnicodeEncodeError:
-            pass
-        else:
-            if self.binary_mode:
-                return bytes_, (lexer.Token(name="chars", text=bytes_),)
-            else:
-                return c, (lexer.Token(name="chars", text=c),)
-        # next, try latex equivalents of common unicode characters
-        try:
+"""
+Inserts space bytes in space eating mode.
+"""
+function get_space_bytes(self::LatexIncrementalEncoder, bytes)
+    if self.state == "S"
+        # in space eating mode
+        # control space needed?
+        if startswith(bytes,self.spacechar):
+            # replace by control space
+            return (self.controlspacechar, bytes[2:end])
+        else
+            # insert space (it is eaten, but needed for separation)
+            return (self.spacechar, bytes)
+        end
+    else
+        return (self.emptychar, bytes)
+    end
+end
+function get_latex_bytes_tokens_from_char(self::LatexIncrementalEncoder, c)                  
+    # if ascii, try latex equivalents
+    # (this covers \, #, &, and other special LaTeX characters)
+    if ord(c) < 128:
+        try
             return self.table.latex_map[c]
-        except KeyError:
-            # translation failed
-            if self.errors == "strict":
-                raise UnicodeEncodeError(
-                    "latex",  # codec
-                    c,  # problematic input
-                    0, 1,  # location of problematic character
-                    "don"t know how to translate {0} into latex"
-                    .format(repr(c)))
-            elif self.errors == "ignore":
-                return self.emptychar, (self.emptytoken,)
-            elif self.errors == "replace":
-                # use the \\char command
-                # this assumes
-                # \usepackage[T1]{fontenc}
-                # \usepackage[utf8]{inputenc}
-                if self.binary_mode:
-                    bytes_ = "{\\char" + str(ord(c)).encode("ascii") + "}"
-                else:
-                    bytes_ = s"{\\char" + str(ord(c)) + s"}"
-                return bytes_, (lexer.Token(name="chars", text=bytes_),)
-            elif self.errors == "keep" and not self.binary_mode:
-                return c,  (lexer.Token(name="chars", text=c),)
+        catch e
+        end    
+    end
+    # next, try input encoding
+    try
+        bytes = c.encode(self.inputenc, "strict")                  
+        if self.binary_mode
+            return bytes_, (lexer.Token(name="chars", text=bytes_),)
+        else
+            return c, (lexer.Token(name="chars", text=c),)
+        end
+    catch e
+        pass
+    end
+    # next, try latex equivalents of common unicode characters
+    try:
+        return self.table.latex_map[c]
+    except KeyError:
+        # translation failed
+        if self.errors == "strict":
+            raise UnicodeEncodeError(
+                "latex",  # codec
+                c,  # problematic input
+                0, 1,  # location of problematic character
+                "don"t know how to translate {0} into latex"
+                .format(repr(c)))
+        elseif self.errors == "ignore":
+            return self.emptychar, (self.emptytoken,)
+        elseif self.errors == "replace":
+            # use the \\char command
+            # this assumes
+            # \usepackage[T1]{fontenc}
+            # \usepackage[utf8]{inputenc}
+            if self.binary_mode:
+                bytes_ = "{\\char" + str(ord(c)).encode("ascii") + "}"
             else:
-                raise ValueError(
-                    "latex codec does not support {0} errors"
-                    .format(self.errors))
-
-    def get_latex_bytes(self, unicode_, final=false):
-        if not isinstance(unicode_, string_types):
+                bytes_ = s"{\\char" + str(ord(c)) + s"}"
+            return bytes_, (lexer.Token(name="chars", text=bytes_),)
+        elseif self.errors == "keep" and not self.binary_mode:
+            return c,  (lexer.Token(name="chars", text=c),)
+        else:
+            raise ValueError(
+                "latex codec does not support {0} errors"
+                .format(self.errors))
+        end
+end
+function get_latex_bytes(self, unicode, final=false)
+        if not isinstance(unicode_, string_types)
             raise TypeError(
                 "expected unicode for encode input, but got {0} instead"
                 .format(unicode_.__class__.__name__))
+end
         # convert character by character
-        for pos, c in enumerate(unicode_):
+        for pos, c in enumerate(unicode_)
             bytes_, tokens = self._get_latex_bytes_tokens_from_char(c)
             space, bytes_ = self.get_space_bytes(bytes_)
             # update state
             if tokens[-1].name == "control_word":
                 # we"re eating spaces
                 self.state = "S"
-            else:
-                self.state = "M"
-            if space:
+            else
+                    self.state = "M"
+                    end
+            if space
                 yield space
+                end
             yield bytes_
+        end
+    end
+end
 
 
-class LatexIncrementalDecoder(lexer.LatexIncrementalDecoder):
-
-    """Translating incremental decoder for LaTeX."""
-
-    table = _LATEX_UNICODE_TABLE
-    """Translation table."""
-
-    def __init__(self, errors="strict"):
-        lexer.LatexIncrementalDecoder.__init__(self, errors=errors)
-
-    def reset(self):
-        lexer.LatexIncrementalDecoder.reset(self)
+"""
+Translating incremental decoder for LaTeX.
+"""
+struct LatexIncrementalDecoder
+    token_buffer::Vector
+end
+function reset!(lid::LatexIncrementalDecoder)
+    lid.token_buffer = []
+end
+function get_unicode_tokens(self::LatexIncrementalDecoder, bytes, final=false)
+    for token in get_tokens(self, bytes, final=final)                  
+        # at this point, token_buffer does not match anything
+        push!(self.token_buffer, token)
+        # new token appended at the end, see if we have a match now
+        # note: match is only possible at the *end* of the buffer
+        # because all other positions have already been checked in
+        # earlier iterations
+         for i=length(self.token_buffer):1
+            last_tokens = tuple(self.token_buffer[-i:])  # last i tokens
+            try
+                unicode_text = self.table.unicode_map[last_tokens]
+                # match!! flush buffer, and translate last bit
+                # exclude last i tokens
+                for token in self.token_buffer[:-i]:
+                    yield self.decode_token(token)
+                yield unicode_text
+                self.token_buffer = []
+                break
+            catch e
+                # no match: continue
+                continue
+            end
+            
+         end
+        # flush tokens that can no longer match
+        while len(self.token_buffer) >= self.table.max_length:
+            yield self.decode_token(self.token_buffer.pop(0))
+        end
+    # also flush the buffer at the end
+    if final
+        for token in self.token_buffer:
+            yield self.decode_token(token)
+        end
         self.token_buffer = []
+    end
+end
 
-    # python codecs API does not support multibuffer incremental decoders
-
-    def getstate(self):
-        raise NotImplementedError
-
-    def setstate(self, state):
-        raise NotImplementedError
-
-    def get_unicode_tokens(self, bytes_, final=false):
-        for token in self.get_tokens(bytes_, final=final):
-            # at this point, token_buffer does not match anything
-            self.token_buffer.append(token)
-            # new token appended at the end, see if we have a match now
-            # note: match is only possible at the *end* of the buffer
-            # because all other positions have already been checked in
-            # earlier iterations
-            for i in range(len(self.token_buffer), 0, -1):
-                last_tokens = tuple(self.token_buffer[-i:])  # last i tokens
-                try:
-                    unicode_text = self.table.unicode_map[last_tokens]
-                except KeyError:
-                    # no match: continue
-                    continue
-                else:
-                    # match!! flush buffer, and translate last bit
-                    # exclude last i tokens
-                    for token in self.token_buffer[:-i]:
-                        yield self.decode_token(token)
-                    yield unicode_text
-                    self.token_buffer = []
-                    break
-            # flush tokens that can no longer match
-            while len(self.token_buffer) >= self.table.max_length:
-                yield self.decode_token(self.token_buffer.pop(0))
-        # also flush the buffer at the end
-        if final:
-            for token in self.token_buffer:
-                yield self.decode_token(token)
-            self.token_buffer = []
-
-
-class LatexCodec(codecs.Codec):
+#=struct  LatexCodec
+end                    
     IncrementalEncoder = None
     IncrementalDecoder = None
 
@@ -789,50 +794,6 @@ class LatexCodec(codecs.Codec):
         return (
             decoder.decode(bytes_, final=true),
             len(bytes_),
-        )
+        )=#
 
 
-
-
-def find_latex(encoding):
-    """Return a :class:`codecs.CodecInfo` instance for the requested
-    LaTeX *encoding*, which must be equal to ``latex``,
-    or to ``latex+<encoding>``
-    where ``<encoding>`` describes another encoding.
-    """
-    encoding, _, inputenc_ = encoding.partition(s"+")
-    if not inputenc_:
-        inputenc_ = "ascii"
-    if encoding == "latex":
-        IncEnc = LatexIncrementalEncoder
-        DecEnc = LatexIncrementalDecoder
-    elif encoding == "ulatex":
-        IncEnc = UnicodeLatexIncrementalEncoder
-        DecEnc = UnicodeLatexIncrementalDecoder
-    else:
-        return None
-
-    class IncrementalEncoder_(IncEnc):
-        inputenc = inputenc_
-
-    class IncrementalDecoder_(DecEnc):
-        inputenc = inputenc_
-
-    class Codec(LatexCodec):
-        IncrementalEncoder = IncrementalEncoder_
-        IncrementalDecoder = IncrementalDecoder_
-
-    class StreamWriter(Codec, codecs.StreamWriter):
-        pass
-
-    class StreamReader(Codec, codecs.StreamReader):
-        pass
-
-    return codecs.CodecInfo(
-        encode=Codec().encode,
-        decode=Codec().decode,
-        incrementalencoder=Codec.IncrementalEncoder,
-        incrementaldecoder=Codec.IncrementalDecoder,
-        streamreader=StreamReader,
-        streamwriter=StreamWriter,
-    )
