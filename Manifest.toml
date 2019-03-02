@@ -26,11 +26,11 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 deps = ["LinearAlgebra", "Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
-[[Format]]
+[[Formatting]]
 deps = ["Compat"]
-git-tree-sha1 = "89b70d12b4a01d4242ffd4351e8c8a571877e0eb"
-uuid = "1fa38f19-a742-5d3f-a2b9-30dd87b9d5f8"
-version = "0.7.2"
+git-tree-sha1 = "289003271ce9c8194c1ce56a3c433f1c51841125"
+uuid = "59287772-0a20-5a39-b81b-1366585eb4c0"
+version = "0.3.5"
 
 [[HttpCommon]]
 deps = ["Dates", "Nullables", "Test", "URIParser"]
