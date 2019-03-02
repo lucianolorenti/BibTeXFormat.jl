@@ -26,11 +26,16 @@ struct Config
 end
 
 const Citation = Dict
-const Bibliography = Dict
+const Bibliography = Dict{String, Dict}
 
-function citation_type(t::Citation{T}) where {T}
-    return T
+#function citation_type(t::Citation{T}) where {T}
+#    return T
+#end
+
+function citation_type(e::Dict{String,String})
+    return e["type"]
 end
+
 function citation_type(e::Dict{String,Any})
     return e["type"]
 end
@@ -49,11 +54,12 @@ function transform(e::Citation, label)
     e_n["type"] = citation_type(e)
     e_n["key"] = label
     if haskey(e_n, "author")
-        e_n["persons"]["author"] = [Person(p) for p in split_name_list(e["author"])]
+        e_n["persons"]["author"] = [Person(String(p)) for p in split_name_list(e["author"])]
     end
-    pop!(e_n,"author")
+	pop!(e_n,"author")
     return e_n
 end
+
 function transform_entries(entries)
     local transformed_entries = Dict()
     for k in keys(entries)

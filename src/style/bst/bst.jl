@@ -40,7 +40,7 @@ mutable struct Interpreter
     entries_var::Dict{String,Dict}
 end
 
-const Bibliography = Dict
+const Bibliography = Dict{String, Dict}
 
 include("builtins.jl")
 function Interpreter(bib_format, bib_encoding)
