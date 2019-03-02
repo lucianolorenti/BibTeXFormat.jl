@@ -1,0 +1,8 @@
+name = "BibTexFormat"
+uuid = "81872a04-5f92-5ce1-a30b-528d3f2b00a0"
+version = "0.0.0"
+
+[deps]
+BibTeX = "0c132655-f423-5f6f-9a5a-d55cfa15b9d7"
+Format = "1fa38f19-a742-5d3f-a2b9-30dd87b9d5f8"
+HttpCommon = "77172c1b-203f-54ac-aa54-3f1198fe9f90"

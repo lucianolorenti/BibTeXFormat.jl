@@ -174,7 +174,7 @@ function find_backend(t::String)
     end
 end
 
-doc"""
+"""
 ```
 function render_as(self::T, backend_name) where T<:BaseText
 ```
@@ -197,7 +197,6 @@ Longcat is looooooong!
 ```
 
 """
-
 function render_as(self::T, backend_name) where T<:BaseText
 	backend_cls = find_backend(backend_name)
 	return render(self,backend_cls())

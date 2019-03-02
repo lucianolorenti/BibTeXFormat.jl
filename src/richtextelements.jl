@@ -22,7 +22,7 @@ import BibTeXFormat: whitespace_re, render_as
 function typeinfo(v::T) where T<:BaseText
     return (string(T),T,())
 end
-using Iterators
+#using Iterators
 function ensure_text(c::Char)
     return RichString(string(c))
 end
@@ -201,7 +201,7 @@ end
 function parts(d::T) where T<:MultiPartText
     return d.parts
 end
-function show(io::Union{IO,Base.AbstractIOBuffer}, d::T) where {T<:MultiPartText}
+function show(io::Union{IO,Base.GenericIOBuffer}, d::T) where {T<:MultiPartText}
     write(io,string(T.name.name))
     write(io,"(")
     write(io,Base.join([string(part) for part in d.parts], ", "))
@@ -623,7 +623,7 @@ end
 function Base.endof(v::RichString)
     return length(v.value)
 end
-function Base.show(io::Union{IO,Base.AbstractIOBuffer}, self::RichString)
+function Base.show(io::Union{IO,Base.GenericIOBuffer}, self::RichString)
     write(io, "\"")
     write(io, self.value)
     write(io,"\"")
@@ -723,17 +723,17 @@ function unpack(r::RichText)
 	end
 	return elems
 end
-function write(io::Base.AbstractIOBuffer, d::RichText)
+function write(io::Base.GenericIOBuffer, d::RichText)
     show(io,d)
 end
 
-function show(io::Union{IO,Base.AbstractIOBuffer}, d::RichText)
+function show(io::Union{IO,Base.GenericIOBuffer}, d::RichText)
     write(io,"RichText")
     write(io,"(")
     write(io,Base.join([string(part) for part in d.parts], ", "))
     write(io,")")
 end
-doc"""
+"""
 A `Tag` represents something like an HTML tag or a LaTeX formatting command:
 
 ```jldoctest
@@ -760,7 +760,7 @@ mutable struct Tag <:MultiPartText
 	end
 end
 
-function Base.show(io::Union{IO, Base.AbstractIOBuffer}, self::Tag)
+function Base.show(io::Union{IO, Base.GenericIOBuffer}, self::Tag)
     write(io,"Tag")
     write(io,"(\"")
     write(io, self.name)
@@ -769,7 +769,7 @@ function Base.show(io::Union{IO, Base.AbstractIOBuffer}, self::Tag)
     write(io,")")
 end
 
-doc"""
+"""
 A `HRef` represends a hyperlink:
 ```jldoctest
 julia> import BibTeXFormat: render_as
@@ -780,12 +780,12 @@ julia> print(render_as(href,"html"))
 <a href="http://ctan.org/">CTAN</a>
 
 julia> print(render_as(href, "latex"))
-\href{http://ctan.org/}{CTAN}
+\\href{http://ctan.org/}{CTAN}
 
 julia> href = HRef(String("http://ctan.org/"), String("http://ctan.org/"));
 
 julia> print(render_as(href,"latex"))
-\url{http://ctan.org/}
+\\url{http://ctan.org/}
 
 ```
 
@@ -801,7 +801,7 @@ mutable struct HRef <: MultiPartText
     end
 end
 
-function Base.show(io::Union{IO, Base.AbstractIOBuffer}, self::HRef)
+function Base.show(io::Union{IO, Base.GenericIOBuffer}, self::HRef)
     write(io,"HRef")
     write(io,"(\"")
     write(io, self.url)
@@ -810,7 +810,7 @@ function Base.show(io::Union{IO, Base.AbstractIOBuffer}, self::HRef)
     write(io,")")
 end
 
-doc"""
+"""
 A `Protected` represents a "protected" piece of text.
 
 - `Protected.lowercase`, `Protected.uppercase`, `Protected.capitalize`, and `Protected.capitalize()`   are no-ops and just return the `Protected` struct itself.

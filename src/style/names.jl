@@ -19,7 +19,7 @@ end
 
 struct LastFirstNameStyle <: BaseNameStyle end
 #test in runtest.jl
-doc"""
+"""
 ```
 function format(self::LastFirstNameStyle, person, abbr=false)
 ```
@@ -67,7 +67,7 @@ end
 
 struct PlainNameStyle <: BaseNameStyle end
 #test in runtest.jl
-doc"""
+"""
 Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.
 
 ```julia

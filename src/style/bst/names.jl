@@ -99,7 +99,7 @@ NON_LETTERS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
 const FORMAT_CHARS = (r"[^\W\d_]+", "format chars")
 FORMAT_CHARS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
 end
-doc"""
+"""
 ```
 struct NameFormat
 ```

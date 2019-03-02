@@ -25,6 +25,9 @@ struct Config
 	end
 end
 
+const Citation = Dict
+const Bibliography = Dict
+
 function citation_type(t::Citation{T}) where {T}
     return T
 end
@@ -58,6 +61,7 @@ function transform_entries(entries)
     end
     return  transformed_entries
 end
+
 """
 ```
 function format_entries(b::T, entries::Dict) where T <: BaseStyle
@@ -70,7 +74,6 @@ bibliography      = Bibliography(readstring("test/Clustering.bib"))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 ```
 """
-
 function format_entries(b::T, entries) where T <: BaseStyle
     entries = transform_entries(entries)
 	local sorted_entries = sort(b.config.sorting_style, entries)
@@ -202,7 +205,7 @@ function  get_crossreferenced_citations(entries, citations; min_crossrefs::Integ
 end
 
 """
-Expand wildcard citations (\citation{*} in .aux file).
+Expand wildcard citations (\\citation{*} in .aux file).
 ```jldoctest
 julia> using BibTeX
 
@@ -277,4 +280,3 @@ PlainAlphaStyle
 const PlainAlphaStyle = UNSRTStyle(Config())
 
 include("bst/bst.jl")
-

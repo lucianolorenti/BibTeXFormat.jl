@@ -90,14 +90,14 @@ julia> split_tex_string("{Matsui      Fuuka}")
 1-element Array{String,1}:
  "{Matsui      Fuuka}"
 
-julia> split_tex_string(r"Matsui\ Fuuka")
+julia> split_tex_string(r"Matsui\\ Fuuka")
 2-element Array{String,1}:
  "Matsui"
  "Fuuka"
 
-julia> split_tex_string("{Matsui\ Fuuka}")
+julia> split_tex_string("{Matsui\\ Fuuka}")
 1-element Array{String,1}:
- "{Matsui\ Fuuka}"
+ "{Matsui\\ Fuuka}"
 
 julia> split_tex_string("a")
 1-element Array{String,1}:
@@ -365,7 +365,8 @@ function startswith(c::Char,b::Char)
 	return c==b
 end
 const purify_special_char_re = r"^\\[A-Za-z]+"
-doc"""
+
+"""
 ```julia
 function bibtex_purify(str)
 ```
@@ -429,7 +430,8 @@ function bibtex_purify(str)
 	end
     return Base.join(purify_iter(str),"")
 end
-doc"""
+
+"""
 ```julia
 function change_case(string, mode)
 ```
@@ -566,7 +568,7 @@ function bibtex_substring(string, start, len)
     return string[start0:end0]
 end
 
-doc"""
+"""
 Return the number of characters in the string.
 ```
 function bibtex_len(string)
@@ -614,7 +616,7 @@ function bibtex_len(string)
     return length
 end
 
-doc"""
+"""
 ```julia
 function  bibtex_first_letter(string)
 ```
@@ -629,7 +631,7 @@ A
 julia> print(bibtex_first_letter("1Andrew"))
 A
 julia> print(bibtex_first_letter("{\\TeX} markup"))
-{\TeX}
+{\\TeX}
 julia> print(bibtex_first_letter(""))
 
 julia> print(bibtex_first_letter("123 123 123 {}"))

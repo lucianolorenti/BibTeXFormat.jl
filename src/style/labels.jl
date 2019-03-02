@@ -1,4 +1,4 @@
-import BibTeXFormat: citation_type, abbreviate
+#import BibTeXFormat: citation_type, abbreviate
 import Base.convert
 function  get_longest_label(formatted_entries)
     labels = [length(label) for (label,entry) in formatted_entries]
@@ -24,7 +24,6 @@ AABTesting123
 ```
 
 """
-
 function _strip_nonalnum(parts)
 	local s = Base.join(parts, "")
     return replace(_strip_accents(s),_nonalnum_pattern,"")
