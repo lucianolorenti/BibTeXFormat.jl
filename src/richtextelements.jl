@@ -6,7 +6,7 @@ import Base.split
 import Base.join
 import Base.convert
 import Base.uppercase
-import Base.endof
+import Base.lastindex
 import Base.lowercase
 import Base.endswith
 import Base.+
@@ -297,23 +297,23 @@ end
 
 """
 ``value in text`` returns ``True`` if any part of the ``text``
-contains the substring ``value``:
+occursin the substring ``value``:
 ```jldoctest
-julia> contains(RichText("Long cat!"),"Long cat")
+julia> occursin(RichText("Long cat!"),"Long cat")
 true
 ```
 Substrings splitted across multiple text parts are not matched:
 ```jldoctest
-julia> contains(RichText(Tag("em", "Long"), "cat!"),"Long cat")
+julia> occursin(RichText(Tag("em", "Long"), "cat!"),"Long cat")
 false
 
 ```
 
 """
-function Base.contains(a::T, item::String) where T<:MultiPartText
-	return  any( [contains(part,item) for part in a.parts])
+function Base.occursin(a::T, item::String) where T<:MultiPartText
+	return  any( [occursin(part,item) for part in a.parts])
 end
-function Base.endof(a::T) where T<:MultiPartText
+function Base.lastindex(a::T) where T<:MultiPartText
     return a.length
 end
 
@@ -620,7 +620,7 @@ end
 function convert(t::Type{String}, v::RichString)
     return v.value
 end
-function Base.endof(v::RichString)
+function Base.lastindex(v::RichString)
     return length(v.value)
 end
 function Base.show(io::Union{IO,Base.GenericIOBuffer}, self::RichString)
@@ -639,8 +639,8 @@ end
 function Base.length(self::RichString)
     return  length(self.value)
 end
-function Base.contains(self::RichString, item)
-    return contains(self.value,item)
+function Base.occursin(self::RichString, item)
+    return occursin(self.value,item)
 end
 function getindex(self::RichString, index)
     return RichString(string(self.value[index]))

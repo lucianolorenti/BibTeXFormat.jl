@@ -1,5 +1,5 @@
 using BibTeXFormat
-using Base.Test
+using Test
 import BibTeXFormat: InvalidNameString
 base_file = dirname(dirname(@__FILE__))
 import Documenter
