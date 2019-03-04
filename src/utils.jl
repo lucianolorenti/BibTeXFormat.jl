@@ -5,41 +5,41 @@ Split a list of names, separated by ' and '.
 julia> import BibTeXFormat.split_name_list
 
 julia> split_name_list("Johnson and Peterson")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "Johnson"
  "Peterson"
 
 julia> split_name_list("Johnson AND Peterson")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "Johnson"
  "Peterson"
 
 julia> split_name_list("Johnson AnD Peterson")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "Johnson"
  "Peterson"
 
 julia> split_name_list("Armand and Peterson")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "Armand"
  "Peterson"
 
 julia> split_name_list("Armand and anderssen")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "Armand"
  "anderssen"
 
 julia> split_name_list("{Armand and Anderssen}")
-1-element Array{String,1}:
+1-element Array{SubString{String},1}:
  "{Armand and Anderssen}"
 
 julia> split_name_list("What a Strange{ }and Bizzare Name! and Peterson")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "What a Strange{ }and Bizzare Name!"
  "Peterson"
 
 julia> split_name_list("What a Strange and{ }Bizzare Name! and Peterson")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "What a Strange and{ }Bizzare Name!"
  "Peterson"
 ```
@@ -58,10 +58,10 @@ Separators at the edges of the string are ignored.
 julia> import BibTeXFormat.split_tex_string
 
 julia> split_tex_string("")
-0-element Array{Any,1}
+0-element Array{SubString{_1} where _1,1}
 
 julia> split_tex_string("     ")
-0-element Array{String,1}
+0-element Array{SubString{String},1}
 
 julia> split_tex_string("   ", " ", strip=false, filter_empty=false)
 2-element Array{Any,1}:
@@ -69,42 +69,42 @@ julia> split_tex_string("   ", " ", strip=false, filter_empty=false)
  " "
 
 julia> split_tex_string(".a.b.c.", r"\\.")
-3-element Array{String,1}:
+3-element Array{SubString{String},1}:
  ".a"
  "b"
  "c."
 
 julia> split_tex_string(".a.b.c.{d.}.", r"\\.")
-4-element Array{String,1}:
+4-element Array{SubString{String},1}:
  ".a"
  "b"
  "c"
  "{d.}."
 
 julia> split_tex_string("Matsui      Fuuka")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "Matsui"
  "Fuuka"
 
 julia> split_tex_string("{Matsui      Fuuka}")
-1-element Array{String,1}:
+1-element Array{SubString{String},1}:
  "{Matsui      Fuuka}"
 
 julia> split_tex_string(r"Matsui\\ Fuuka")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "Matsui"
  "Fuuka"
 
 julia> split_tex_string("{Matsui\\ Fuuka}")
-1-element Array{String,1}:
+1-element Array{SubString{String},1}:
  "{Matsui\\ Fuuka}"
 
 julia> split_tex_string("a")
-1-element Array{String,1}:
+1-element Array{SubString{String},1}:
  "a"
 
 julia> split_tex_string("on a")
-2-element Array{String,1}:
+2-element Array{SubString{String},1}:
  "on"
  "a"
 
@@ -122,12 +122,12 @@ function split_tex_string(sstring, sep=nothing; strip=true, filter_empty=false)
 	if isa(sep, Regex)
 		sep = sep.pattern
 	end
-	local sep_re      = Regex(string("^", sep))
-    local brace_level = 0
-    local name_start  = 1
-    local result      = []
-    local string_len  = length(sstring)
-    local pos         = 1
+	sep_re      = Regex(string("^", sep))
+    brace_level = 0
+    name_start  = 1
+    result      = []
+    string_len  = length(sstring)
+    pos         = 1
     for (pos, char) in enumerate(sstring)
         if char == '{'
             brace_level += 1
@@ -161,24 +161,23 @@ end
 
 mutable struct StringIterator
     str::String
-    pos::Integer
+    state
 end
 function StringIterator(s::String)
-    return StringIterator(s,start(s))
+    return StringIterator(s, iterate(s))
 end
-import Base.next
-import Base.done
 function done(self::StringIterator)
-    return done(self.str, self.pos)
+    return self.state == nothing
 end
 function next(self::StringIterator)
-    (elem, self.pos) = next(self.str, self.pos)
+    elem = self.state[1]
+    self.state = iterate(self.str, self.state[2])
     return elem
 end
 mutable struct BibTeXString
-	level::Integer
-	is_closed::Bool
-	contents::Vector
+    level::Integer
+    is_closed::Bool
+    contents::Vector
 end
 
 function BibTeXString(chars, level::Integer=0, max_level::Integer=100)
@@ -205,7 +204,7 @@ function BibTeXString(chars::StringIterator, level::Integer=0, max_level::Intege
 	if level > max_level
 		throw("too many nested braces")
 	end
-    local bibs =  BibTeXString(level,false,[])
+    bibs =  BibTeXString(level,false,[])
     bibs.contents = find_closing_brace(bibs,chars, level)
     return bibs
 end
@@ -230,7 +229,7 @@ end
 function find_closing_brace(self::BibTeXString, chars::StringIterator,  level)
 	bibtex_strings = []
     while !done(chars)
-        local char = next(chars)
+        char = next(chars)
 		if char == '{'
             push!(bibtex_strings,BibTeXString(chars,  self.level + 1))
 		elseif char == '}' && level > 0
@@ -319,8 +318,8 @@ julia> split_keep_separator("Some words-words")
 ```
 """
 function split_keep_separator(s::String, sep=delimiter_re)
-    local output = []
-    local start = 1
+    output = []
+    start = 1
     for m in eachmatch(sep,s)
         push!(output,s[start:m.offset-1])
         push!(output,s[m.offset])
@@ -346,19 +345,19 @@ julia> abbreviate("First-Second")
 ```
 """
 function abbreviate(text, split_re=delimiter_re)
-	function abbreviate(part)
-        if all(isalpha,part)
+    function abbreviate(part)
+        if all(isletter,part)
             return string(part[1], '.')
         else
             return part
-		end
 	end
+    end
     return Base.join([abbreviate(part) for part in split_keep_separator(text,split_re)], "")
 end
 
 import Base.replace
-function replace(c::Char, r::Regex, s::String)
-	replace(string(c),r,s)
+function replace(c::Char, r::Pair)
+    replace(string(c), r=>s)
 end
 import Base.startswith
 function startswith(c::Char,b::Char)
@@ -366,7 +365,7 @@ function startswith(c::Char,b::Char)
 end
 const purify_special_char_re = r"^\\[A-Za-z]+"
 
-"""
+raw"""
 ```julia
 function bibtex_purify(str)
 ```
@@ -408,26 +407,26 @@ function bibtex_purify(str)
 
     # FIXME BibTeX treats some accented and foreign characterss specially
     function purify_iter(str)
-		local chars = []
+	chars = []
         for (token, brace_level) in scan_bibtex_string(str)
-			b = brace_level ==  1
+	    b = brace_level ==  1
             b = b && startswith(token, '\\')
-			if (b)
+	    if (b)
                 for char in replace(token, purify_special_char_re, "")
-    	            if isalnum(char)
-        	            push!(chars, char)
-					end
-				end
-            else
-                if isalnum(token)
-                   push!(chars, token)
-                elseif (isspace(token)) || (isa(token,Char) && (contains("-~", string(token))) || contains("-~", string(token)))
-                    push!(chars, " ")
-				end
-			end
+    	            if isnumeric(char) || isletter(char)
+        	        push!(chars, char)
+		    end
 		end
-		return chars
+            else
+                if isnumeric(token) || isletter(token)
+                    push!(chars, token)
+                elseif (isspace(token)) || (isa(token,Char) && (occursin("-~", string(token))) || occursin("-~", string(token)))
+                    push!(chars, " ")
+		end
+	    end
 	end
+	return chars
+    end
     return Base.join(purify_iter(str),"")
 end
 
@@ -473,8 +472,8 @@ function change_case(string::String, mode::Char)
             return char
         else
             return lowercase(char)
-		end
 	end
+    end
     lower = (char,state)-> lowercase(char)
     upper = (char,state)-> uppercase(char)
 
@@ -485,7 +484,7 @@ function change_case(string::String, mode::Char)
     function convert_special_char(special_char, state)
         # FIXME BibTeX treats some accented and foreign characterss specially
         function convert_words(words)
-			local w = []
+			w = []
             for word in words
                 if startswith(word, '\\')
                     push!(w,word)
@@ -499,8 +498,8 @@ function change_case(string::String, mode::Char)
 	end
 
     function change_case_iter(string, mode)
-		local chars = []
-        local state = "start"
+		chars = []
+        state = "start"
         for (char, brace_level) in scan_bibtex_string(string)
             if brace_level == 0
                 push!(chars, convert(char, state))
@@ -568,7 +567,7 @@ function bibtex_substring(string, start, len)
     return string[start0:end0]
 end
 
-"""
+raw"""
 Return the number of characters in the string.
 ```
 function bibtex_len(string)
@@ -607,7 +606,7 @@ julia> print(bibtex_len("level 0 {1 {\\2}}"))
 ```
 """
 function bibtex_len(string)
-    local length = 0
+    length = 0
     for (char, brace_level) in scan_bibtex_string(string)
         if char != '{' && char != '}'
             length += 1
@@ -616,7 +615,7 @@ function bibtex_len(string)
     return length
 end
 
-"""
+raw"""
 ```julia
 function  bibtex_first_letter(string)
 ```
@@ -642,13 +641,13 @@ L
 """
 function  bibtex_first_letter(str)
     for char in traverse(BibTeXString(str))
-		b = string(char)
+	b = string(char)
         if startswith(b,"\\") && b != "\\"
             return "{$char}"
-        elseif isalpha(char)
+        elseif isletter(char)
             return char
-		end
 	end
+    end
     return ""
 end
 
@@ -670,18 +669,18 @@ J.-P
 """
 function bibtex_abbreviate(string, delimiter=nothing, separator='-')
     function _bibtex_abbreviate()
-		local letters = []
+	letters = []
         for token in split_tex_string(string, separator)
             letter = bibtex_first_letter(token)
             if length(letter) != 0
                 push!(letters, letter)
-			end
-		end
-		return letters
+	    end
 	end
-
+	return letters
+    end
+    
     if delimiter ==nothing
         delimiter = ".-"
-	end
+    end
     return Base.join(_bibtex_abbreviate(), delimiter)
 end

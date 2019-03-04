@@ -99,7 +99,7 @@ NON_LETTERS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
 const FORMAT_CHARS = (r"[^\W\d_]+", "format chars")
 FORMAT_CHARS[1].match_options |=  Base.PCRE.ANCHORED |   Base.PCRE.CASELESS
 end
-"""
+raw"""
 ```
 struct NameFormat
 ```
@@ -272,7 +272,7 @@ function parse_name_part(self::NameFormatParser)
 
     function  check_format_chars(self, value)
         value = lowercase(value)
-        if format_chars != nothing || (length(value) != 1 && length(value) != 2) || value[1] != value[end] ||  !contains("flvj",string(value[1]))
+        if format_chars != nothing || (length(value) != 1 && length(value) != 2) || value[1] != value[end] ||  !occursin("flvj",string(value[1]))
 #            throw(:PybtexSyntaxError, "name format string "$(self.text)" has illegal brace-level-1 letters: $(token[1])")
         end
     end

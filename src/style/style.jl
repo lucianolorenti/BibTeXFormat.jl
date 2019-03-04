@@ -1,9 +1,9 @@
 export AlphaStyle,
-       format_entries,
-       BST,
-       format_entry,
-       UNSRTAlphaStyle,
-       PlainAlphaStyle
+    format_entries,
+    BST,
+    format_entry,
+    UNSRTAlphaStyle,
+    PlainAlphaStyle
 include("templateengine.jl")
 include("names.jl")
 include("labels.jl")
@@ -25,8 +25,6 @@ struct Config
 	end
 end
 
-const Citation = Dict
-const Bibliography = Dict{String, Dict}
 
 #function citation_type(t::Citation{T}) where {T}
 #    return T
@@ -46,8 +44,8 @@ function transform(e::Citation, label)
 Add some information to a BibTeX.Citation.
 """
 function transform(e::Citation, label)
-    local e_n = Dict{String,Any}()
-    local e_n["persons"] = Dict{String,Vector{Person}}()
+    e_n = Dict{String,Any}()
+    e_n["persons"] = Dict{String,Vector{Person}}()
     for k in keys(e)
         e_n[k] = e[k]
     end
@@ -61,7 +59,7 @@ function transform(e::Citation, label)
 end
 
 function transform_entries(entries)
-    local transformed_entries = Dict()
+    transformed_entries = Dict()
     for k in keys(entries)
         transformed_entries[k] = transform(entries[k], k)
     end
@@ -82,15 +80,15 @@ formatted_entries = format_entries(AlphaStyle,bibliography)
 """
 function format_entries(b::T, entries) where T <: BaseStyle
     entries = transform_entries(entries)
-	local sorted_entries = sort(b.config.sorting_style, entries)
-	local labels  = format_labels(b.config.label_style, sorted_entries)
-    local formatted_entries = []
-	for (label,entry) in zip(labels, sorted_entries)
+    sorted_entries = sort(b.config.sorting_style, entries)
+    labels  = format_labels(b.config.label_style, sorted_entries)
+    formatted_entries = []
+    for (label,entry) in zip(labels, sorted_entries)
         try
-	    	push!(formatted_entries,format_entry(b,label, entry))
+	    push!(formatted_entries,format_entry(b,label, entry))
         catch  e
         end
-	end
+    end
     return formatted_entries
 end
 """
@@ -99,7 +97,7 @@ function format_entry(b::T, label, entry::Citation) where T <: BaseStyle
 ```
 """
 function format_entry(b::T, label, entry::Citation) where T <: BaseStyle
-    local t_entry = transform(entry, label)
+    t_entry = transform(entry, label)
     return format_entry(b, label, t_entry)
 end
 
@@ -112,18 +110,18 @@ Format an `entry` with a given style `b::T where T <: BaseStyle`
 
 """
 function format_entry(b::T, label, entry::Dict{String,Any}) where T<:BaseStyle
-	local context = Dict{String,Any}("entry" => entry, "style"=>b)
-    local text    = ""
-	try
+    context = Dict{String,Any}("entry" => entry, "style"=>b)
+    text    = ""
+    try
         get_template =  getfield(typeof(b).name.module, Symbol("get_$(entry["type"])_template"))
-
+        
         text = TemplateEngine.format_data(get_template(b,entry),context)
-	catch e
+    catch e
         warn(e)
         println(catch_stacktrace())
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
     	text = format_method(b,context)
-	end
+    end
     return (entry["key"], text, label)
 end
 
@@ -161,9 +159,9 @@ Get cititations not cited explicitly but referenced by other citations.
 ```jldoctest
 julia> using BibTeX
 
-julia> import BibTeXFormat: get_crossreferenced_citations
+julia> import BibTeXFormat: get_crossreferenced_citations, Citation, Bibliography
 
-julia> data = Bibliography("", Dict{String,Citation}("main_article"=>Citation{:article}(Dict("crossref"=>"xrefd_article")),"xrefd_article"=>Citation{:article}()));
+julia> data = Bibliography("", Dict{String,Citation}("main_article"=>Citation(:article, Dict("crossref"=>"xrefd_article")),"xrefd_article"=>Citation(:article)));
 
 julia> print(get_crossreferenced_citations(data, [], min_crossrefs=1))
 Any[]
@@ -180,17 +178,17 @@ Any[]
 """
 function  get_crossreferenced_citations(entries, citations; min_crossrefs::Integer=1)
 
-	canonical_crossrefs = []
+    canonical_crossrefs = []
     crossref_count = Dict{String,Int}()
     citation_set = Set{String}([lowercase(c) for c in citations])
-	local crossref = nothing
+	crossref = nothing
     for citation in [lowercase(c) for c in citations]
 		if haskey(entries, citation) &&  haskey(entries[citation], "crossref")
             if haskey(entries, entries[citation]["crossref"])
-                local entry     = entries[citation]
+                entry     = entries[citation]
                 crossref = entry["crossref"]
-                local crossref_entry = entries[crossref]
-                local canonical_crossref = lowercase(crossref)
+                crossref_entry = entries[crossref]
+                canonical_crossref = lowercase(crossref)
                 if !haskey(crossref_count, canonical_crossref)
                     crossref_count[canonical_crossref] = 1
                 else
@@ -215,9 +213,9 @@ Expand wildcard citations (\\citation{*} in .aux file).
 ```jldoctest
 julia> using BibTeX
 
-julia> import BibTeXFormat: expand_wildcard_citations
+julia> import BibTeXFormat: expand_wildcard_citations, Citation, Bibliography
 
-julia> data = Bibliography("", Dict{String,Citation}("uno"=>Citation{:article}(),"dos"=>Citation{:article}(),"tres"=>Citation{:article}(),	"cuatro"=>Citation{:article}()));
+julia> data = Bibliography("", Dict{String,Citation}("uno"=>Citation(:article),"dos"=>Citation(:article),"tres"=>Citation(:article),	"cuatro"=>Citation(:article)));
 
 julia> expand_wildcard_citations(data, [])
 0-element Array{Any,1}
@@ -235,8 +233,8 @@ Any["tres", "dos", "uno", "cuatro"]
 ```
 """
 function expand_wildcard_citations(entries, citations)
-	local expanded_keys = []
-    local citation_set = Set{String}()
+	expanded_keys = []
+    citation_set = Set{String}()
     if isa(citations, Dict)
         citations_keys = keys(citations)
     else
@@ -261,8 +259,8 @@ function expand_wildcard_citations(entries, citations)
 end
 
 function add_extra_citations(entries, citations; min_crossrefs::Integer=0)
-    local expanded_citations = expand_wildcard_citations(entries,citations)
-    local crossrefs = get_crossreferenced_citations(entries, expanded_citations, min_crossrefs=min_crossrefs)
+    expanded_citations = expand_wildcard_citations(entries,citations)
+    crossrefs = get_crossreferenced_citations(entries, expanded_citations, min_crossrefs=min_crossrefs)
     return vcat(expanded_citations, crossrefs)
 end
 

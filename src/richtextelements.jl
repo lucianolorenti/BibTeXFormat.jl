@@ -1,5 +1,6 @@
 module RichTextElements
 export Tag, TextSymbol, RichText, unpack, capitalize,  ensure_text
+
 import Base.==
 import Base.getindex
 import Base.split
@@ -47,7 +48,7 @@ RichText("Longcat is ", Tag("em", "long"))
 ```
 """
 function +(b::BaseText, other)
-	return RichText(b, other)
+    return RichText(b, other)
 end
 
 """
@@ -70,7 +71,7 @@ julia> print(render_as(append(text,"!"),"html"))
 ```
 """
 function append(self::BaseText, text)
-	return self+text
+    return self+text
 end
 
 """
@@ -89,16 +90,16 @@ a-b-c
 """
 function join(self::T, parts) where T<:BaseText
     if length(parts) == 0
-	    return Text()
+	return Text()
     end
     joined = []
-	for part in parts
-		if length(joined) > 0
-			push!(joined,self)
+    for part in parts
+	if length(joined) > 0
+	    push!(joined,self)
         end
-	 	push!(joined,part)
+	push!(joined,part)
     end
-	return RichText(joined...)
+    return RichText(joined...)
 end
 
 """
@@ -121,20 +122,20 @@ That's all, folks!
 """
 function add_period(self::BaseText, period=".")
     if length(self)>0 &&   (!endswith(self,['.','?','!']))
-		return append(self,period)
-	else
-		return self
-	end
+	return append(self,period)
+    else
+	return self
+    end
 end
-function  abbreviate_word(word)
-	if isalpha(word)
-		return add_period(word[1])
-	else
-		return word
-	end
+function abbreviate_word(word)
+    if isalpha(word)
+	return add_period(word[1])
+    else
+	return word
+    end
 end
 function abbreviate(self::BaseText)
-	parts = split(self, delimiter_re)
+    parts = split(self, delimiter_re)
     return join(RichText(" "),[abbreviate_word(part) for part in parts])
 end
 
@@ -151,7 +152,7 @@ RichText(Tag("em", "Long Cat"))
 
 """
 function capfirst(self::BaseText)
-	return uppercase(self[1]) + self[2:end]
+    return uppercase(self[1]) + self[2:end]
 end
 
 """
@@ -284,12 +285,11 @@ RichText("Please ", HRef("/", "click here"), ".")
 ```
 """
 function initialize_parts(partso...)
-	parts = [ensure_text(part) for part in partso]
-	nonempty_parts = [part for part in parts if length(part)>0]
-    unpacked_parts =vcat([unpack(part) for part in nonempty_parts]...)
-	merged_parts = merge_similar(unpacked_parts)
-
-	return (merged_parts, Base.sum(vcat(0,[length(part) for part in merged_parts])))
+    parts = [ensure_text(part) for part in partso]
+    nonempty_parts = [part for part in parts if length(part)>0]
+    unpacked_parts = vcat([unpack(part) for part in nonempty_parts]...)
+    merged_parts = merge_similar(unpacked_parts)
+    return (merged_parts, Base.sum(vcat(0,[length(part) for part in merged_parts])))
 end
 function Base.convert(t::Type{String}, a::T) where T<:MultiPartText
     return Base.join([convert(String,part) for part in a.parts],"")
@@ -329,30 +329,30 @@ RichText(Tag("em", "!"))
 ```
 """
 function getindex(a::T, key::Integer) where T<:MultiPartText
-	local start=key
-	local eend = nothing
-	return getindex(a,start,eend,1)
+    start=key
+    eend = nothing
+    return getindex(a,start,eend,1)
 end
 function getindex(a::T, key::UnitRange) where T<:MultiPartText
-	local start = first(key)
-	local eend  = last(key)
-	local sstep =  step(key)
-	return getindex(a,start,eend,sstep)
+    start = first(key)
+    eend  = last(key)
+    sstep =  step(key)
+    return getindex(a,start,eend,sstep)
 end
 function getindex(a::T, start::Integer, eend, step::Integer) where T<:MultiPartText
-
-	if step != 1
-		error("Not Implemented")
-	end
-	if start < 1
-		start = length(a) + start
-	end
-	if eend  == nothing
-		eend = start
-	end
-	if eend < 1
-		eend = length(a) + eend
-	end
+    
+    if step != 1
+	error("Not Implemented")
+    end
+    if start < 1
+	start = length(a) + start
+    end
+    if eend  == nothing
+	eend = start
+    end
+    if eend < 1
+	eend = length(a) + eend
+    end
     return slice_beginning(slice_end(a,length(a) - start+1),eend - start+1)
 end
 
@@ -361,18 +361,18 @@ Return a text consistng of the first slice_length characters
 of this text (with formatting preserved).
 """
 function slice_beginning(self::T, slice_length::Integer) where T<:MultiPartText
-	local parts = []
-	local len = 0
-	for part in self.parts
-		if len + length(part) > slice_length
-			push!(parts,part[1:slice_length - len])
-			break
-		else
-			push!(parts,part)
-			len = len +  length(part)
-		end
+    parts = []
+    len = 0
+    for part in self.parts
+	if len + length(part) > slice_length
+	    push!(parts,part[1:slice_length - len])
+	    break
+	else
+	    push!(parts,part)
+	    len = len +  length(part)
 	end
-	return create_similar(self,parts)
+    end
+    return create_similar(self,parts)
 end
 
 """
@@ -383,18 +383,18 @@ Return a text consistng of the last slice_length characters
 of this text (with formatting preserved).
 """
 function slice_end(self::T, slice_length::Integer) where T<:MultiPartText
-	local parts = []
-	local len = 0
-	for part in reverse(self.parts)
-		if len + length(part) > slice_length
-			push!(parts,part[length(part) - (slice_length - len)+1:end])
-			break
-		else
-			push!(parts,part)
-			len = len + length(part)
-		end
+    parts = []
+    len = 0
+    for part in reverse(self.parts)
+	if len + length(part) > slice_length
+	    push!(parts,part[length(part) - (slice_length - len)+1:end])
+	    break
+	else
+	    push!(parts,part)
+	    len = len + length(part)
 	end
-	return create_similar(self,reverse(parts))
+    end
+    return create_similar(self,reverse(parts))
 end
 
 """
@@ -420,7 +420,7 @@ function  append(self::T, text) where T<:MultiPartText
 end
 
 function append!(self::T, text) where T<:MultiPartText
-    local new_parts = vcat(self.parts, text)
+    new_parts = vcat(self.parts, text)
     parts, l = initialize_parts(new_parts...)
     self.parts = parts
     self.length =l
@@ -438,10 +438,10 @@ Any[RichText("a"), RichText("b")]
 ```
 """
 function split(self::T, sep=nothing; keep_empty_parts=nothing) where T <:MultiPartText
-	if keep_empty_parts == nothing
+    if keep_empty_parts == nothing
         keep_empty_parts = (sep != nothing)
     end
-    local tail = nothing
+    tail = nothing
     if keep_empty_parts
         tail = [""]
     else
@@ -514,8 +514,8 @@ false
 """
 function endswith(self::T, suffix) where T<:MultiPartText
     if length(self.parts)==0
-		return false
-	else
+	return false
+    else
         return endswith(self.parts[end],suffix)
     end
 end
@@ -567,20 +567,41 @@ julia> parts = [Tag("em", "Breaking"), Tag("em", " "), Tag("em", "news!")];
 julia> print(merge_similar(parts))
 Any[Tag("em", "Breaking news!")]
 
+julia> parts = [Tag("em", "Breaking"), Tag("em", " "), Tag("ol", "news!")];
+
+julia> print(merge_similar(parts))
+Any[Tag("em", "Breaking "), Tag("ol", "news!")]
+
 ```
 """
-function merge_similar(param_parts)
-    local groups = nothing
-        groups = groupby(value-> RichTextElements.typeinfo(value)[1], param_parts)
-    local output=[]
-    for  group in groups
+function merge_similar(param_parts::Array)
+    function groupby(param_parts::Array)
+        output = []
+        j = 1
+        curr = param_parts[j]
+        while j<=length(param_parts)
+            group = []
+            while j<=length(param_parts) && curr == param_parts[j]
+                push!(group, param_parts[j])
+                j = j + 1
+            end
+            push!(output, group)
+            if j<=length(param_parts)
+                curr = param_parts[j]
+            end
+        end
+        return output
+    end
+    groups = groupby(param_parts)
+    output = []
+    for group in groups
         cls, cls_type, info = typeinfo(group[1])
         if length(cls)>0 && length(group) > 1
             group_parts = vcat([parts(text) for text in group]...)
             args = vcat(info, group_parts)
             push!(output, cls_type(args...))
-		else
-			for text in group
+	else
+	    for text in group
                 push!(output,text)
             end
         end
@@ -708,20 +729,20 @@ function typeinfo(self::RichString)
     return (string(RichString),RichString, [])
 end
 mutable struct RichText <: MultiPartText
-	parts
-	length::Integer
-	info::String
+    parts
+    length::Integer
+    info::String
     RichText(args...) = begin
         parts, l = initialize_parts(args...)
         return  new(parts,l,"")
     end
 end
 function unpack(r::RichText)
-	local elems = []
-	for t in r.parts
-		elems = vcat(elems, unpack(t))
-	end
-	return elems
+    elems = []
+    for t in r.parts
+	elems = vcat(elems, unpack(t))
+    end
+    return elems
 end
 function write(io::Base.GenericIOBuffer, d::RichText)
     show(io,d)
@@ -750,14 +771,14 @@ julia> render_as(tag, "html")
 ```
 """
 mutable struct Tag <:MultiPartText
-	parts
-	length::Integer
-	info::String
-	name
-	Tag(name::Union{String,Text}, args...) = begin
+    parts
+    length::Integer
+    info::String
+    name
+    Tag(name::Union{String,Text}, args...) = begin
         parts, length = initialize_parts(args...)
-		return new(parts,length,name,name)
-	end
+	return new(parts,length,name,name)
+    end
 end
 
 function Base.show(io::Union{IO, Base.GenericIOBuffer}, self::Tag)
@@ -791,10 +812,10 @@ julia> print(render_as(href,"latex"))
 
 """
 mutable struct HRef <: MultiPartText
-	parts
-	length::Integer
-	info::String
-	url
+    parts
+    length::Integer
+    info::String
+    url
     HRef(url,args...) = begin
         parts, length = initialize_parts(args...)
     	return  new(parts,length,url,url)
@@ -839,57 +860,57 @@ julia> print(render_as(text,"html"))
 ```
 """
 mutable struct Protected <: MultiPartText
-	parts
-	length::Integer
-	info::String
-	Protected(parts...) = begin
+    parts
+    length::Integer
+    info::String
+    Protected(parts...) = begin
         parts, length = initialize_parts(parts...)
         new(parts,length,"")
     end
 end
 function capfirst(self::Protected)
-	return self
+    return self
 end
 function  capitalize(self::Protected)
-	return self
+    return self
 end
 
 function lowercase(self::Protected)
-	return self
+    return self
 end
 
 function uppercase(self::Protected)
-	return self
+    return self
 end
 function split(self::Protected, sep=nothing, keep_empty_parts=nothing)
-	return [self]
+    return [self]
 end
 struct TextSymbol <: BaseText
-	name :: String
-	info :: String
+    name :: String
+    info :: String
 end
 function TextSymbol(name::String)
-	return TextSymbol(name,name)
+    return TextSymbol(name,name)
 end
 function Base.length(t::TextSymbol)
-	return 1
+    return 1
 end
 function ==(a::TextSymbol, b::TextSymbol)
-	return a.name == b.name
+    return a.name == b.name
 end
 function getindex(self::TextSymbol, a::Integer)
-	local result = nothing
-	try
-		result = "a"[a]
-	catch e
-		error(e)
-		return
-	end
-	if (length(result)>0)
-		return self
-	else
-		return ""
-	end
+    result = nothing
+    try
+	result = "a"[a]
+    catch e
+	error(e)
+	return
+    end
+    if (length(result)>0)
+	return self
+    else
+	return ""
+    end
 end
 function split(self::TextSymbol, sep=nothing, keep_empty_parts=nothing)
 	return [self]

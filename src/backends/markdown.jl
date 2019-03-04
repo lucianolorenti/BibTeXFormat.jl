@@ -58,7 +58,7 @@ Escapes special markdown control characters.
 function format(self::MarkdownBackend, text::String)
     text = escape_string(text)
     for special_char in SPECIAL_CHARS
-        text = replace(text,special_char, string('\\',special_char))
+        text = replace(text,special_char=>string('\\',special_char))
     end
     return text
 end
