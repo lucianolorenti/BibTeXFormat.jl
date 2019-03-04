@@ -197,28 +197,28 @@ function _parse_string(self::Person, name::String)
     end
 
     function is_von_name(string)
-        if isupper(string[1])
+        if isuppercase(string[1])
             return false
         end
-        if islower(string[1])
+        if islowercase(string[1])
             return true
         else
             for (char, brace_level) in scan_bibtex_string(string)
                 if brace_level == 0 && isalpha(char)
-                    return islower(char)
+                    return islowercase(char)
                 elseif brace_level == 1
                     if (isa(char,Char) && char == '\\' ) || ((isa(char, String)) &&  startswith(char,'\\'))
-                        return special_char_islower(char)
+                        return special_char_islowercase(char)
                     end
                 end
             end
         end
         return false
     end
-    function special_char_islower(special_char::Char)
-        return islower(special_char)
+    function special_char_islowercase(special_char::Char)
+        return islowercase(special_char)
     end
-    function special_char_islower(special_char::String)
+    function special_char_islowercase(special_char::String)
         control_sequence = true
         for char in special_char[2:end]  # skip the backslash
             if control_sequence
@@ -227,7 +227,7 @@ function _parse_string(self::Person, name::String)
                 end
             else
                 if isalpha(char)
-                    return islower(char)
+                    return islowercase(char)
                 end
             end
         end

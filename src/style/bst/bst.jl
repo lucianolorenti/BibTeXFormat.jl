@@ -20,7 +20,7 @@ type Style <: BaseStyle
 ```
 A Style obtained from a .bst file
 """
-type Style <: BaseStyle
+mutable struct Style <: BaseStyle
     commands
 end
 mutable struct Interpreter
@@ -39,6 +39,8 @@ mutable struct Interpreter
     current_entry
     entries_var::Dict{String,Dict}
 end
+
+const Bibliography = Dict{String, Dict}
 
 include("builtins.jl")
 function Interpreter(bib_format, bib_encoding)
@@ -163,7 +165,8 @@ abstract type AbstractParsedFunction end
 function ==(a::AbstractParsedFunction, b::AbstractParsedFunction)
 	return typeof(a) == typeof(B) && a.body == b.body
 end
-type ParsedFunction <: AbstractParsedFunction
+
+mutable struct ParsedFunction <: AbstractParsedFunction
 	body
 end
 
@@ -579,7 +582,6 @@ style        = BST.parse_file(joinpath(Pkg.dir("BibTeXFormat"),"test/format/apac
 formatted_entries = format_entries(style, bibliography)
 ```
 """
-
 function format_entries(b::Style, entries)
     run(Interpreter(b, "utf-8"), ["*"], transform_entries(entries))
 end

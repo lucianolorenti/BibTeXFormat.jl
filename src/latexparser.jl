@@ -20,7 +20,7 @@ end
 
 function iter_string_parts(str)
 	parts = Any[RichText("")]
-	tokens  = matchall(r"[^\s\"#{}@,=\\]+|\s+|\"|#|{|}|@|,|=|\\", str)
+	tokens  = matchall(r"[^\s\"#{}@,=\\]+|\s+|\"|#|{|}|@|,|=|\\\\", str)
 	i = 1
 	e = 1
 	bb = []

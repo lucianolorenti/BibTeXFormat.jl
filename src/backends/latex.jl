@@ -1,6 +1,6 @@
-using Base.Test
+using Test
 
-doc"""
+"""
 LaTeX output backend.
 ```jldoctest
 julia> import BibTeXFormat: LaTeXBackend, render
@@ -12,13 +12,13 @@ julia> latex = LaTeXBackend();
 julia> print(render(Tag("em", ""),latex))
 
 julia> print(render(Tag("em", "Non-", "empty"),latex))
-\emph{Non-empty}
+\\emph{Non-empty}
 julia> print(render(HRef("/", ""),latex))
 
 julia> print(render(HRef("/", "Non-", "empty"),latex))
-\href{/}{Non-empty}
+\\href{/}{Non-empty}
 julia> print(render(HRef("http://example.org/", "http://example.org/"),latex))
-\url{http://example.org/}
+\\url{http://example.org/}
 ```
 """
 struct LaTeXBackend <: BaseBackend
