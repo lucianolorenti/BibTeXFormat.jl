@@ -299,19 +299,19 @@ end
 ``value in text`` returns ``True`` if any part of the ``text``
 occursin the substring ``value``:
 ```jldoctest
-julia> occursin(RichText("Long cat!"),"Long cat")
+julia> occursin("Long cat", RichText("Long cat!"))
 true
 ```
 Substrings splitted across multiple text parts are not matched:
 ```jldoctest
-julia> occursin(RichText(Tag("em", "Long"), "cat!"),"Long cat")
+julia> occursin("Long cat", RichText(Tag("em", "Long"), "cat!"))
 false
 
 ```
 
 """
-function Base.occursin(a::T, item::String) where T<:MultiPartText
-	return  any( [occursin(part,item) for part in a.parts])
+function Base.occursin(item::String, a::T) where T<:MultiPartText
+	return  any( [occursin(item, part) for part in a.parts])
 end
 function Base.lastindex(a::T) where T<:MultiPartText
     return a.length
@@ -577,11 +577,14 @@ Any[Tag("em", "Breaking "), Tag("ol", "news!")]
 function merge_similar(param_parts::Array)
     function groupby(param_parts::Array)
         output = []
+        if length(param_parts) == 0
+            return output
+        end
         j = 1
         curr = param_parts[j]
         while j<=length(param_parts)
             group = []
-            while j<=length(param_parts) && curr == param_parts[j]
+            while j<=length(param_parts) && typeinfo(curr) == typeinfo(param_parts[j])
                 push!(group, param_parts[j])
                 j = j + 1
             end
@@ -660,8 +663,8 @@ end
 function Base.length(self::RichString)
     return  length(self.value)
 end
-function Base.occursin(self::RichString, item)
-    return occursin(self.value,item)
+function Base.occursin(item, self::RichString)
+    return occursin(item, self.value)
 end
 function getindex(self::RichString, index)
     return RichString(string(self.value[index]))
@@ -754,7 +757,7 @@ function show(io::Union{IO,Base.GenericIOBuffer}, d::RichText)
     write(io,Base.join([string(part) for part in d.parts], ", "))
     write(io,")")
 end
-"""
+raw"""
 A `Tag` represents something like an HTML tag or a LaTeX formatting command:
 
 ```jldoctest
@@ -762,11 +765,11 @@ julia> import BibTeXFormat: render_as
 
 julia> tag = Tag("em", "The TeXbook");
 
-julia> render_as(tag, "latex")
-"\\emph{The TeXbook}"
+julia> print(render_as(tag, "latex"))
+\emph{The TeXbook}
 
-julia> render_as(tag, "html")
-"<em>The TeXbook</em>"
+julia> print(render_as(tag, "html"))
+<em>The TeXbook</em>
 
 ```
 """
@@ -790,7 +793,7 @@ function Base.show(io::Union{IO, Base.GenericIOBuffer}, self::Tag)
     write(io,")")
 end
 
-"""
+raw"""
 A `HRef` represends a hyperlink:
 ```jldoctest
 julia> import BibTeXFormat: render_as
@@ -801,12 +804,12 @@ julia> print(render_as(href,"html"))
 <a href="http://ctan.org/">CTAN</a>
 
 julia> print(render_as(href, "latex"))
-\\href{http://ctan.org/}{CTAN}
+\href{http://ctan.org/}{CTAN}
 
 julia> href = HRef(String("http://ctan.org/"), String("http://ctan.org/"));
 
 julia> print(render_as(href,"latex"))
-\\url{http://ctan.org/}
+\url{http://ctan.org/}
 
 ```
 
@@ -831,7 +834,7 @@ function Base.show(io::Union{IO, Base.GenericIOBuffer}, self::HRef)
     write(io,")")
 end
 
-"""
+raw"""
 A `Protected` represents a "protected" piece of text.
 
 - `Protected.lowercase`, `Protected.uppercase`, `Protected.capitalize`, and `Protected.capitalize()`   are no-ops and just return the `Protected` struct itself.

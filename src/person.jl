@@ -131,9 +131,9 @@ julia> p.middle_names
 julia> print(p.prelast_names)
 String[]
 julia> print(p.last_names)
-String["Dixit"]
+["Dixit"]
 julia> print(p.lineage_names)
-String["Jr"]
+["Jr"]
 julia> print(convert(String,p))
 Dixit, Jr, Avinash K.
 julia> p == Person(convert(String,p))
@@ -142,11 +142,11 @@ true
 julia> p = Person("abc");
 
 julia> print(p.first_names, p.middle_names, p.prelast_names, p.last_names, p.lineage_names)
-String[]String[]String[]String["abc"]String[]
+String[]String[]String[]["abc"]String[]
 julia> p = Person("Viktorov, Michail~Markovitch");
 
 julia> print(p.first_names, p.middle_names, p.prelast_names, p.last_names, p.lineage_names)
-String["Michail"]String["Markovitch"]String[]String["Viktorov"]String[]
+["Michail"]["Markovitch"]String[]["Viktorov"]String[]
 ```
 """
 function _parse_string(self::Person, name::String)

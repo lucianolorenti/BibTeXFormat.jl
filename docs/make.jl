@@ -5,5 +5,5 @@ Documenter.deploydocs(
     make = nothing,
     repo = "github.com/lucianolorenti/BibTeXFormat.jl.git",
     target = "build",
-    julia ="0.6.0"
+    julia ="1.0.0"
 )
