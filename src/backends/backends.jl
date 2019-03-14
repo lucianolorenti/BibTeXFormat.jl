@@ -174,7 +174,7 @@ function find_backend(t::String)
     end
 end
 
-"""
+raw"""
 ```
 function render_as(self::T, backend_name) where T<:BaseText
 ```

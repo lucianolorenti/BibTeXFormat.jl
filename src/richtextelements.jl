@@ -11,7 +11,7 @@ import Base.lastindex
 import Base.lowercase
 import Base.endswith
 import Base.+
-import Base.isalpha
+import Base.isletter
 import Base.append!
 import Base.show
 import Base.startswith
@@ -128,7 +128,7 @@ function add_period(self::BaseText, period=".")
     end
 end
 function abbreviate_word(word)
-    if isalpha(word)
+    if isletter(word)
 	return add_period(word[1])
     else
 	return word
@@ -522,13 +522,13 @@ end
 
 """
 ```
-function isalpha(self::T) where T<:MultiPartText
+function isletter(self::T) where T<:MultiPartText
 ```
 Return true if all characters in the string are alphabetic and there is
 at least one character, False otherwise.
 """
-function isalpha(self::T) where T<:MultiPartText
-    return length(self)>0 && all([isalpha(part) for part in self.parts])
+function isletter(self::T) where T<:MultiPartText
+    return length(self)>0 && all([isletter(part) for part in self.parts])
 end
 
 """
@@ -719,8 +719,8 @@ end
 Return True if all characters in the string are alphabetic and there is
 at least one character, False otherwise.
 """
-function isalpha(self::RichString)
-    return all(isalpha, self.value)
+function isletter(self::RichString)
+    return all(isletter, self.value)
 end
 function lowercase(self::RichString)
     return String(lowercase(self.value))
@@ -930,11 +930,11 @@ function convert(::Type{String}, v::TextSymbol)
 end
 """
 ```
-function isalpha(self::TextSymbol)
+function isletter(self::TextSymbol)
 ```
 A TextSymbol is not alfanumeric. Returns false
 """
-function isalpha(self::TextSymbol)
+function isletter(self::TextSymbol)
 	return false
 end
 function uppercase(self::TextSymbol)

@@ -204,7 +204,7 @@ function _parse_string(self::Person, name::String)
             return true
         else
             for (char, brace_level) in scan_bibtex_string(string)
-                if brace_level == 0 && isalpha(char)
+                if brace_level == 0 && isletter(char)
                     return islowercase(char)
                 elseif brace_level == 1
                     if (isa(char,Char) && char == '\\' ) || ((isa(char, String)) &&  startswith(char,'\\'))
@@ -222,11 +222,11 @@ function _parse_string(self::Person, name::String)
         control_sequence = true
         for char in special_char[2:end]  # skip the backslash
             if control_sequence
-                if ! isalpha(char)
+                if ! isletter(char)
                     control_sequence = false
                 end
             else
-                if isalpha(char)
+                if isletter(char)
                     return islowercase(char)
                 end
             end

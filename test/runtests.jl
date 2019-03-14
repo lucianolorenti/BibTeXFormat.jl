@@ -267,7 +267,7 @@ end
     formats = ["apacite", "jurabib", "plain"]
     path    = joinpath(Pkg.dir("BibTeXFormat"), "test")
     for format in formats
-    content = readstring(joinpath(path,"format/",string(format,".bst")))
+    content = read(joinpath(path,"format/",string(format,".bst")), String)
         parser = BST.Parser(content)
         output = BST.parse(parser)
         include(joinpath(path,"$format.jl"))

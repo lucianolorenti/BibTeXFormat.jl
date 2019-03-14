@@ -48,7 +48,7 @@ function split_name_list(string)
     return split_tex_string(string, " [Aa][Nn][Dd] ")
 end
 
-"""
+raw"""
 Split a string using the given separator (regexp).
 
 Everything at brace level > 0 is ignored.
