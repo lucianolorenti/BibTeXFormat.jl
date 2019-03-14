@@ -280,7 +280,7 @@ end
     @testset "NameStyle LastFirstName" begin
         import BibTeXFormat: Person, render_as, LastFirstNameStyle
         import BibTeXFormat.TemplateEngine
-        name = Person("Charles Louis Xavier Joseph de la Vall{\\'e}e Poussin");
+        name = Person(raw"Charles Louis Xavier Joseph de la Vall{\'e}e Poussin");
         lastfirst = LastFirstNameStyle();
         @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"latex") == "de~la Vall{e\u0301}e~Poussin, Charles Louis Xavier~Joseph"
 

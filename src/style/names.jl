@@ -5,16 +5,16 @@ import BibTeXFormat.TemplateEngine: @node
 
     if abbr
         children = [BibTeXFormat.RichTextElements.abbreviate(child) for child in children]
-	end
+    end
     parts = format_data(together(;last_tie=true)[children],data)
     if length(parts) == 0
         return RichText("")
-	end
+    end
     if tie
         return RichText(before, parts, tie_or_space(parts, nbsp, " "))
     else
         return RichText(before, parts)
-	end
+    end
 end
 
 struct LastFirstNameStyle <: BaseNameStyle end
