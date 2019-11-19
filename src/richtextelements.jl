@@ -20,6 +20,14 @@ import Base.isempty
 import BibTeXFormat: delimiter_re
 abstract type BaseText end
 import BibTeXFormat: whitespace_re, render_as
+
+```@meta
+DocTestSetup = quote
+    import BibTeXFormat.RichTextElements: RichText, Tag, add_period
+end
+```
+
+
 function typeinfo(v::T) where T<:BaseText
     return (string(T),T,())
 end

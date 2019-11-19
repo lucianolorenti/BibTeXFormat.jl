@@ -2,6 +2,8 @@ using BibTeXFormat
 using Test
 using Pkg
 import BibTeXFormat: InvalidNameString
+import BibTeXFormat.RichTextElements: RichText, Tag
+
 base_file = dirname(dirname(@__FILE__))
 import Documenter
 Documenter.makedocs(
