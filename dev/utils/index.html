@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Utilities · BibTeXFormat.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>BibTeXFormat.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><span class="toctext">Public Components</span><ul><li><a class="toctext" href="../style/">Style</a></li><li><a class="toctext" href="../backends/">Backends</a></li></ul></li><li><span class="toctext">Private Components</span><ul><li><a class="toctext" href="../person/">Person</a></li><li><a class="toctext" href="../richtextelements/">Rich Text Elements</a></li><li><a class="toctext" href="../templateengine/">Template Engine</a></li><li class="current"><a class="toctext" href>Utilities</a><ul class="internal"><li><a class="toctext" href="#Types-1">Types</a></li><li><a class="toctext" href="#Reference-1">Reference</a></li></ul></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Private Components</li><li><a href>Utilities</a></li></ul><a class="edit-page" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/master/docs/src/utils.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Utilities</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Utilities-1" href="#Utilities-1">Utilities</a></h1><h2><a class="nav-anchor" id="Types-1" href="#Types-1">Types</a></h2><ul><li><a href="#BibTeXFormat.BibTeXString"><code>BibTeXFormat.BibTeXString</code></a></li><li><a href="#BibTeXFormat.abbreviate"><code>BibTeXFormat.abbreviate</code></a></li><li><a href="#BibTeXFormat.bibtex_abbreviate"><code>BibTeXFormat.bibtex_abbreviate</code></a></li><li><a href="#BibTeXFormat.bibtex_substring-Tuple{Any,Any,Any}"><code>BibTeXFormat.bibtex_substring</code></a></li><li><a href="#BibTeXFormat.change_case-Tuple{String,Char}"><code>BibTeXFormat.change_case</code></a></li><li><a href="#BibTeXFormat.scan_bibtex_string-Tuple{Any}"><code>BibTeXFormat.scan_bibtex_string</code></a></li><li><a href="#BibTeXFormat.split_keep_separator"><code>BibTeXFormat.split_keep_separator</code></a></li><li><a href="#BibTeXFormat.split_name_list-Tuple{Any}"><code>BibTeXFormat.split_name_list</code></a></li></ul><h2><a class="nav-anchor" id="Reference-1" href="#Reference-1">Reference</a></h2><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.BibTeXString" href="#BibTeXFormat.BibTeXString"><code>BibTeXFormat.BibTeXString</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat: BibTeXString
+
+julia&gt; a = BibTeXString(&quot;{aaaa{bbbb{cccc{dddd}}}ffff}&quot;);
+
+julia&gt; convert(String,a ) == &quot;{aaaa{bbbb{cccc{dddd}}}ffff}&quot;
+true</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/utils.jl#L193-L202">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.abbreviate" href="#BibTeXFormat.abbreviate"><code>BibTeXFormat.abbreviate</code></a> — <span class="docstring-category">Function</span>.</div><div><div><p>Abbreviate the given text.</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat.abbreviate
+
+julia&gt; abbreviate(&quot;Name&quot;)
+&quot;N.&quot;
+
+julia&gt; abbreviate(&quot;Some words&quot;)
+&quot;S. w.&quot;
+
+julia&gt; abbreviate(&quot;First-Second&quot;)
+&quot;F.-S.&quot;
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/utils.jl#L331-L346">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.bibtex_abbreviate" href="#BibTeXFormat.bibtex_abbreviate"><code>BibTeXFormat.bibtex_abbreviate</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">function bibtex_abbreviate(string, delimiter=None, separator=&#39;-&#39;)</code></pre><p>Abbreviate string.</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat: bibtex_abbreviate
+
+julia&gt; print(bibtex_abbreviate(&quot;Andrew Blake&quot;))
+A
+julia&gt; print(bibtex_abbreviate(&quot;Jean-Pierre&quot;))
+J.-P
+julia&gt; print(bibtex_abbreviate(&quot;Jean--Pierre&quot;))
+J.-P</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/utils.jl#L654-L669">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.bibtex_substring-Tuple{Any,Any,Any}" href="#BibTeXFormat.bibtex_substring-Tuple{Any,Any,Any}"><code>BibTeXFormat.bibtex_substring</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function bibtex_substring(string, start, length)</code></pre><p>Return a substring of the given length, starting from the given position.</p><p>start and length are 1-based. If start is &lt; 0, it is counted from the end of the string. If start is 0, an empty string is returned.</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat: bibtex_substring
+
+julia&gt; print(bibtex_substring(&quot;abcdef&quot;, 1, 3))
+abc
+julia&gt; print(bibtex_substring(&quot;abcdef&quot;, 2, 3))
+bcd
+julia&gt; print(bibtex_substring(&quot;abcdef&quot;, 2, 1000))
+bcdef
+julia&gt; print(bibtex_substring(&quot;abcdef&quot;, 0, 1000))
+
+julia&gt; print(bibtex_substring(&quot;abcdef&quot;, -1, 1))
+f
+julia&gt; print(bibtex_substring(&quot;abcdef&quot;, -1, 2))
+ef
+julia&gt; print(bibtex_substring(&quot;abcdef&quot;, -2, 3))
+cde
+julia&gt; print(bibtex_substring(&quot;abcdef&quot;, -2, 1000))
+abcde</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/utils.jl#L527-L556">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.change_case-Tuple{String,Char}" href="#BibTeXFormat.change_case-Tuple{String,Char}"><code>BibTeXFormat.change_case</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function change_case(string, mode)</code></pre><pre><code class="language-none">julia&gt; import BibTeXFormat: change_case
+
+julia&gt; print(change_case(&quot;aBcD&quot;, &#39;l&#39;))
+abcd
+julia&gt; print(change_case(&quot;aBcD&quot;, &#39;u&#39;))
+ABCD
+julia&gt; print(change_case(&quot;ABcD&quot;, &#39;t&#39;))
+Abcd
+julia&gt; change_case(&quot;The {\TeX book \noop}&quot;, &#39;u&#39;)
+&quot;THE {\TeX BOOK \noop}&quot;
+
+julia&gt; change_case(&quot;And Now: BOOO!!!&quot;, &#39;t&#39;)
+&quot;And now: Booo!!!&quot;
+
+julia&gt; change_case(&quot;And {Now: BOOO!!!}&quot;, &#39;t&#39;)
+&quot;And {Now: BOOO!!!}&quot;
+
+julia&gt; change_case(&quot;And {Now: {BOOO}!!!}&quot;, &#39;l&#39;)
+&quot;and {Now: {BOOO}!!!}&quot;
+
+julia&gt; change_case(&quot;And {\Now: BOOO!!!}&quot;, &#39;t&#39;)
+&quot;And {\Now: booo!!!}&quot;
+
+julia&gt; change_case(&quot;And {\Now: {BOOO}!!!}&quot;, &#39;l&#39;)
+&quot;and {\Now: {booo}!!!}&quot;
+
+julia&gt; change_case(&quot;{\TeX\ and databases\Dash\TeX DBI}&quot;, &#39;t&#39;)
+&quot;{\TeX\ and databases\Dash\TeX DBI}&quot;
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/utils.jl#L433-L468">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.scan_bibtex_string-Tuple{Any}" href="#BibTeXFormat.scan_bibtex_string-Tuple{Any}"><code>BibTeXFormat.scan_bibtex_string</code></a> — <span class="docstring-category">Method</span>.</div><div><div><p>Yield (char, brace_level) tuples.</p><p>&quot;Special characters&quot;, as in bibtex_len, are treated as a single character</p></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/utils.jl#L287-L292">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.split_keep_separator" href="#BibTeXFormat.split_keep_separator"><code>BibTeXFormat.split_keep_separator</code></a> — <span class="docstring-category">Function</span>.</div><div><div><p>Split a text keep the separators</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat.split_keep_separator
+
+julia&gt; split_keep_separator(&quot;Some words-words&quot;)
+5-element Array{Any,1}:
+ &quot;Some&quot;
+ &#39; &#39;
+ &quot;words&quot;
+ &#39;-&#39;
+ &quot;words&quot;
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/utils.jl#L305-L319">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.split_name_list-Tuple{Any}" href="#BibTeXFormat.split_name_list-Tuple{Any}"><code>BibTeXFormat.split_name_list</code></a> — <span class="docstring-category">Method</span>.</div><div><div><p>Split a list of names, separated by &#39; and &#39;.</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat.split_name_list
+
+julia&gt; split_name_list(&quot;Johnson and Peterson&quot;)
+2-element Array{SubString{String},1}:
+ &quot;Johnson&quot;
+ &quot;Peterson&quot;
+
+julia&gt; split_name_list(&quot;Johnson AND Peterson&quot;)
+2-element Array{SubString{String},1}:
+ &quot;Johnson&quot;
+ &quot;Peterson&quot;
+
+julia&gt; split_name_list(&quot;Johnson AnD Peterson&quot;)
+2-element Array{SubString{String},1}:
+ &quot;Johnson&quot;
+ &quot;Peterson&quot;
+
+julia&gt; split_name_list(&quot;Armand and Peterson&quot;)
+2-element Array{SubString{String},1}:
+ &quot;Armand&quot;
+ &quot;Peterson&quot;
+
+julia&gt; split_name_list(&quot;Armand and anderssen&quot;)
+2-element Array{SubString{String},1}:
+ &quot;Armand&quot;
+ &quot;anderssen&quot;
+
+julia&gt; split_name_list(&quot;{Armand and Anderssen}&quot;)
+1-element Array{SubString{String},1}:
+ &quot;{Armand and Anderssen}&quot;
+
+julia&gt; split_name_list(&quot;What a Strange{ }and Bizzare Name! and Peterson&quot;)
+2-element Array{SubString{String},1}:
+ &quot;What a Strange{ }and Bizzare Name!&quot;
+ &quot;Peterson&quot;
+
+julia&gt; split_name_list(&quot;What a Strange and{ }Bizzare Name! and Peterson&quot;)
+2-element Array{SubString{String},1}:
+ &quot;What a Strange and{ }Bizzare Name!&quot;
+ &quot;Peterson&quot;</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/utils.jl#L1-L46">source</a></section><footer><hr/><a class="previous" href="../templateengine/"><span class="direction">Previous</span><span class="title">Template Engine</span></a></footer></article></body></html>

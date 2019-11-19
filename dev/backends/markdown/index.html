@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Markdown backend · BibTeXFormat.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link href="../../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>BibTeXFormat.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../../">Home</a></li><li><span class="toctext">Public Components</span><ul><li><a class="toctext" href="../../style/">Style</a></li><li><a class="toctext" href="../">Backends</a></li></ul></li><li><span class="toctext">Private Components</span><ul><li><a class="toctext" href="../../person/">Person</a></li><li><a class="toctext" href="../../richtextelements/">Rich Text Elements</a></li><li><a class="toctext" href="../../templateengine/">Template Engine</a></li><li><a class="toctext" href="../../utils/">Utilities</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Markdown backend</a></li></ul><a class="edit-page" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/master/docs/src/backends/markdown.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Markdown backend</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Markdown-backend-1" href="#Markdown-backend-1">Markdown backend</a></h1><p>Markdown output backend.</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat.RichTextElements: Tag, HRef
+
+julia&gt; import BibTeXFormat: MarkdownBackend, render
+
+julia&gt; markdown = MarkdownBackend();
+
+julia&gt; print(render(Tag(&quot;em&quot;, &quot;&quot;),markdown))
+
+julia&gt; print(render(Tag(&quot;em&quot;, &quot;Non-&quot;, &quot;empty&quot;),markdown))
+*Non\-empty*
+
+julia&gt; print(render(HRef(&quot;/&quot;, &quot;&quot;),markdown))
+
+julia&gt; print(render(HRef(&quot;/&quot;, &quot;Non-&quot;, &quot;empty&quot;),markdown))
+[Non\-empty](/)
+</code></pre><footer><hr/></footer></article></body></html>

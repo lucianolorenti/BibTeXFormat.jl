@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Style · BibTeXFormat.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>BibTeXFormat.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><span class="toctext">Public Components</span><ul><li class="current"><a class="toctext" href>Style</a><ul class="internal"><li><a class="toctext" href="#Julia-Format-1">Julia Format</a></li><li><a class="toctext" href="#BST-1">BST</a></li><li><a class="toctext" href="#Name-formatting-1">Name formatting</a></li><li><a class="toctext" href="#Labels-1">Labels</a></li></ul></li><li><a class="toctext" href="../backends/">Backends</a></li></ul></li><li><span class="toctext">Private Components</span><ul><li><a class="toctext" href="../person/">Person</a></li><li><a class="toctext" href="../richtextelements/">Rich Text Elements</a></li><li><a class="toctext" href="../templateengine/">Template Engine</a></li><li><a class="toctext" href="../utils/">Utilities</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Public Components</li><li><a href>Style</a></li></ul><a class="edit-page" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/master/docs/src/style.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Style</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Style-1" href="#Style-1">Style</a></h1><h2><a class="nav-anchor" id="Julia-Format-1" href="#Julia-Format-1">Julia Format</a></h2><h3><a class="nav-anchor" id="Example-1" href="#Example-1">Example</a></h3><pre><code class="language-julia">using BibTeX
+using BibTeXFormat
+
+bibliography = Bibliography(readstring(joinpath(Pkg.dir(&quot;BibTeXFormat&quot;),
+                             &quot;test/Clustering.bib&quot;)))
+formatted_entries = format_entries(AlphaStyle,bibliography)
+HTMLoutput        = write_to_string( HTMLBackend(),formatted_entries )</code></pre><ul></ul><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.AlphaStyle" href="#BibTeXFormat.AlphaStyle"><code>BibTeXFormat.AlphaStyle</code></a> — <span class="docstring-category">Constant</span>.</div><div><div><p>Alpha Style</p><p><code>Config(label_style = AlphaLabelStyle(),sorting_style = AuthorYearTitleSortingStyle())</code></p></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L265-L269">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.PlainAlphaStyle" href="#BibTeXFormat.PlainAlphaStyle"><code>BibTeXFormat.PlainAlphaStyle</code></a> — <span class="docstring-category">Constant</span>.</div><div><div><p>PlainAlphaStyle</p></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L278-L280">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.UNSRTAlphaStyle" href="#BibTeXFormat.UNSRTAlphaStyle"><code>BibTeXFormat.UNSRTAlphaStyle</code></a> — <span class="docstring-category">Constant</span>.</div><div><div><p>UNSRTAlphaStyle</p><p><code>Config(label_style = AlphaLabelStyle())</code></p></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L271-L276">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.format_entries-Union{Tuple{T}, Tuple{T,Any}} where T&lt;:BaseStyle" href="#BibTeXFormat.format_entries-Union{Tuple{T}, Tuple{T,Any}} where T&lt;:BaseStyle"><code>BibTeXFormat.format_entries</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function format_entries(b::T, entries::Dict) where T &lt;: BaseStyle</code></pre><p>Format a Dict of <code>entries</code> with a given style <code>b::T where T &lt;: BaseStyle</code></p><pre><code class="language-julia">using BibTeX
+using BibTeXFormat
+bibliography      = Bibliography(readstring(&quot;test/Clustering.bib&quot;))
+formatted_entries = format_entries(AlphaStyle,bibliography)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L66-L77">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.format_entry-Union{Tuple{T}, Tuple{T,Any,Citation}} where T&lt;:BaseStyle" href="#BibTeXFormat.format_entry-Union{Tuple{T}, Tuple{T,Any,Citation}} where T&lt;:BaseStyle"><code>BibTeXFormat.format_entry</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function format_entry(b::T, label, entry::Citation) where T &lt;: BaseStyle</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L92-L96">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.format_entry-Union{Tuple{T}, Tuple{T,Any,Dict{String,Any}}} where T&lt;:BaseStyle" href="#BibTeXFormat.format_entry-Union{Tuple{T}, Tuple{T,Any,Dict{String,Any}}} where T&lt;:BaseStyle"><code>BibTeXFormat.format_entry</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function format_entry(b::T, label, entry) where T &lt;: BaseStyle</code></pre><p>Format an <code>entry</code> with a given style <code>b::T where T &lt;: BaseStyle</code></p></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L102-L109">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.expand_wildcard_citations-Tuple{Any,Any}" href="#BibTeXFormat.expand_wildcard_citations-Tuple{Any,Any}"><code>BibTeXFormat.expand_wildcard_citations</code></a> — <span class="docstring-category">Method</span>.</div><div><div><p>Expand wildcard citations (\citation{*} in .aux file).</p><pre><code class="language-julia-repl">julia&gt; using BibTeX
+
+julia&gt; import BibTeXFormat: expand_wildcard_citations, Citation, Bibliography
+
+julia&gt; data = Bibliography(&quot;&quot;, Dict{String,Citation}(&quot;uno&quot;=&gt;Citation{:article}(),&quot;dos&quot;=&gt;Citation{:article}(),&quot;tres&quot;=&gt;Citation{:article}(),	&quot;cuatro&quot;=&gt;Citation{:article}()));
+
+julia&gt; expand_wildcard_citations(data, [])
+0-element Array{Any,1}
+
+julia&gt; print(expand_wildcard_citations(data, [&quot;*&quot;]))
+Any[&quot;tres&quot;, &quot;dos&quot;, &quot;uno&quot;, &quot;cuatro&quot;]
+julia&gt; print(expand_wildcard_citations(data, [&quot;uno&quot;, &quot;*&quot;]))
+Any[&quot;uno&quot;, &quot;tres&quot;, &quot;dos&quot;, &quot;cuatro&quot;]
+julia&gt; print(expand_wildcard_citations(data, [&quot;dos&quot;, &quot;*&quot;]))
+Any[&quot;dos&quot;, &quot;tres&quot;, &quot;uno&quot;, &quot;cuatro&quot;]
+julia&gt; print(expand_wildcard_citations(data, [&quot;*&quot;, &quot;uno&quot;]))
+Any[&quot;tres&quot;, &quot;dos&quot;, &quot;uno&quot;, &quot;cuatro&quot;]
+julia&gt; print(expand_wildcard_citations(data, [&quot;*&quot;, &quot;DOS&quot;]))
+Any[&quot;tres&quot;, &quot;dos&quot;, &quot;uno&quot;, &quot;cuatro&quot;]</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L208-L231">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.format_bibliography-Union{Tuple{T}, Tuple{T,Bibliography}, Tuple{T,Bibliography,Any}} where T&lt;:BaseStyle" href="#BibTeXFormat.format_bibliography-Union{Tuple{T}, Tuple{T,Bibliography}, Tuple{T,Bibliography,Any}} where T&lt;:BaseStyle"><code>BibTeXFormat.format_bibliography</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function format_bibliography(self::T, bib_data, citations=nothing) where T&lt;:BaseStyle</code></pre><p>Format bibliography entries with the given keys Params:</p><ul><li><code>self::T where T&lt;:BaseStyle</code>. The style</li><li><code>bib_data</code> BibTeX.Bibliography</li><li><code>param citations</code>: A list of citation keys.</li></ul><pre><code class="language-julia">using BibTeX
+using BibTeXFormat
+bibliography      = Bibliography(readstring(&quot;test/Clustering.bib&quot;))
+
+formatted_entries = format_entries(AlphaStyle,bibliography)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L125-L142">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.get_crossreferenced_citations-Tuple{Any,Any}" href="#BibTeXFormat.get_crossreferenced_citations-Tuple{Any,Any}"><code>BibTeXFormat.get_crossreferenced_citations</code></a> — <span class="docstring-category">Method</span>.</div><div><div><p>Get cititations not cited explicitly but referenced by other citations.</p><pre><code class="language-julia-repl">julia&gt; using BibTeX
+
+julia&gt; import BibTeXFormat: get_crossreferenced_citations, Citation, Bibliography
+
+julia&gt; data = Bibliography(&quot;&quot;, Dict{String,Citation}(&quot;main_article&quot;=&gt;Citation{:article}(Dict(&quot;crossref&quot;=&gt;&quot;xrefd_article&quot;)),&quot;xrefd_article&quot;=&gt;Citation{:article}()));
+
+julia&gt; print(get_crossreferenced_citations(data, [], min_crossrefs=1))
+Any[]
+julia&gt; print(get_crossreferenced_citations(data, [&quot;main_article&quot;], min_crossrefs=1))
+Any[&quot;xrefd_article&quot;]
+julia&gt; print(get_crossreferenced_citations(data,[&quot;Main_article&quot;], min_crossrefs=1))
+Any[&quot;xrefd_article&quot;]
+julia&gt; print(get_crossreferenced_citations(data, [&quot;main_article&quot;], min_crossrefs=2))
+Any[]
+julia&gt; print(get_crossreferenced_citations(data, [&quot;xrefd_arcicle&quot;], min_crossrefs=1))
+Any[]</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L153-L175">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.transform-Tuple{Citation,Any}" href="#BibTeXFormat.transform-Tuple{Citation,Any}"><code>BibTeXFormat.transform</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function transform(e::Citation, label)</code></pre><p>Add some information to a BibTeX.Citation.</p></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/style.jl#L37-L42">source</a></section><h2><a class="nav-anchor" id="BST-1" href="#BST-1">BST</a></h2><pre><code class="language-none">using BibTeX
+using BibTeXFormat
+bibliography = Bibliography(readstring(joinpath(Pkg.dir(&quot;BibTeXFormat&quot;), &quot;test/Clustering.bib&quot;)))
+style        = BST.parse_file(joinpath(Pkg.dir(&quot;BibTeXFormat&quot;),&quot;test/format/apacite.bst&quot;))
+latexOutput = format_entries(style, bibliography)</code></pre><h3><a class="nav-anchor" id="References-1" href="#References-1">References</a></h3><ul></ul><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.BST.Style" href="#BibTeXFormat.BST.Style"><code>BibTeXFormat.BST.Style</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia">type Style &lt;: BaseStyle</code></pre><p>A Style obtained from a .bst file</p></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/bst/bst.jl#L17-L22">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.BST.parse_file-Tuple{String}" href="#BibTeXFormat.BST.parse_file-Tuple{String}"><code>BibTeXFormat.BST.parse_file</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function parse_file(filename::String)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/bst/bst.jl#L333-L337">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.BST.parse_string-Tuple{String}" href="#BibTeXFormat.BST.parse_string-Tuple{String}"><code>BibTeXFormat.BST.parse_string</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function parse_string(content::String)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/bst/bst.jl#L325-L329">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.BST.run" href="#BibTeXFormat.BST.run"><code>BibTeXFormat.BST.run</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">function run(self, citations, bib_files, min_crossrefs):</code></pre><p>Run bst script and return formatted bibliography.</p></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/bst/bst.jl#L446-L451">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.BST.strip_comment-Tuple{Any}" href="#BibTeXFormat.BST.strip_comment-Tuple{Any}"><code>BibTeXFormat.BST.strip_comment</code></a> — <span class="docstring-category">Method</span>.</div><div><div><p>Strip the commented part of the line.&quot;</p><pre><code class="language-julia">julia&gt; print(strip_comment(&quot;a normal line&quot;))
+a normal line
+julia&gt; print(strip_comment(&quot;%&quot;))
+
+julia&gt; print(strip_comment(&quot;%comment&quot;))
+
+julia&gt; print(strip_comment(&quot;trailing%&quot;))
+trailing
+julia&gt; print(strip_comment(&quot;a normal line% and a comment&quot;))
+a normal line
+julia&gt; print(strip_comment(&quot;&quot;100% compatibility&quot; is a myth&quot;))
+&quot;100% compatibility&quot; is a myth
+julia&gt; print(strip_comment(&quot;&quot;100% compatibility&quot; is a myth% or not?&quot;))
+&quot;100% compatibility&quot; is a myth</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/bst/bst.jl#L212-L230">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.format_bibliography" href="#BibTeXFormat.format_bibliography"><code>BibTeXFormat.format_bibliography</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">function format_bibliography(self::Style, bib_data, citations=nothing)</code></pre><p>Format bibliography entries with the given keys</p><p>Params:</p><ul><li><code>style::Style</code>. The BST style</li><li><code>bib_data</code></li><li><code>param citations</code>: A list of citation keys.</li></ul></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/bst/bst.jl#L556-L567">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.format_entries-Tuple{BibTeXFormat.BST.Style,Any}" href="#BibTeXFormat.format_entries-Tuple{BibTeXFormat.BST.Style,Any}"><code>BibTeXFormat.format_entries</code></a> — <span class="docstring-category">Method</span>.</div><div><div><pre><code class="language-julia">function format_entries(b::Style, entries::Dict)</code></pre><p>Format a Dict of <code>entries</code> with a given style <code>b::Style</code></p><pre><code class="language-julia">using BibTeX
+using BibTeXFormat
+bibliography      = Bibliography(readstring(&quot;test/Clustering.bib&quot;))
+style        = BST.parse_file(joinpath(Pkg.dir(&quot;BibTeXFormat&quot;),&quot;test/format/apacite.bst&quot;))
+formatted_entries = format_entries(style, bibliography)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/bst/bst.jl#L572-L584">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.BST.bst_join" href="#BibTeXFormat.BST.bst_join"><code>BibTeXFormat.BST.bst_join</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">function bst_join(words, tie=&quot;~&quot;, space=&quot; &quot;)</code></pre><p>Join some words, inserting ties (~) when nessessary.     Ties are inserted:     - after the first word, if it is short     - before the last word     Otherwise space is inserted.     Should produce the same oubput as BibTeX.</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat.BST: bst_join
+
+julia&gt; print(bst_join([&quot;a&quot;, &quot;long&quot;, &quot;long&quot;, &quot;road&quot;]))
+a~long long~road
+
+julia&gt; print(bst_join([&quot;very&quot;, &quot;long&quot;, &quot;phrase&quot;]))
+very long~phrase
+
+julia&gt; print(bst_join([&quot;De&quot;, &quot;La&quot;]))
+De~La</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/bst/names.jl#L173-L195">source</a></section><h2><a class="nav-anchor" id="Name-formatting-1" href="#Name-formatting-1">Name formatting</a></h2><p>BibTeX-like name formatting.</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat.BST: format_name
+
+julia&gt; name = &quot;Charles Louis Xavier Joseph de la Vallee Poussin&quot;;
+
+julia&gt; print(format_name(name, &quot;{vv~}{ll}{, jj}{, f.}&quot;))
+de~la Vallee~Poussin, C.~L. X.~J.
+julia&gt; name = &quot;abc&quot;;
+
+julia&gt; print(format_name(name, &quot;{vv~}{ll}{, jj}{, f.}&quot;))
+abc
+julia&gt; name = &quot;Jean-Pierre Hansen&quot;;
+
+julia&gt; print(format_name(name, &quot;{ff~}{vv~}{ll}{, jj}&quot;))
+Jean-Pierre Hansen
+julia&gt; print(format_name(name, &quot;{f.~}{vv~}{ll}{, jj}&quot;))
+J.-P. Hansen
+julia&gt; name = &quot;F. Phidias Phony-Baloney&quot;;
+
+julia&gt; print(format_name(name, &quot;{v{}}{l}&quot;))
+P.-B
+julia&gt; print(format_name(name, &quot;{v{}}{l.}&quot;))
+P.-B.
+julia&gt; print(format_name(name, &quot;{v{}}{l{}}&quot;))
+PB</code></pre><ul></ul><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.format" href="#BibTeXFormat.format"><code>BibTeXFormat.format</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">function format(self::LastFirstNameStyle, person, abbr=false)</code></pre><p>Format names similarly to {vv~}{ll}{, jj}{, f.} in BibTeX.</p><pre><code class="language-julia">julia&gt; import BibTeXFormat: Person, render_as, LastFirstNameStyle, format
+
+julia&gt; import BibTeXFormat.TemplateEngine
+
+julia&gt; name = Person(&quot;Charles Louis Xavier Joseph de la Vall{\&#39;e}e Poussin&quot;);
+
+julia&gt; lastfirst = LastFirstNameStyle();
+
+julia&gt; render_as(TemplateEngine.format(format(lastfirst,name)),&quot;latex&quot;)
+&quot;de~la Vall{é}e~Poussin, Charles Louis Xavier~Joseph&quot;
+
+julia&gt; render_as(TemplateEngine.format(format(lastfirst,name)),&quot;html&quot;)
+&quot;de&amp;nbsp;la Vall&lt;span class=&quot;bibtex-protected&quot;&gt;é&lt;/span&gt;e&amp;nbsp;Poussin, Charles Louis Xavier&amp;nbsp;Joseph&quot;
+
+julia&gt; render_as(TemplateEngine.format(format(lastfirst,name, true)),&quot;latex&quot;)
+&quot;de~la Vall{é}e~Poussin, C.~L. X.~J.&quot;
+
+julia&gt; render_as(TemplateEngine.format(format(lastfirst,name, true)),&quot;html&quot;)
+&quot;de&amp;nbsp;la Vall&lt;span class=&quot;bibtex-protected&quot;&gt;é&lt;/span&gt;e&amp;nbsp;Poussin, C.&amp;nbsp;L. X.&amp;nbsp;J.&quot;
+
+julia&gt; name = Person(first=&quot;First&quot;, last=&quot;Last&quot;, middle=&quot;Middle&quot;);
+
+julia&gt; render_as(TemplateEngine.format(format(lastfirst,name)),&quot;latex&quot;)
+&quot;Last, First~Middle&quot;
+
+julia&gt; render_as(TemplateEngine.format(format(lastfirst,name, true)),&quot;latex&quot;)
+&quot;Last, F.~M.&quot;
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/names.jl#L22-L58">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat.format" href="#BibTeXFormat.format"><code>BibTeXFormat.format</code></a> — <span class="docstring-category">Function</span>.</div><div><div><p>Format names similarly to {ff~}{vv~}{ll}{, jj} in BibTeX.</p><pre><code class="language-julia">julia&gt; import BibTeXFormat: Person, render_as, PlainNameStyle, format
+
+julia&gt; import BibTeXFormat.TemplateEngine
+
+julia&gt; name = Person(&quot;Charles Louis Xavier Joseph de la Vall{&#39;e}e Poussin&quot;);
+
+julia&gt; plain = PlainNameStyle();
+
+julia&gt; render_as(TemplateEngine.format(format(plain, name)),&quot;latex&quot;)
+&quot;Charles Louis Xavier~Joseph de~la Vall{é}e~Poussin&quot;
+
+julia&gt; render_as(TemplatEngine.format(format(plain, name),&quot;html&quot;))
+&quot;Charles Louis Xavier&amp;nbsp;Joseph de&amp;nbsp;la Vall&lt;span class=&quot;bibtex-protected&quot;&gt;é&lt;/span&gt;e&amp;nbsp;Poussin&quot;
+
+julia&gt; render_as(TemplateEngine.format(format(plain,name, true)), &quot;latex&quot;)
+&quot;C.~L. X.~J. de~la Vall{é}e~Poussin&quot;
+
+julia&gt; render_as(TemplateEngine.format(format(plain, name, true)),&quot;html&quot;)
+&quot;C.&amp;nbsp;L. X.&amp;nbsp;J. de&amp;nbsp;la Vall&lt;span class=&quot;bibtex-protected&quot;&gt;é&lt;/span&gt;e&amp;nbsp;Poussin&quot;
+
+julia&gt; name = Person(first=&quot;First&quot;, last=&quot;Last&quot;, middle=&quot;Middle&quot;);
+
+julia&gt; render_as(TemplateEngine.format(format(plain, name)),&quot;latex&quot;)
+&quot;First~Middle Last&quot;
+
+julia&gt; render_as(TemplateEngine.format(format(plain,name, true)),&quot;latex&quot;)
+&quot;F.~M. Last&quot;
+
+julia&gt; render_as(TemplateEngine.format(format(plain,Person(&quot;de Last, Jr., First Middle&quot;))),&quot;latex&quot;)
+&quot;First~Middle de~Last, Jr.&quot;
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/names.jl#L70-L106">source</a></section><h2><a class="nav-anchor" id="Labels-1" href="#Labels-1">Labels</a></h2><ul></ul><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="BibTeXFormat._strip_nonalnum-Tuple{Any}" href="#BibTeXFormat._strip_nonalnum-Tuple{Any}"><code>BibTeXFormat._strip_nonalnum</code></a> — <span class="docstring-category">Method</span>.</div><div><div><p>Strip all non-alphanumerical characters from a list of strings.</p><pre><code class="language-julia-repl">julia&gt; import BibTeXFormat: _strip_nonalnum
+
+julia&gt; print(_strip_nonalnum([&quot;ÅA. B. Testing 12+}[.@~_&quot;, &quot; 3%&quot;]))
+AABTesting123
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/lucianolorenti/BibTeXFormat.jl/blob/9f5579edc2164a0896518e759ae94928a2ee30a5/src/style/labels.jl#L17-L27">source</a></section><footer><hr/><a class="previous" href="../"><span class="direction">Previous</span><span class="title">Home</span></a><a class="next" href="../backends/"><span class="direction">Next</span><span class="title">Backends</span></a></footer></article></body></html>
