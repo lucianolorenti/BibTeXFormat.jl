@@ -5,5 +5,6 @@ Documenter.deploydocs(
     make = nothing,
     repo = "github.com/lucianolorenti/BibTeXFormat.jl.git",
     target = "build",
-    julia ="1.0.0"
+    branch = "gh-pages"
+
 )
