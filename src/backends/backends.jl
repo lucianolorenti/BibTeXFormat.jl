@@ -93,9 +93,10 @@ function write_to_string(self, formatted_entries)
 ```
 """
 function write_to_string(self, formatted_entries)
-    local buff = IOBuffer()
+    buff = IOBuffer()
     write_to_stream(self, formatted_entries, buff)
-    return String(buff)
+    println(buff)
+    return String(take!(buff))
 end
 
 """
@@ -104,7 +105,7 @@ function write_to_string(self, formatted_entries, citations::Vector{String})
 ```
 """
 function write_to_string(self, formatted_entries, citations::Vector{String})
-    local buff = IOBuffer()
+    buff = IOBuffer()
     write_to_stream(self, formatted_entries, citations, buff)
     return String(buff)
 end
@@ -148,9 +149,9 @@ The output includes the prologue and the epilogue.
 function write_to_stream(self::BaseBackend, formatted_bibliography::Array,citations::Vector{String},  stream=IOBuffer() )
     write_prologue(self, stream, formatted_bibliography)
     for key in citations
-        local item_idx = findfirst(x->x[1]==key, formatted_bibliography)
+        item_idx = findfirst(x->x[1]==key, formatted_bibliography)
         if (item_idx != 0)
-            local item = formatted_bibliography[item_idx]
+            item = formatted_bibliography[item_idx]
             write_to_stream(self, item, stream)
         else
             warn("Reference $(key) not found")
@@ -202,8 +203,8 @@ function render_as(self::T, backend_name) where T<:BaseText
 	return render(self,backend_cls())
 end
 function render_multipart(self::T, backend) where T<:MultiPartText
-    local rendered_list = [render(part,backend) for part in self.parts]
-    local text =  render_sequence(backend,rendered_list)
+    rendered_list = [render(part,backend) for part in self.parts]
+    text =  render_sequence(backend,rendered_list)
 	return format(backend,self, text)
 end
 function render(self::T, backend) where T<:MultiPartText
@@ -215,7 +216,7 @@ function render(self::RichString, backend)
 end
 
 function render(self::TextSymbol, backend)
-    local s = get(symbols[typeof(backend)],self.name,nothing)
+    s = get(symbols[typeof(backend)],self.name,nothing)
     if (s==nothing)
         return get(symbols[BaseBackend],self.name, nothing)
     else

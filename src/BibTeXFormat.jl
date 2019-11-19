@@ -19,7 +19,7 @@ keys(cit::Citation) = keys(cit.data)
 getindex(cit::Citation, key::T) where T<:AbstractString = getindex(cit.data, key)
 citation_type(c::Citation{T}) where T= string(T) 
 
-function Citationn(d::Dict=Dict())
+function Citation(d::Dict=Dict())
     return Citation{Symbol(d["type"])}(d)
 end
 function Citation{T}() where T

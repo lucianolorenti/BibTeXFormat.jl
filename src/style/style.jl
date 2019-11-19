@@ -82,8 +82,9 @@ function format_entries(b::T, entries) where T <: BaseStyle
     formatted_entries = []
     for (label,entry) in zip(labels, sorted_entries)
         try
-	    push!(formatted_entries,format_entry(b,label, entry))
+	        push!(formatted_entries, format_entry(b, label, entry))
         catch  e
+            
         end
     end
     return formatted_entries
@@ -111,13 +112,12 @@ function format_entry(b::T, label, entry::Dict{String,Any}) where T<:BaseStyle
     text    = ""
     try
         get_template =  getfield(typeof(b).name.module, Symbol("get_$(entry["type"])_template"))
-        
+
         text = TemplateEngine.format_data(get_template(b,entry),context)
     catch e
-        warn(e)
-        println(catch_stacktrace())
+        @info (label,  e)
         format_method =  getfield(typeof(b).name.module, Symbol("format_$(entry["type"])"))
-    	text = format_method(b,context)
+    	text = format_method(b, context)
     end
     return (entry["key"], text, label)
 end
@@ -158,7 +158,7 @@ julia> using BibTeX
 
 julia> import BibTeXFormat: get_crossreferenced_citations, Citation, Bibliography
 
-julia> data = Bibliography("", Dict{String,Citation}("main_article"=>Citation{:article}(Dict("crossref"=>"xrefd_article")),"xrefd_article"=>Citation{:article}())));
+julia> data = Bibliography("", Dict{String,Citation}("main_article"=>Citation{:article}(Dict("crossref"=>"xrefd_article")),"xrefd_article"=>Citation{:article}()));
 
 julia> print(get_crossreferenced_citations(data, [], min_crossrefs=1))
 Any[]

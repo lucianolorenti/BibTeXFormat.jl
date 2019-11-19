@@ -181,7 +181,7 @@ end
 Return the contents of the bibliography entry field.
 """=#
 @node function field(children, ocontext, name; apply_func=nothing, raw=false)
-    assert(length(children)==0)
+    Base.@assert(length(children)==0)
     entry = ocontext["entry"]
     try
         local ff = nothing
@@ -204,7 +204,7 @@ end
 Return formatted names.
 """=#
 @node function names(children, context, role;kwargs...)
-    assert(length(children)==0)
+    Base.@assert(length(children)==0)
     local persons = nothing
     try
         persons = context["entry"]["persons"][role]
@@ -233,7 +233,7 @@ Text()
     end
 end
 @node function optional_field(children, data, args...;kwargs...)
-    assert(length(children)==0)
+    Base.@assert(length(children)==0)
     return format_data(optional[field(args..., kwargs...)],data)
 end
 

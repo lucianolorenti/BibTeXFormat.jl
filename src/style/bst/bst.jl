@@ -190,8 +190,8 @@ function process_int_literal(value)
 end
 
 function process_string_literal(value)
-    @assert(startswith(value, "\""))
-    @assert(endswith(value,"\""))
+    Base.@assert(startswith(value, "\""))
+    Base.@assert(endswith(value,"\""))
     return BSTString(String(value[2:end-1]))
 end
 

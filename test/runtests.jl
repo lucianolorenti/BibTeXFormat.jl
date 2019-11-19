@@ -267,7 +267,7 @@ end
 @testset "BST Parser" begin
     import BibTeXFormat: BST
     formats = ["apacite", "jurabib", "plain"]
-    path    = joinpath(Pkg.dir("BibTeXFormat"), "test")
+    path    = joinpath(dirname(pathof(BibTeXFormat)), "..", "test")
     for format in formats
     content = read(joinpath(path,"format/",string(format,".bst")), String)
         parser = BST.Parser(content)
@@ -284,13 +284,13 @@ end
         import BibTeXFormat.TemplateEngine
         name = Person(raw"Charles Louis Xavier Joseph de la Vall{\'e}e Poussin");
         lastfirst = LastFirstNameStyle();
-        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"latex") == "de~la Vall{e\u0301}e~Poussin, Charles Louis Xavier~Joseph"
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"latex") == "de~la Vall{é}e~Poussin, Charles Louis Xavier~Joseph"
 
-        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"html") == "de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph"
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"html") == "de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, Charles Louis Xavier&nbsp;Joseph"
 
-        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name, true)),"latex") == "de~la Vall{e\u0301}e~Poussin, C.~L. X.~J."
+        @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name, true)),"latex") == "de~la Vallée~Poussin, C.~L. X.~J."
 
-        @test  render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name, true)),"html") == "de&nbsp;la Vall<span class=\"bibtex-protected\">e\u0301</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J."
+        @test  render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name, true)),"html") == "de&nbsp;la Vall<span class=\"bibtex-protected\">é</span>e&nbsp;Poussin, C.&nbsp;L. X.&nbsp;J."
         name = Person(first="First", last="Last", middle="Middle");
         @test render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name)),"latex") == "Last, First~Middle"
         @test  render_as(TemplateEngine.format(BibTeXFormat.format(lastfirst,name, true)),"latex") == "Last, F.~M."

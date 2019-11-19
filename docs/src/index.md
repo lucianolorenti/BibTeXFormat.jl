@@ -5,22 +5,24 @@
 ```julia
 using BibTeX
 using BibTeXFormat
+using Markdown
 
 open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x ))
-bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
+bibliography = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
-mdoutput          = write_to_string( MarkdownBackend(),formatted_entries)
-mdoutput_parsed   = Markdown.parse(mdoutput)
+mdoutput = write_to_string( MarkdownBackend(),formatted_entries)
+mdoutput_parsed = Markdown.parse(mdoutput)
 ```
 ###  output
 ```@eval
 using BibTeX
 using BibTeXFormat
+using Markdown
 
 open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x ))
-bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
+bibliography = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
-mdoutput    = write_to_string( MarkdownBackend(),formatted_entries)
+mdoutput = write_to_string( MarkdownBackend(),formatted_entries)
 mdoutput_parsed = Markdown.parse(mdoutput)
 ```
 
@@ -29,10 +31,12 @@ mdoutput_parsed = Markdown.parse(mdoutput)
 ```@example
 using BibTeX
 using BibTeXFormat
+using Markdown
+
 open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x))
-bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
+bibliography = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
-htmlbackend       = HTMLBackend("uft-8") # No prolog and epilog
+htmlbackend   = HTMLBackend("uft-8") # No prolog and epilog
 write_to_file( htmlbackend ,formatted_entries, "html_test.html")
 nothing # hide
 ```
@@ -44,10 +48,12 @@ nothing # hide
 ```@example
 using BibTeX
 using BibTeXFormat
+using Markdown
+
 open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x))
-bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
+bibliography = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
-latexbackend      = LaTeXBackend() # No prolog and epilog
+latexbackend = LaTeXBackend() # No prolog and epilog
 write_to_file( latexbackend ,formatted_entries, "latex_test.aux")
 nothing # hide
 ```
@@ -60,8 +66,10 @@ nothing # hide
 ```@example
 using BibTeX
 using BibTeXFormat
+using Markdown
+
 open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x))
-bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
+bibliography = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 write_to_file( TextBackend(),formatted_entries, "text_test.txt")
 ```
