@@ -8,7 +8,7 @@ base_file = dirname(dirname(@__FILE__))
 import Documenter
 Documenter.makedocs(
     modules = [BibTeXFormat],
-    format = :html,
+    format = Documenter.HTML(),
     sitename = "BibTeXFormat.jl",
     root = joinpath(base_file, "docs"),
     pages = Any[

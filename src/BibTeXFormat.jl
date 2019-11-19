@@ -10,22 +10,34 @@ import Base: getindex,
              haskey,
              keys
 
-struct Citation
-    type_::Symbol
+
+struct Citation{Type}
     data::Dict
 end
 haskey(cit::Citation, key::T) where T<:AbstractString = haskey(cit.data, key)
 keys(cit::Citation) = keys(cit.data)
 getindex(cit::Citation, key::T) where T<:AbstractString = getindex(cit.data, key)
+citation_type(c::Citation{T}) where T= string(T) 
 
-
-function Citation(type_::Symbol)
-    return Citation(type_, Dict())
+function Citationn(d::Dict=Dict())
+    return Citation{Symbol(d["type"])}(d)
+end
+function Citation{T}() where T
+    return Citation{T}(Dict())
 end
 struct Bibliography
     preamble::String
     citations::Dict{String, Citation}
 end
+
+function Bibliography(preamble::String, citations::Dict)
+    d = Dict{String, Citation}()
+    for k in keys(citations)
+        d[k] = Citation(citations[k])
+    end
+    return Bibliography(preamble,  d)
+end
+Bibliography(bibtexfile::String) = Bibliography(parse_bibtex(bibtexfile)...)
 function haskey(bib::Bibliography, key::T) where T<:AbstractString
     return haskey(bib.citations, key)
 end

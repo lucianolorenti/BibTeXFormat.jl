@@ -23,7 +23,8 @@ import BibTeXFormat: whitespace_re, render_as
 
 ```@meta
 DocTestSetup = quote
-    import BibTeXFormat.RichTextElements: RichText, Tag, add_period
+    using BibTeXFormat
+    import BibTeXFormat.RichTextElements: RichText, Tag, add_period, append
 end
 ```
 
@@ -50,6 +51,8 @@ function +(b::BaseText, other)
 ```
 Concatenate this Text with another Text or string.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag, append, render_as
+
 julia> a = RichText("Longcat is ") + Tag("em", "long")
 RichText("Longcat is ", Tag("em", "long"))
 
@@ -68,6 +71,8 @@ Append text to the end of this text.
 Normally, this is the same as concatenating texts with +,
 but for tags and similar objects the appended text is placed _inside_ the tag.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag, append, render_as
+
 julia> text = Tag("em", "Look here");
 
 julia> print(render_as(text + "!","html"))
@@ -89,6 +94,8 @@ function join(self::T, parts) where T<:BaseText
 Join a list using this text (like join)
 
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichString
+
 julia> letters = ["a", "b", "c"];
 
 julia> print(convert(String,join(RichString("-"),letters)))
@@ -117,6 +124,8 @@ function add_period(self::BaseText, period=".")
 Add a period to the end of text, if the last character is not ".", "!" or "?".
 
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, add_period
+
 julia> text = RichText("That's all, folks");
 
 julia> print(convert(String,add_period(text)))
@@ -153,6 +162,8 @@ function capfirst(self::BaseText)
 ```
 Capitalize the first letter of the text.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: capfirst, RichText,  Tag
+
 julia> capfirst(RichText(Tag("em", "long Cat")))
 RichText(Tag("em", "Long Cat"))
 
@@ -170,6 +181,8 @@ function capitalize(self::BaseText)
 Capitalize the first letter of the text and lowercasecase the rest.
 
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: capitalize, RichText,  Tag
+
 julia> capitalize(RichText(Tag("em", "LONG CAT")))
 RichText(Tag("em", "Long cat"))
 
@@ -198,7 +211,7 @@ julia> import BibTeXFormat.RichTextElements: Tag, typeinfo
 
 julia> text = Tag("strong", "Heavy rain!");
 
-julia> typeinfo(text) == ("BibTeXFormat.RichTextElements.Tag", BibTeXFormat.RichTextElements.Tag, "strong")
+julia> typeinfo(text) == ("Tag", Tag, "strong")
 true
 ```
 
@@ -223,6 +236,8 @@ function create_similar(self::T, parts) where T<:MultiPartText
 Create a new text object of the same type with the same parameters,
 with different text content.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: Tag, create_similar
+
 julia> text = Tag("strong", "Bananas!");
 
 julia> create_similar(text,["Apples!"])
@@ -240,6 +255,8 @@ end
 ``lenght(text)`` returns the number of characters in the text, ignoring
 the markup:
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: Tag, RichText, HRef
+
 julia> length(RichText("Long cat"))
 8
 julia> length(RichText(Tag("em", "Long"), " cat"))
@@ -269,6 +286,8 @@ end
 
 Empty parts are ignored:
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: Tag, RichText, HRef
+
 julia> RichText() == RichText("") == RichText("", "", "")
 true
 julia> RichText("Word", "") == RichText("Word")
@@ -276,6 +295,8 @@ true
 ```
 Text() objects are unpacked and their children are included directly:
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: Tag, RichText, HRef
+
 julia> RichText(RichText("Multi", " "), Tag("em", "part"), RichText(" ", RichText("text!")))
 RichText("Multi ", Tag("em", "part"), " text!")
 
@@ -285,6 +306,8 @@ Tag("strong", "Multi ", Tag("em", "part"), " text!")
 ```
 Similar objects are merged together:
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: Tag, RichText, HRef
+
 julia> RichText("Multi", Tag("em", "part"), RichText(Tag("em", " ", "text!")))
 RichText("Multi", Tag("em", "part text!"))
 
@@ -307,11 +330,15 @@ end
 ``value in text`` returns ``True`` if any part of the ``text``
 occursin the substring ``value``:
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, occursin
+
 julia> occursin("Long cat", RichText("Long cat!"))
 true
 ```
 Substrings splitted across multiple text parts are not matched:
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, occursin, Tag
+
 julia> occursin("Long cat", RichText(Tag("em", "Long"), "cat!"))
 false
 
@@ -329,6 +356,8 @@ end
 Slicing and extracting characters works like with regular strings,
 formatting is preserved.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag
+
 julia> RichText("Longcat is ", Tag("em", "looooooong!"))[1:15]
 RichText("Longcat is ", Tag("em", "looo"))
 
@@ -413,12 +442,13 @@ Append text to the end of this text.
 
 For Tags, HRefs, etc. the appended text is placed *inside* the tag.
 ```jldoctest
-julia> using  BibTeXFormat
+julia> import BibTeXFormat.RichTextElements: Tag, render_as, HRef, append
 
 julia> text = Tag("strong", "Chuck Norris");
 
 julia> print(render_as(text +  " wins!","html"))
 <strong>Chuck Norris</strong> wins!
+
 julia> print(render_as(append(text," wins!"),"html"))
 <strong>Chuck Norris wins!</strong>
 ```
@@ -439,8 +469,11 @@ end
 function split(self::T, sep=nothing; keep_empty_parts=nothing) where T <:MultiPartText
 ```
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, split
+
 julia> print(split(RichText("a + b")))
 Any[RichText("a"), RichText("+"), RichText("b")]
+
 julia> print(split(RichText("a, b"), ", "))
 Any[RichText("a"), RichText("b")]
 ```
@@ -487,12 +520,16 @@ function startswith(self::T, prefix) where T<:MultiPartText
 ```
 Return True if the text starts with the given prefix.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText
+
 julia> startswith(RichText("Longcat!"),"Longcat")
 true
 ```
 
 Prefixes split across multiple parts are not matched:
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag
+
 julia> startswith(RichText(Tag("em", "Long"), "cat!"),"Longcat")
 false
 ```
@@ -508,12 +545,16 @@ end
 """
 Return True if the text ends with the given suffix.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText
+
 julia> endswith(RichText("Longcat!"),"cat!")
 true
 
 ```
 Suffixes split across multiple parts are not matched:
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag
+
 julia> endswith(RichText("Long", Tag("em", "cat"), "!"),"cat!")
 false
 
@@ -545,6 +586,8 @@ function lowercase(self::T) where T <:MultiPartText
 ```
 Convert rich text to lowercasecase.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag
+
 julia> lowercase(RichText(Tag("em", "Long cat")))
 RichText(Tag("em", "long cat"))
 ```
@@ -556,6 +599,8 @@ end
 """
 Convert rich text to uppsercase.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag
+
 julia> uppercase(RichText(Tag("em", "Long cat")))
 RichText(Tag("em", "LONG CAT"))
 ```
@@ -570,6 +615,8 @@ function merge_similar(param_parts)
 ```
 Merge adjacent text objects with the same type and parameters together.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichText, Tag, merge_similar
+
 julia> parts = [Tag("em", "Breaking"), Tag("em", " "), Tag("em", "news!")];
 
 julia> print(merge_similar(parts))
@@ -624,8 +671,11 @@ end
 A `RichString` is a wrapper for a plain Julia string.
 
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichString, render_as
+
 julia> print(render_as(RichString("Crime & Punishment"),"text"))
 Crime & Punishment
+
 julia> print(render_as(RichString("Crime & Punishment"),"html"))
 Crime &amp; Punishment
 
@@ -639,6 +689,8 @@ end
 All arguments must be plain unicode strings.
 Arguments are concatenated together.
 ```jldoctest
+julia> import BibTeXFormat.RichTextElements: RichString
+
 julia> print(convert(String,RichString("November", ", ", "December", ".")))
 November, December.
 ```
@@ -804,7 +856,7 @@ end
 raw"""
 A `HRef` represends a hyperlink:
 ```jldoctest
-julia> import BibTeXFormat: render_as
+julia> import BibTeXFormat: render_as, HRef
 
 julia> href = HRef("http://ctan.org/", "CTAN");
 

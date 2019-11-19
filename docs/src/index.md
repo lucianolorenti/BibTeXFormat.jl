@@ -6,8 +6,8 @@
 using BibTeX
 using BibTeXFormat
 
-bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"),
-                                                     "test/Clustering.bib")))
+open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x ))
+bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 mdoutput          = write_to_string( MarkdownBackend(),formatted_entries)
 mdoutput_parsed   = Markdown.parse(mdoutput)
@@ -17,8 +17,8 @@ mdoutput_parsed   = Markdown.parse(mdoutput)
 using BibTeX
 using BibTeXFormat
 
-bibliography = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"),
-                                               "test/Clustering.bib")))
+open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x ))
+bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 mdoutput    = write_to_string( MarkdownBackend(),formatted_entries)
 mdoutput_parsed = Markdown.parse(mdoutput)
@@ -29,8 +29,8 @@ mdoutput_parsed = Markdown.parse(mdoutput)
 ```@example
 using BibTeX
 using BibTeXFormat
-bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"),
-                                                    "test/Clustering.bib")))
+open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x))
+bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 htmlbackend       = HTMLBackend("uft-8") # No prolog and epilog
 write_to_file( htmlbackend ,formatted_entries, "html_test.html")
@@ -44,8 +44,8 @@ nothing # hide
 ```@example
 using BibTeX
 using BibTeXFormat
-bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"),
-                                                    "test/Clustering.bib")))
+open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x))
+bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 latexbackend      = LaTeXBackend() # No prolog and epilog
 write_to_file( latexbackend ,formatted_entries, "latex_test.aux")
@@ -60,8 +60,8 @@ nothing # hide
 ```@example
 using BibTeX
 using BibTeXFormat
-
-bibliography      = Bibliography(readstring(joinpath(Pkg.dir("BibTeXFormat"), "test/Clustering.bib")))
+open_file(x) = open(joinpath(dirname(pathof(BibTeXFormat)), "../", x))
+bibliography      = Bibliography(read(open_file("test/Clustering.bib"), String))
 formatted_entries = format_entries(AlphaStyle,bibliography)
 write_to_file( TextBackend(),formatted_entries, "text_test.txt")
 ```

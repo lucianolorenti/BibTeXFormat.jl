@@ -26,9 +26,6 @@ struct Config
 end
 
 
-#function citation_type(t::Citation{T}) where {T}
-#    return T
-#end
 
 function citation_type(e::Dict{String,String})
     return e["type"]
@@ -161,7 +158,7 @@ julia> using BibTeX
 
 julia> import BibTeXFormat: get_crossreferenced_citations, Citation, Bibliography
 
-julia> data = Bibliography("", Dict{String,Citation}("main_article"=>Citation(:article, Dict("crossref"=>"xrefd_article")),"xrefd_article"=>Citation(:article)));
+julia> data = Bibliography("", Dict{String,Citation}("main_article"=>Citation{:article}(Dict("crossref"=>"xrefd_article")),"xrefd_article"=>Citation{:article}())));
 
 julia> print(get_crossreferenced_citations(data, [], min_crossrefs=1))
 Any[]
@@ -215,7 +212,7 @@ julia> using BibTeX
 
 julia> import BibTeXFormat: expand_wildcard_citations, Citation, Bibliography
 
-julia> data = Bibliography("", Dict{String,Citation}("uno"=>Citation(:article),"dos"=>Citation(:article),"tres"=>Citation(:article),	"cuatro"=>Citation(:article)));
+julia> data = Bibliography("", Dict{String,Citation}("uno"=>Citation{:article}(),"dos"=>Citation{:article}(),"tres"=>Citation{:article}(),	"cuatro"=>Citation{:article}()));
 
 julia> expand_wildcard_citations(data, [])
 0-element Array{Any,1}
