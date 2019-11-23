@@ -363,20 +363,12 @@ NEWLINE[1].match_options |= Base.PCRE.ANCHORED
 struct MissingField <: AbstractString
 	name
 end
-import Base.endof
-import Base.next
-function endof(m::MissingField)
-    return endof(m.name)
-end
-function next(m::MissingField, state)
-    return next(m.name, state)
-end
-function length(m::MissingField)
-    return 1
-end
-function string(m::MissingField)
-    return m.name
-end
+import Base.iterate
+iterate(m::MissingField) = iterate(m.name)
+iterate(m::MissingField, state) = iterate(m.name, state)
+length(m::MissingField) = 1
+string(m::MissingField) = m.name
+
 abstract type AbstractField end
 function execute(self::T, interpreter) where T<:AbstractField
 	push!(self.interpreter, value(self))
