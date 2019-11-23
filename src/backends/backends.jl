@@ -107,7 +107,7 @@ function write_to_string(self, formatted_entries, citations::Vector{String})
 function write_to_string(self, formatted_entries, citations::Vector{String})
     buff = IOBuffer()
     write_to_stream(self, formatted_entries, citations, buff)
-    return String(buff)
+    return String(take!(buff))
 end
 
 """
