@@ -1,6 +1,6 @@
 name = "BibTeXFormat"
 uuid = "81872a04-5f92-5ce1-a30b-528d3f2b00a0"
-version = "0.0.0"
+version = "0.1.0"
 
 [deps]
 BibTeX = "7b0aa2c9-049f-5cec-894a-2b6b781bb25e"
@@ -10,3 +10,9 @@ Markdown = "d6f4376e-aef5-505a-96c1-9c027394607a"
 Query = "1a8c2f83-1ff3-5112-b086-8aa67b057ba1"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
+
+[compat]
+Formatting = "= 0.4.1"
+HttpCommon = "= 0.5.0"
+Query = "~0.12.1"
+julia = "~1.2.0"
