@@ -51,6 +51,7 @@ end
 
 
 function render_as() end
+include("accents.jl")
 include("utils.jl")
 include("person.jl")
 include("richtextelements.jl")

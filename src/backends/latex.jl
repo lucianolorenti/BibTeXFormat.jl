@@ -1,5 +1,5 @@
 using Test
-
+import ..LaTeXAccents: decode_Tex_Accents
 """
 LaTeX output backend.
 ```jldoctest
@@ -45,8 +45,8 @@ function LaTeXBackend(enconding=nothing)
     return LaTeXBackend(eenconding, string("ulatex+",eenconding),"")
 end
 function format(self::LaTeXBackend, str::String)
-    #return codecs.encode(str_, self.latex_encoding)
-    return str
+    return decode_Tex_Accents(str)
+
 end
 function format(self::LaTeXBackend, t::Tag, text)
     tag = tags[LaTeXBackend][t.name]
